@@ -1,0 +1,242 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Core user profile and role information",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "role": { "type": "string", "enum": ["client", "worker", "admin", "support"] },
+        "nome": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string" },
+        "tokens": { "type": "number", "description": "Credits for workers to send proposals" },
+        "addressId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["active", "pending", "suspended"] }
+      },
+      "required": ["id", "role", "nome", "email", "createdAt", "status"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Extended profile for workers",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "bio": { "type": "string" },
+        "categories": { "type": "array", "items": { "type": "string" } },
+        "hourlyRate": { "type": "number" },
+        "radiusKm": { "type": "number" },
+        "verifiedFlags": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "boolean" },
+            "phone": { "type": "boolean" },
+            "insurance": { "type": "boolean" }
+          }
+        },
+        "badges": { "type": "array", "items": { "type": "string" } },
+        "score": { "type": "number" }
+      },
+      "required": ["userId", "bio", "categories", "hourlyRate", "radiusKm"]
+    },
+    "Job": {
+      "title": "Job",
+      "description": "A domestic service request",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "clientId": { "type": "string" },
+        "title": { "type": "string" },
+        "category": { "type": "string" },
+        "description": { "type": "string" },
+        "location": {
+          "type": "object",
+          "properties": {
+            "lat": { "type": "number" },
+            "lng": { "type": "number" },
+            "address": { "type": "string" }
+          }
+        },
+        "photos": { "type": "array", "items": { "type": "string" } },
+        "budgetMin": { "type": "number" },
+        "budgetMax": { "type": "number" },
+        "preferredTimeSlot": { "type": "string" },
+        "status": { "type": "string", "enum": ["open", "assigned", "in_progress", "completed", "cancelled", "expired"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "expiresAt": { "type": "string", "format": "date-time" },
+        "publicationPlan": { "type": "string", "enum": ["free", "premium"] },
+        "scheduledAt": { "type": "string", "format": "date-time" },
+        "isElderlyPriority": { "type": "boolean" },
+        "assignedWorkerId": { "type": "string" }
+      },
+      "required": ["id", "clientId", "title", "category", "description", "location", "status", "createdAt"]
+    },
+    "JobProposal": {
+      "title": "JobProposal",
+      "description": "A proposal from a worker for a specific job",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "jobId": { "type": "string" },
+        "workerId": { "type": "string" },
+        "workerName": { "type": "string" },
+        "price": { "type": "number" },
+        "message": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "accepted", "rejected", "expired"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "expiresAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "jobId", "workerId", "price", "status", "createdAt", "expiresAt"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "System or user notifications",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string", "description": "Target user ID (or 'all' for broadcast)" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "type": { "type": "string", "enum": ["info", "alert", "reward", "action"] },
+        "read": { "type": "boolean" },
+        "link": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "title", "message", "type", "read", "createdAt"]
+    },
+    "Conversation": {
+      "title": "Conversation",
+      "description": "Chat session between two or more participants",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "participants": { "type": "array", "items": { "type": "string" } },
+        "lastMessage": { "type": "string" },
+        "lastUpdate": { "type": "string", "format": "date-time" },
+        "jobId": { "type": "string" },
+        "jobTitle": { "type": "string" },
+        "isPublicContext": { "type": "boolean", "description": "True if pre-acceptance clarification chat" }
+      },
+      "required": ["id", "participants", "lastUpdate"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "Individual message in a conversation",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "conversationId": { "type": "string" },
+        "senderId": { "type": "string" },
+        "participantIds": { "type": "array", "items": { "type": "string" } },
+        "text": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "isRead": { "type": "boolean" }
+      },
+      "required": ["id", "conversationId", "senderId", "text", "timestamp"]
+    },
+    "BillingProfile": {
+      "title": "BillingProfile",
+      "description": "Fiscal information for invoicing",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "fiscalType": { "type": "string", "enum": ["individual", "company", "freelancer"] },
+        "ragioneSociale": { "type": "string" },
+        "partitaIva": { "type": "string" },
+        "codiceFiscale": { "type": "string" },
+        "codiceSdi": { "type": "string" },
+        "pec": { "type": "string" },
+        "address": { "type": "string" },
+        "cap": { "type": "string" },
+        "citta": { "type": "string" },
+        "provincia": { "type": "string" },
+        "regione": { "type": "string" },
+        "regimeFiscale": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "fiscalType", "codiceFiscale", "address", "cap", "citta", "provincia", "updatedAt"]
+    },
+    "Invoice": {
+      "title": "Invoice",
+      "description": "Invoice record for token purchases",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "orderId": { "type": "string" },
+        "amount": { "type": "number" },
+        "tokens": { "type": "number" },
+        "status": { "type": "string", "enum": ["draft", "pending_sdi", "sent", "error", "rejected"] },
+        "xmlUrl": { "type": "string" },
+        "pdfUrl": { "type": "string" },
+        "sdiId": { "type": "string" },
+        "fiscalData": { "$ref": "#/entities/BillingProfile" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "approvedAt": { "type": "string", "format": "date-time" },
+        "errorLog": { "type": "string" }
+      },
+      "required": ["id", "userId", "orderId", "amount", "status", "createdAt"]
+    },
+    "AdminSettings": {
+      "title": "AdminSettings",
+      "description": "Platform configuration including platform fiscal data",
+      "type": "object",
+      "properties": {
+        "companyName": { "type": "string" },
+        "partitaIva": { "type": "string" },
+        "codiceFiscale": { "type": "string" },
+        "address": { "type": "string" },
+        "cap": { "type": "string" },
+        "citta": { "type": "string" },
+        "provincia": { "type": "string" },
+        "regione": { "type": "string" },
+        "pec": { "type": "string" },
+        "codiceSdi": { "type": "string" }
+      },
+      "required": ["companyName", "partitaIva", "address", "cap", "citta"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User documents"
+    },
+    "/billingProfiles/{userId}": {
+      "schema": "BillingProfile",
+      "description": "User billing information"
+    },
+    "/invoices/{invoiceId}": {
+      "schema": "Invoice",
+      "description": "Invoice records"
+    },
+    "/adminSettings/config": {
+      "schema": "AdminSettings",
+      "description": "Global admin configuration"
+    },
+    "/workerProfiles/{userId}": {
+      "schema": "UserProfile",
+      "description": "Worker extended profiles"
+    },
+    "/jobs/{jobId}": {
+      "schema": "Job",
+      "description": "Job requests"
+    },
+    "/proposals/{proposalId}": {
+      "schema": "JobProposal",
+      "description": "Global proposals collection"
+    },
+    "/conversations/{conversationId}": {
+      "schema": "Conversation",
+      "description": "List of active chats"
+    },
+    "/messages/{messageId}": {
+      "schema": "Message",
+      "description": "Individual chat messages"
+    },
+    "/notifications/{notificationId}": {
+      "schema": "Notification",
+      "description": "System or personal notifications"
+    }
+  }
+}

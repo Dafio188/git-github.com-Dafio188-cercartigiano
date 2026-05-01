@@ -1,0 +1,129 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Test doc
+    match /_internal_/connection_test {
+      allow get: if true; 
+    }
+
+    // ===============================================================
+    // GLOBAL HELPERS
+    // ===============================================================
+
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    
+    function isAdmin() { 
+      return isSignedIn() && (
+        request.auth.token.email == "fio.davide@gmail.com" ||
+        request.auth.token.email == "admin@cercartigiano.it"
+      ); 
+    }
+    
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    function isValidId(id) { 
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); 
+    }
+
+    // ===============================================================
+    // DOMAIN RULES
+    // ===============================================================
+
+    // --- USERS ---
+    match /users/{userId} {
+      allow read: if isSignedIn(); // We need to list users in AdminDashboard and search, so this allows all signed in users.
+      allow create: if isOwner(userId) || isAdmin();
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // --- WORKER PROFILES ---
+    match /workerProfiles/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isOwner(userId) || isAdmin();
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // --- JOBS ---
+    match /jobs/{jobId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && incoming().clientId == request.auth.uid;
+      allow update: if (isSignedIn() && existing().clientId == request.auth.uid) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // --- PROPOSALS ---
+    match /proposals/{proposalId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isAdmin();
+    }
+
+    // --- CONVERSATIONS & MESSAGES ---
+    match /conversations/{convId} {
+      allow read: if isSignedIn() && request.auth.uid in existing().participants;
+      allow create: if isSignedIn() && request.auth.uid in incoming().participants;
+      allow update: if isSignedIn() && (request.auth.uid in existing().participants) && (request.auth.uid in incoming().participants);
+      allow delete: if isAdmin();
+    }
+
+    match /messages/{msgId} {
+      allow read: if isSignedIn() && request.auth.uid in existing().participantIds;
+      allow create: if isSignedIn() && request.auth.uid in incoming().participantIds && incoming().senderId == request.auth.uid;
+      allow update: if isSignedIn() && request.auth.uid in existing().participantIds;
+      allow delete: if isAdmin();
+    }
+
+    // --- REVIEWS ---
+    match /reviews/{reviewId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isAdmin();
+    }
+
+    // --- NOTIFICATIONS ---
+    match /notifications/{notifId} {
+      allow read: if isSignedIn(); // Users need to read notifications addressed to them or 'all'
+      allow create: if isSignedIn() || isAdmin();
+      allow update: if isSignedIn() || isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // --- BILLING PROFILES ---
+    match /billingProfiles/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) || isAdmin();
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // --- INVOICES ---
+    match /invoices/{invoiceId} {
+      allow read: if (isSignedIn() && resource.data.userId == request.auth.uid) || isAdmin();
+      allow create: if isAdmin(); // Server usually creates invoices, but adding if needed
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // --- ADMIN SETTINGS & CONFIG ---
+    match /adminSettings/{docId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /config/{docId} {
+      allow read: if true; // Everyone can read config (e.g. maintenance mode check)
+      allow write: if isAdmin();
+    }
+
+    // Default deny for everything else unprotected
+    match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

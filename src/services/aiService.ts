@@ -1,0 +1,27 @@
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY || "");
+
+export async function evaluateJobComplexity(title: string, description: string): Promise<number> {
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const prompt = `Valuta la complessità di questo lavoro artigianale per determinare il costo in Token (da 1 a 10) che un professionista deve pagare per inviare un preventivo.
+    Titolo: ${title}
+    Descrizione: ${description}
+    
+    Restituisci SOLO un numero intero tra 1 e 10.
+    Esempi:
+    - Sostituzione lampadina: 1
+    - Perfezionamento impianto elettrico casa: 5
+    - Ristrutturazione completa bagno: 10`;
+
+    const result = await model.generateContent(prompt);
+    const text = result.response.text().trim();
+    const cost = parseInt(text);
+    
+    return isNaN(cost) ? 2 : Math.min(Math.max(cost, 1), 10);
+  } catch (error) {
+    console.warn("Using default token cost due to AI service unavailability.");
+    return 2; // Default fallback
+  }
+}
