@@ -26,7 +26,7 @@ export function CategoriesPage({ onBack, onSelectCategory }: CategoriesPageProps
           <img 
             src="/logo.png" 
             alt="Logo" 
-            className="w-8 h-8 object-contain mix-blend-multiply" 
+            className="w-8 h-8 object-contain" 
           />
           <span className="font-black text-xl tracking-tight">Esplora Categorie</span>
         </div>

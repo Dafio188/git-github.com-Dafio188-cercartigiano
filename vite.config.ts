@@ -10,9 +10,9 @@ export default defineConfig(({mode}) => {
     plugins: [
       react(), 
       tailwindcss(),
-      VitePWA({
+      /* VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+        includeAssets: [],
         workbox: {
           maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         },
@@ -45,8 +45,12 @@ export default defineConfig(({mode}) => {
             }
           ]
         }
-      })
+      }) */
     ],
+    build: {
+      outDir: 'dist',
+      emptyOutDir: true,
+    },
     define: {
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
     },

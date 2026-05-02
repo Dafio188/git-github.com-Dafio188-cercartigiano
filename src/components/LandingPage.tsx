@@ -76,11 +76,7 @@ export function LandingPage({ onLogin, onShowPrivacy, onShowTerms, onShowCookies
               className="w-full h-full object-contain group-hover:scale-110 transition-transform" 
               onError={(e) => {
                 const target = e.currentTarget;
-                target.style.display = 'none';
-                const fallback = document.createElement('div');
-                fallback.className = "w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-white text-xs";
-                fallback.innerText = "C";
-                target.parentElement?.appendChild(fallback);
+                target.src = "https://api.dicebear.com/7.x/initials/svg?seed=C&backgroundColor=1d4ed8";
               }}
             />
           </div>
@@ -111,14 +107,15 @@ export function LandingPage({ onLogin, onShowPrivacy, onShowTerms, onShowCookies
       {/* Hero Section */}
       <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
         {/* User uploaded realistic background image */}
-        <div className="absolute inset-0 z-0 select-none pointer-events-none overflow-hidden h-full w-full">
-          <div className="absolute inset-0 bg-gradient-to-br from-[#F5F5F7] to-[#D2D2D7]" /> {/* Background fallback color */}
+        <div className="absolute inset-0 z-0 select-none pointer-events-none overflow-hidden h-full w-full bg-[#F5F5F7]">
           <img 
             src="/Foto_homepage.png" 
             alt="Artigiano al lavoro" 
             className="w-full h-full object-cover"
+            loading="eager"
             onError={(e) => {
-              e.currentTarget.style.display = 'none';
+               const target = e.currentTarget;
+               target.src = "https://images.unsplash.com/photo-1504307651254-35680f3366d4?auto=format&fit=crop&q=80&w=2000";
             }}
           />
           <div className="absolute inset-0 bg-black/10" /> {/* Subtle overlay for better contrast */}
@@ -540,14 +537,6 @@ export function LandingPage({ onLogin, onShowPrivacy, onShowTerms, onShowCookies
                   src="/logo.png" 
                   alt="Logo" 
                   className="w-full h-full object-contain transition-transform" 
-                  onError={(e) => {
-                    const target = e.currentTarget;
-                    target.style.display = 'none';
-                    const fallback = document.createElement('div');
-                    fallback.className = "w-6 h-6 rounded bg-blue-600 flex items-center justify-center font-bold text-white text-[10px]";
-                    fallback.innerText = "C";
-                    target.parentElement?.appendChild(fallback);
-                  }}
                 />
               </div>
               <div className="flex flex-col">

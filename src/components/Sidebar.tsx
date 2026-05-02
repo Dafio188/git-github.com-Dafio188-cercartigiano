@@ -28,14 +28,16 @@ export function Sidebar({ activeTab, setActiveTab, role }: SidebarProps) {
   const menuItems = [
     { id: 'home', icon: Home, label: 'Inizio', roles: ['client', 'worker', 'admin'] },
     { id: 'search', icon: Search, label: 'Esplora Esperti', roles: ['client'] },
-    { id: 'jobs', icon: Briefcase, label: role === 'worker' ? 'Trova Lavori' : 'Le mie Richieste', roles: ['client', 'worker'] },
+    { id: 'jobs', icon: Briefcase, label: role === 'worker' ? 'Trova Lavori' : (role === 'admin' ? 'Tutti i Lavori' : 'Le mie Richieste'), roles: ['client', 'worker', 'admin'] },
     { id: 'projects', icon: CheckCircle2, label: 'Lavori Attivi', roles: ['worker'] },
     { id: 'profile', icon: User, label: 'Mio Profilo', roles: ['client', 'worker', 'admin'] },
     { id: 'credits', icon: CreditCard, label: 'Ricarica Token', roles: ['client'] },
     { id: 'admin', icon: Shield, label: 'Console Amministratore', roles: ['admin'] },
     { id: 'admin_utenti', icon: Users, label: 'CRM Utenti', roles: ['admin'] },
+    { id: 'admin_moderazione', icon: Shield, label: 'Moderazione', roles: ['admin'] },
     { id: 'admin_fatturazione', icon: FileText, label: 'Fatturazione', roles: ['admin'] },
     { id: 'admin_economia', icon: CreditCard, label: 'Economia', roles: ['admin'] },
+    { id: 'admin_sistema', icon: Settings, label: 'Sistema', roles: ['admin'] },
   ].filter(item => {
     return item.roles.includes(role);
   });

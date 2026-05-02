@@ -336,7 +336,7 @@ export default function App() {
                 <img 
                   src="/logo.png" 
                   alt="Logo" 
-                  className="w-5 h-5 object-contain" 
+                  className="w-8 h-8 object-contain" 
                 />
               </div>
               <span className="font-black text-[11px] tracking-tight text-[#1D1D1F] uppercase">
@@ -379,38 +379,61 @@ export default function App() {
                 transition={{ duration: 0.2 }}
                 className="max-w-6xl mx-auto"
               >
-                {activeTab === 'home' && renderDashboard()}
-                {activeTab === 'jobs' && renderDashboard()}
-                {activeTab === 'projects' && renderDashboard()}
-                {activeTab === 'admin' && effectiveRole === 'admin' && (
-                  <AdminDashboard user={user!} />
+                {/* Render appropriate dashboard component based on role */}
+                {activeTab === 'home' && effectiveRole === 'admin' && (
+                  <div key="admin-home-view" className="space-y-8">
+                    <div className="bg-blue-600 rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden">
+                       <div className="relative z-10">
+                          <h1 className="text-4xl font-black tracking-tighter mb-2">Buongiorno, Davide</h1>
+                          <p className="text-blue-100 font-medium max-w-md">Il sistema è stabile. Hai 4 profili artigiano da revisionare e 2 segnalazioni aperte.</p>
+                          <Button className="mt-8 bg-white text-blue-600 rounded-full font-black px-8" onClick={() => setActiveTab('admin_utenti')}>Vai al CRM</Button>
+                       </div>
+                       <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+                    </div>
+                    <AdminDashboard key="admin-summary" user={user!} summaryOnly={true} />
+                  </div>
                 )}
-                {activeTab === 'admin_utenti' && effectiveRole === 'admin' && (
-                  <AdminDashboard user={user!} initialTab="utenti" />
+                
+                {activeTab === 'home' && effectiveRole === 'worker' && <WorkerDashboard key="worker-home" user={user!} activeTab="home" />}
+                {activeTab === 'home' && effectiveRole === 'client' && <ClientDashboard key="client-home" user={user!} activeTab="home" />}
+
+                {/* Specific views shared or role-restricted */}
+                {activeTab === 'jobs' && (
+                  effectiveRole === 'admin' 
+                    ? <AdminDashboard key="admin-jobs" user={user!} initialTab="moderazione" />
+                    : (effectiveRole === 'worker' 
+                        ? <WorkerDashboard key="worker-jobs" user={user!} activeTab="jobs" />
+                        : <ClientDashboard key="client-jobs" user={user!} activeTab="jobs" />)
                 )}
-                {activeTab === 'admin_fatturazione' && effectiveRole === 'admin' && (
-                  <AdminDashboard user={user!} initialTab="fatturazione" />
+
+                {activeTab === 'projects' && effectiveRole === 'worker' && (
+                  <WorkerDashboard key="worker-projects" user={user!} activeTab="projects" />
                 )}
-                {activeTab === 'admin_economia' && effectiveRole === 'admin' && (
-                  <AdminDashboard user={user!} initialTab="finanza" />
-                )}
-                {activeTab === 'profile' && (
-                  <ProfileView user={user!} />
-                )}
-                {activeTab === 'settings' && (
-                  <SettingsView />
-                )}
-                {activeTab === 'credits' && (
-                  <CreditsView user={user!} />
-                )}
-                {activeTab === 'subscriptions' && (
-                  <SubscriptionsView user={user!} />
-                )}
+
                 {activeTab === 'search' && (effectiveRole === 'client' || effectiveRole === 'admin') && (
-                  <ProfessionalSearchView currentUser={user!} />
+                  <ProfessionalSearchView key="search-view" currentUser={user!} />
                 )}
-                {/* Fallback for unknown or empty views */}
-                {!['home', 'jobs', 'projects', 'admin', 'admin_utenti', 'admin_fatturazione', 'admin_economia', 'profile', 'settings', 'credits', 'subscriptions', 'search'].includes(activeTab) && (
+
+                {/* Admin specific views */}
+                {effectiveRole === 'admin' && (
+                  <>
+                    {activeTab === 'admin' && <AdminDashboard key="admin-panoramica" user={user!} />}
+                    {activeTab === 'admin_utenti' && <AdminDashboard key="admin-utenti" user={user!} initialTab="utenti" />}
+                    {activeTab === 'admin_fatturazione' && <AdminDashboard key="admin-fatturazione" user={user!} initialTab="fatturazione" />}
+                    {activeTab === 'admin_economia' && <AdminDashboard key="admin-economia" user={user!} initialTab="finanza" />}
+                    {activeTab === 'admin_moderazione' && <AdminDashboard key="admin-moderazione" user={user!} initialTab="moderazione" />}
+                    {activeTab === 'admin_sistema' && <AdminDashboard key="admin-sistema" user={user!} initialTab="impostazioni" />}
+                  </>
+                )}
+
+                {/* Common views */}
+                {activeTab === 'profile' && <ProfileView user={user!} />}
+                {activeTab === 'settings' && <SettingsView />}
+                {activeTab === 'credits' && <CreditsView user={user!} />}
+                {activeTab === 'subscriptions' && <SubscriptionsView user={user!} />}
+
+                {/* Fallback for unknown or unauthorized views */}
+                {!['home', 'jobs', 'projects', 'admin', 'admin_utenti', 'admin_fatturazione', 'admin_economia', 'admin_moderazione', 'admin_sistema', 'profile', 'settings', 'credits', 'subscriptions', 'search'].includes(activeTab) && (
                   <div className="flex flex-col items-center justify-center py-20 text-center">
                     <div className="w-20 h-20 bg-[#F5F5F7] rounded-3xl flex items-center justify-center mb-6">
                       <Home className="w-10 h-10 text-[#86868B]" />

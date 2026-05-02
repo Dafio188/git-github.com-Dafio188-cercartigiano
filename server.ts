@@ -2,8 +2,12 @@ import express from "express";
 import { createServer as createViteServer } from "vite";
 import path from "path";
 import fs from "fs";
+import { fileURLToPath } from 'url';
 import Stripe from 'stripe';
 import admin from 'firebase-admin';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Helper to get Firebase Admin Firestore instance lazily
 let _db: admin.firestore.Firestore | null = null;
@@ -258,7 +262,7 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.join(process.cwd(), 'dist');
+    const distPath = path.resolve(__dirname, 'dist');
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
