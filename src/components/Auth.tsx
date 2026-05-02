@@ -50,16 +50,20 @@ export function Auth() {
     try {
       await signInWithPopup(auth, provider);
     } catch (error: any) {
+      if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+        console.log("Auth cancelled by user/browser.");
+        return;
+      }
+      
       console.error("Auth error:", error);
+      
+      // Controllo specifico per domini non autorizzati
       if (error.code === 'auth/unauthorized-domain') {
-        setError("Il dominio corrente non è autorizzato. Aggiungi '" + window.location.hostname + "' ai domini autorizzati su Firebase.");
-      } else if (error.code === 'auth/popup-closed-by-user') {
-        setError("Accesso annullato (finestra chiusa).");
-      } else if (error.code === 'auth/cancelled-popup-request') {
-        // This often happens if multiple popups are triggered. We ignore the intermediate error.
-        console.log("Popup request was cancelled, likely due to a new request.");
+        setError(`Dominio non autorizzato. Vai nella Console Firebase > Authentication > Settings e aggiungi "${window.location.hostname}" ai domini autorizzati.`);
+      } else if (error.code === 'auth/network-request-failed') {
+        setError("Errore di rete. Verifica la connessione o se i cookie di terze parti sono bloccati (comune negli iframe). Prova ad aprire l'app in una nuova scheda.");
       } else {
-        setError("Errore accesso Google: " + error.message);
+        setError("Errore accesso Google: " + (error.message || "Riprova tra poco."));
       }
     } finally {
       setLoading(false);

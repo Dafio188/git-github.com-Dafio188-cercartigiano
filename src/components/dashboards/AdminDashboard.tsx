@@ -93,8 +93,16 @@ import {
   AlertTriangle,
   Download,
   Database,
-  Upload
+  Upload,
+  MapPin,
+  MessageSquare
 } from 'lucide-react';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle,
+} from '../ui/dialog';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { Input } from '../ui/input';
@@ -145,6 +153,8 @@ export function AdminDashboard({ user, summaryOnly = false, initialTab }: AdminD
   const [recentLogs, setRecentLogs] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [processing, setProcessing] = useState<string | null>(null);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
   const [notifForm, setNotifForm] = useState({
     userId: 'all',
@@ -509,14 +519,8 @@ export function AdminDashboard({ user, summaryOnly = false, initialTab }: AdminD
   };
 
   const handleViewJobDetails = (job: Job) => {
-    const details = `
-Titolo: ${job.title}
-Descrizione: ${job.description}
-Budget: €${job.budgetMin} - €${job.budgetMax}
-Locazione: ${job.location?.address}
-Creato il: ${job.createdAt?.toDate ? job.createdAt.toDate().toLocaleString() : 'N/D'}
-    `;
-    alert(details);
+    setSelectedJob(job);
+    setIsDetailsModalOpen(true);
   };
 
   return (
@@ -1106,6 +1110,80 @@ Creato il: ${job.createdAt?.toDate ? job.createdAt.toDate().toLocaleString() : '
           </motion.div>
         )}
       </AnimatePresence>
+
+      <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
+        <DialogContent className="max-w-2xl bg-white rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
+          {selectedJob && (
+            <div className="flex flex-col">
+              <div className="p-8 border-b border-[#D2D2D7]/30 bg-[#F5F5F7]/30">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center">
+                    <Briefcase className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-black tracking-tight text-[#1D1D1F]">{selectedJob.title}</h3>
+                    <p className="text-[10px] font-black uppercase text-blue-600 tracking-widest">{selectedJob.category || 'Servizio Generale'}</p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-4 text-xs font-bold text-[#86868B]">
+                  <div className="flex items-center gap-1.5">
+                    <MapPin className="w-4 h-4" />
+                    {selectedJob.location?.address || 'N/D'}
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="w-4 h-4" />
+                    Pubblicato: {selectedJob.createdAt?.toDate ? selectedJob.createdAt.toDate().toLocaleString() : 'N/D'}
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-8 space-y-8 max-h-[60vh] overflow-y-auto">
+                <section className="space-y-3">
+                  <h4 className="text-[10px] font-black uppercase text-[#86868B] tracking-widest px-1">Descrizione Analitica</h4>
+                  <div className="bg-[#F5F5F7] p-6 rounded-3xl text-sm font-medium text-[#1D1D1F] leading-relaxed whitespace-pre-wrap">
+                    {selectedJob.description}
+                  </div>
+                </section>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-white border border-[#D2D2D7]/30 p-6 rounded-3xl">
+                    <h4 className="text-[10px] font-black uppercase text-[#86868B] tracking-widest mb-2">Budget Stime</h4>
+                    <div className="text-2xl font-black text-[#1D1D1F]">€{selectedJob.budgetMin} - €{selectedJob.budgetMax}</div>
+                  </div>
+                  <div className="bg-white border border-[#D2D2D7]/30 p-6 rounded-3xl">
+                    <h4 className="text-[10px] font-black uppercase text-[#86868B] tracking-widest mb-2">Costo Proposta</h4>
+                    <div className="text-2xl font-black text-[#1D1D1F]">{selectedJob.tokenCost || 1} Token</div>
+                  </div>
+                </div>
+
+                <section className="space-y-3">
+                  <h4 className="text-[10px] font-black uppercase text-[#86868B] tracking-widest px-1">Metadati Tecnici</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[10px] font-bold text-[#86868B]">
+                    <div className="flex justify-between p-3 bg-white border border-[#D2D2D7]/10 rounded-xl">
+                      <span>JOB ID:</span>
+                      <code className="text-blue-600 uppercase">{selectedJob.id}</code>
+                    </div>
+                    <div className="flex justify-between p-3 bg-white border border-[#D2D2D7]/10 rounded-xl">
+                      <span>STATUS:</span>
+                      <code className="text-green-600 uppercase font-black">{selectedJob.status}</code>
+                    </div>
+                  </div>
+                </section>
+              </div>
+
+              <div className="p-6 bg-[#F5F5F7]/50 border-t border-[#D2D2D7]/30 flex justify-end gap-3">
+                <Button variant="outline" className="rounded-full px-6 font-black text-xs h-12" onClick={() => setIsDetailsModalOpen(false)}>CHIUDI</Button>
+                <Button className="rounded-full px-6 bg-red-600 hover:bg-red-700 text-white font-black text-xs h-12" onClick={() => {
+                  handleDeleteJob(selectedJob.id);
+                  setIsDetailsModalOpen(false);
+                }}>
+                  <Trash2 className="w-4 h-4 mr-2" /> ELIMINA LAVORO
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

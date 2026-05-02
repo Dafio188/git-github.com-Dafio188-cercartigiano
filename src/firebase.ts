@@ -10,23 +10,19 @@ export const auth = getAuth(app);
 // Validate Connection to Firestore
 async function testConnection() {
   try {
-    // Attempt to read a non-existent document to test connectivity
-    // We use a specific path that is allowed in firestore.rules
-    await getDocFromServer(doc(db, '_internal_', 'connection_test'));
+    // Attempt to read with a timeout-like behavior via getDocFromServer
+    await getDocFromServer(doc(db, '_internal_health_', 'check'));
     console.log("Firestore connection verified.");
-  } catch (error) {
-    // If we get "Missing or insufficient permissions", it means we successfully
-    // reached the Firestore servers, but the rules blocked the read (which is expected if not logged in).
-    // This still confirms the configuration is valid.
+  } catch (error: any) {
     const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorCode = error?.code;
     
-    if (errorMessage.includes('permission-denied') || errorMessage.includes('Missing or insufficient permissions')) {
+    if (errorCode === 'unavailable') {
+      console.warn("Firestore backend currently unavailable. The app will work in offline mode and sync when possible.");
+    } else if (errorCode === 'permission-denied' || errorMessage.includes('permission-denied') || errorMessage.includes('insufficient permissions')) {
       console.log("Firestore connectivity confirmed (reached server).");
-    } else if (errorMessage.includes('offline')) {
-      console.error("Firestore connectivity failed: Client is offline or project ID is incorrect.");
     } else {
-      // For other errors, we log them but don't stop the app
-      console.log("Firestore connectivity status:", errorMessage);
+      console.log("Firestore connectivity status:", errorCode || errorMessage);
     }
   }
 }
