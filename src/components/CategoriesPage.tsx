@@ -24,7 +24,7 @@ export function CategoriesPage({ onBack, onSelectCategory }: CategoriesPageProps
         
         <div className="flex items-center gap-3">
           <img 
-            src="/logo-brand.png" 
+            src="/logo.png" 
             alt="Logo" 
             className="w-8 h-8 object-contain" 
           />

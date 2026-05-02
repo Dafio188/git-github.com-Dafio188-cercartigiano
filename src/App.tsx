@@ -334,7 +334,7 @@ export default function App() {
             >
               <div className="w-8 h-8 bg-white rounded-lg shadow-sm flex items-center justify-center group-active:scale-95 transition-transform">
                 <img 
-                  src="/logo-brand.png" 
+                  src="/logo.png" 
                   alt="Logo" 
                   className="w-8 h-8 object-contain" 
                 />

@@ -161,7 +161,7 @@ export function Auth() {
         <div className="w-full max-w-sm space-y-6">
           <div className="flex flex-col items-center text-center">
             <div className="p-6 bg-white rounded-[2.5rem] shadow-xl border border-[#D2D2D7]/20 flex-shrink-0 flex items-center justify-center">
-              <img src="/logo-brand.png" alt="Logo" className="w-24 h-24 lg:w-28 lg:h-28 object-contain" />
+              <img src="/logo.png" alt="Logo" className="w-24 h-24 lg:w-28 lg:h-28 object-contain" />
             </div>
             <h3 className="text-3xl font-black text-[#1D1D1F] tracking-tight">Crea Account</h3>
             <p className="text-[#86868B] text-sm font-bold mt-2">Unisciti alla nostra eccellenza artigiana</p>
@@ -241,7 +241,7 @@ export function Auth() {
             >
               <div className="flex flex-col items-center text-center">
               <div className="p-6 bg-white rounded-[2.5rem] shadow-xl border border-[#D2D2D7]/20 flex items-center justify-center">
-                <img src="/logo-brand.png" alt="Logo" className="w-24 h-24 lg:w-28 lg:h-28 object-contain" />
+                <img src="/logo.png" alt="Logo" className="w-24 h-24 lg:w-28 lg:h-28 object-contain" />
               </div>
                 <h3 className="text-3xl font-black text-[#1D1D1F] tracking-tight">Bentornato</h3>
                 <p className="text-[#86868B] text-sm font-bold mt-2">Accedi al tuo spazio professionale</p>
@@ -382,7 +382,7 @@ export function Auth() {
               >
                 <div className="flex flex-col items-center text-center">
                   <div className="p-5 bg-white rounded-[2rem] shadow-xl mb-6 border border-[#D2D2D7]/10 overflow-hidden flex items-center justify-center">
-                    <img src="/logo-brand.png" alt="Logo" className="w-20 h-20 object-contain" />
+                    <img src="/logo.png" alt="Logo" className="w-20 h-20 object-contain" />
                   </div>
                   <h3 className="text-3xl font-black text-[#1D1D1F]">{mode === 'login' ? 'Bentornato' : 'Inizia ora'}</h3>
                   <p className="text-[#86868B] font-bold text-sm">{mode === 'login' ? 'Accedi alle tue lavorazioni' : 'Crea il tuo profilo professionale'}</p>
@@ -478,7 +478,7 @@ export function Auth() {
         <div className="relative z-10 space-y-10 max-w-sm flex flex-col items-center">
           <div className="flex flex-col items-center gap-6 group cursor-default">
             <div className="p-6 bg-white rounded-[2.5rem] shadow-2xl border border-white/10 flex items-center justify-center">
-              <img src="/logo-brand.png" alt="Logo" className="w-24 h-24 lg:w-28 lg:h-28 object-contain" />
+              <img src="/logo.png" alt="Logo" className="w-24 h-24 lg:w-28 lg:h-28 object-contain" />
             </div>
             <span className="text-2xl font-black tracking-[0.2em] uppercase text-white/90">CERCARTIGIANO</span>
           </div>
