@@ -47,8 +47,8 @@ export function Sidebar({ activeTab, setActiveTab, role }: SidebarProps) {
         className="flex items-center gap-3 mb-10 px-2 cursor-pointer group"
         onClick={() => setActiveTab('home')}
       >
-        <div className="w-10 h-10 bg-white rounded-[10px] shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform">
-          <img src="/logo.png" alt="Logo" className="w-7 h-7 object-contain mix-blend-multiply" />
+        <div className="w-10 h-10 bg-white rounded-[10px] shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform overflow-hidden">
+          <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
         </div>
         <div className="flex flex-col">
           <span className="font-black text-sm tracking-tight">CercArtigiano</span>

@@ -73,7 +73,7 @@ export function LandingPage({ onLogin, onShowPrivacy, onShowTerms, onShowCookies
             <img 
               src="/logo.png" 
               alt="CercArtigiano Logo" 
-              className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform" 
+              className="w-full h-full object-contain group-hover:scale-110 transition-transform" 
             />
           </div>
           <div className="flex flex-col">
@@ -523,7 +523,7 @@ export function LandingPage({ onLogin, onShowPrivacy, onShowTerms, onShowCookies
             <div className="inline-flex items-center gap-3 bg-white px-5 py-2.5 rounded-full group cursor-pointer shadow-xl shadow-black/40 hover:scale-105 transition-all outline outline-1 outline-white/10" 
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             >
-              <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain mix-blend-multiply transition-transform" />
+              <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain transition-transform" />
               <div className="flex flex-col">
                 <span className="text-xl font-black tracking-tighter leading-none text-[#1D1D1F]">
                   Cerc<span className="text-blue-600">Artigiano</span>
