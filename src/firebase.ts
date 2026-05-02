@@ -6,7 +6,7 @@ import { getFirestore } from 'firebase/firestore';
 const firebaseConfig = {
   projectId: "cercartigiano-23140",
   appId: "1:279648223777:web:6421c3a87509703ca0d960",
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyB96RTg6OgyMwkQYfLAaZYA3k6HOvYBh54",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: "cercartigiano-23140.firebaseapp.com",
   firestoreDatabaseId: "(default)",
   storageBucket: "cercartigiano-23140.firebasestorage.app",
