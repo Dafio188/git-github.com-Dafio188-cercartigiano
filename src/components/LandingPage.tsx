@@ -110,14 +110,14 @@ export function LandingPage({ onLogin, onShowPrivacy, onShowTerms, onShowCookies
         {/* User uploaded realistic background image */}
         <div className="absolute inset-0 z-0 select-none pointer-events-none overflow-hidden h-full w-full bg-[#F5F5F7]">
           <img 
-            src="/Foto_homepage.png" 
+            src="/foto_homepage.png" 
             alt="Artigiano al lavoro" 
             className="w-full h-full object-cover"
             loading="eager"
             onError={(e) => {
                const target = e.currentTarget;
                target.onerror = null;
-               target.src = "https://images.unsplash.com/photo-1504307651254-35680f3366d4?auto=format&fit=crop&q=80&w=2000";
+               target.src = "https://images.unsplash.com/photo-1542013936693-884638332954?auto=format&fit=crop&q=80&w=2000";
             }}
           />
           <div className="absolute inset-0 bg-black/10" /> {/* Subtle overlay for better contrast */}

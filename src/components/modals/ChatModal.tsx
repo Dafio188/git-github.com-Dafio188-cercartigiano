@@ -54,13 +54,20 @@ export function ChatModal({ user, conversationId, onClose }: ChatModalProps) {
     const q = query(
       collection(db, 'messages'),
       where('conversationId', '==', conversationId),
-      where('participantIds', 'array-contains', user.id),
-      orderBy('timestamp', 'asc'),
-      limit(100)
+      where('participantIds', 'array-contains', user.id)
     );
 
     const unsub = onSnapshot(q, (snapshot) => {
-      setMessages(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as DirectMessage)));
+      let msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as DirectMessage));
+      msgs.sort((a, b) => {
+        const dateA = a.timestamp ? (a.timestamp as any).seconds ? (a.timestamp as any).seconds * 1000 : new Date(a.timestamp as unknown as string).getTime() : 0;
+        const dateB = b.timestamp ? (b.timestamp as any).seconds ? (b.timestamp as any).seconds * 1000 : new Date(b.timestamp as unknown as string).getTime() : 0;
+        return dateA - dateB;
+      });
+      if (msgs.length > 200) {
+        msgs = msgs.slice(-200);
+      }
+      setMessages(msgs);
     });
 
     return () => unsub();

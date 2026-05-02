@@ -74,12 +74,16 @@ export function ClientDashboard({ user, activeTab }: ClientDashboardProps) {
 
     const q = query(
       collection(db, 'jobs'),
-      where('clientId', '==', user.id),
-      orderBy('createdAt', 'desc')
+      where('clientId', '==', user.id)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const jobsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Job));
+      jobsData.sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateB - dateA;
+      });
       setJobs(jobsData);
       setLoading(false);
     }, (error) => {
