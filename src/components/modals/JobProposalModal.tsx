@@ -22,10 +22,11 @@ import {
   Star
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { doc, runTransaction, serverTimestamp, collection, addDoc, increment } from 'firebase/firestore';
+import { doc, runTransaction, serverTimestamp, collection, addDoc, increment, getDoc } from 'firebase/firestore';
 import { Job } from '../../types';
 
 import { notifyNewProposal } from '../../lib/notifications';
+import { BuyCreditsModal } from './BuyCreditsModal';
 
 interface JobProposalModalProps {
   isOpen: boolean;
@@ -35,8 +36,22 @@ interface JobProposalModalProps {
   workerTokens: number;
 }
 
-export function JobProposalModal({ isOpen, onClose, job, workerId, workerTokens }: JobProposalModalProps) {
+export function JobProposalModal({ isOpen, onClose, job, workerId, workerTokens: initialTokens }: JobProposalModalProps) {
   const [loading, setLoading] = useState(false);
+  const [showBuyModal, setShowBuyModal] = useState(false);
+  const [workerTokens, setWorkerTokens] = useState(initialTokens);
+
+  React.useEffect(() => {
+    if (showBuyModal) return; 
+    const syncTokens = async () => {
+      const u = await getDoc(doc(db, 'users', workerId));
+      if (u.exists()) {
+        setWorkerTokens(u.data().tokens || 0);
+      }
+    };
+    syncTokens();
+  }, [showBuyModal, workerId]);
+
   const [formData, setFormData] = useState({
     materialsCost: 0,
     laborCost: 0,
@@ -176,12 +191,21 @@ export function JobProposalModal({ isOpen, onClose, job, workerId, workerTokens 
               )}
 
               {!hasEnoughTokens && !isFull && (
-                <div className="p-4 bg-orange-50 border border-orange-100 rounded-2xl flex items-start gap-3">
-                  <AlertCircle className="w-5 h-5 text-orange-600 shrink-0" />
-                  <div className="space-y-1">
-                    <p className="text-xs font-black text-orange-800 uppercase tracking-widest">Saldo Insufficiente</p>
-                    <p className="text-xs font-bold text-orange-700">Non hai abbastanza token per rispondere a questa richiesta. Ricarica il tuo saldo.</p>
+                <div className="p-4 bg-orange-50 border border-orange-100 rounded-2xl flex flex-col items-start gap-3">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-orange-600 shrink-0" />
+                    <div className="space-y-1">
+                      <p className="text-xs font-black text-orange-800 uppercase tracking-widest">Saldo Insufficiente</p>
+                      <p className="text-xs font-bold text-orange-700">Non hai abbastanza token per rispondere a questa richiesta. Ricarica il tuo saldo per sbloccare l'invio.</p>
+                    </div>
                   </div>
+                  <Button 
+                    type="button"
+                    onClick={() => setShowBuyModal(true)}
+                    className="w-full h-12 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-black"
+                  >
+                    Ricarica Token Ora
+                  </Button>
                 </div>
               )}
 
@@ -297,6 +321,13 @@ export function JobProposalModal({ isOpen, onClose, job, workerId, workerTokens 
           </DialogFooter>
         </form>
       </DialogContent>
+
+      <BuyCreditsModal 
+        isOpen={showBuyModal}
+        onClose={() => setShowBuyModal(false)}
+        userId={workerId}
+        currentBalance={workerTokens}
+      />
     </Dialog>
   );
 }

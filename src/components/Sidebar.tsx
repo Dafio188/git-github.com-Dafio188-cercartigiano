@@ -31,7 +31,7 @@ export function Sidebar({ activeTab, setActiveTab, role }: SidebarProps) {
     { id: 'jobs', icon: Briefcase, label: role === 'worker' ? 'Trova Lavori' : (role === 'admin' ? 'Tutti i Lavori' : 'Le mie Richieste'), roles: ['client', 'worker', 'admin'] },
     { id: 'projects', icon: CheckCircle2, label: 'Lavori Attivi', roles: ['worker'] },
     { id: 'profile', icon: User, label: 'Mio Profilo', roles: ['client', 'worker', 'admin'] },
-    { id: 'credits', icon: CreditCard, label: 'Ricarica Token', roles: ['client'] },
+    { id: 'credits', icon: CreditCard, label: 'Ricarica Token', roles: ['client', 'worker'] },
     { id: 'admin', icon: Shield, label: 'Console Amministratore', roles: ['admin'] },
     { id: 'admin_utenti', icon: Users, label: 'CRM Utenti', roles: ['admin'] },
     { id: 'admin_moderazione', icon: Shield, label: 'Moderazione', roles: ['admin'] },

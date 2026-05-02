@@ -76,6 +76,7 @@ export function LandingPage({ onLogin, onShowPrivacy, onShowTerms, onShowCookies
               className="w-full h-full object-contain group-hover:scale-110 transition-transform" 
               onError={(e) => {
                 const target = e.currentTarget;
+                target.onerror = null;
                 target.src = "https://api.dicebear.com/7.x/initials/svg?seed=C&backgroundColor=1d4ed8";
               }}
             />
@@ -115,6 +116,7 @@ export function LandingPage({ onLogin, onShowPrivacy, onShowTerms, onShowCookies
             loading="eager"
             onError={(e) => {
                const target = e.currentTarget;
+               target.onerror = null;
                target.src = "https://images.unsplash.com/photo-1504307651254-35680f3366d4?auto=format&fit=crop&q=80&w=2000";
             }}
           />
