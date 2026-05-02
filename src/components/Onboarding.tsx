@@ -135,7 +135,7 @@ export function Onboarding({ user, onComplete }: OnboardingProps) {
       <div className="bg-white rounded-[2.5rem] lg:rounded-[3.5rem] p-8 lg:p-12 w-full max-w-2xl shadow-xl border border-[#D2D2D7]/30 flex flex-col items-center">
         
         <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-6">
-          <img src="/logo.png" className="w-10 h-10 object-contain" alt="Logo" />
+          <img src="/logo-brand.png" className="w-10 h-10 object-contain" alt="Logo" />
         </div>
 
         <h2 className="text-3xl font-black text-center text-[#1D1D1F] mb-2 tracking-tight">Benvenuto a Bordo</h2>

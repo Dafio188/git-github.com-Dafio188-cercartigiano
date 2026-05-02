@@ -42,7 +42,7 @@ export function CareersPage({ onBack }: CareersPageProps) {
           <span className="font-bold">Indietro</span>
         </Button>
         <div className="flex items-center gap-2">
-          <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
+          <img src="/logo-brand.png" alt="Logo" className="w-8 h-8 object-contain" />
           <span className="font-black text-lg tracking-tight">Lavora con noi</span>
         </div>
       </nav>
