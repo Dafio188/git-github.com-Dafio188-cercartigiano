@@ -33,6 +33,7 @@ import { JobDetailsSharedModal } from '../modals/JobDetailsSharedModal';
 import { SERVICE_CATEGORIES } from '../../constants';
 
 import { notifyNewMessage } from '../../lib/notifications';
+import { handleFirestoreError, OperationType } from '../../lib/firestore-errors';
 
 interface WorkerDashboardProps {
   user: User;
@@ -58,6 +59,8 @@ export function WorkerDashboard({ user, activeTab }: WorkerDashboardProps) {
       if (docSnap.exists()) {
         setWorkerProfile(docSnap.data() as UserProfile);
       }
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, `workerProfiles/${user.id}`);
     });
 
     // Available jobs in categories the worker serves
@@ -72,6 +75,9 @@ export function WorkerDashboard({ user, activeTab }: WorkerDashboardProps) {
       const jobs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Job));
       setAvailableJobs(jobs);
       setLoading(false);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'jobs');
+      setLoading(false);
     });
 
     // Active jobs where worker is hired
@@ -85,6 +91,8 @@ export function WorkerDashboard({ user, activeTab }: WorkerDashboardProps) {
     const unsubActive = onSnapshot(qActive, (snapshot) => {
       const jobs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Job));
       setActiveJobs(jobs);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'jobs');
     });
 
     return () => {

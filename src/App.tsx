@@ -99,6 +99,8 @@ export default function App() {
 
     const unsubscribe = onSnapshotCollection(q, (snap) => {
       setUnreadCount(snap.size);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, 'notifications');
     });
 
     return () => unsubscribe();
@@ -334,7 +336,7 @@ export default function App() {
                 <img 
                   src="/logo.png" 
                   alt="Logo" 
-                  className="w-5 h-5 object-contain mix-blend-multiply" 
+                  className="w-5 h-5 object-contain" 
                 />
               </div>
               <span className="font-black text-[11px] tracking-tight text-[#1D1D1F] uppercase">

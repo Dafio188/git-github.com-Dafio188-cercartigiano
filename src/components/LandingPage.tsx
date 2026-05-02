@@ -69,11 +69,19 @@ export function LandingPage({ onLogin, onShowPrivacy, onShowTerms, onShowCookies
       {/* Header / Nav */}
       <nav className="h-16 lg:h-20 bg-white/80 backdrop-blur-md border-b border-[#D2D2D7]/30 fixed top-0 w-full z-50 flex items-center justify-between px-6 lg:px-12">
         <div className="flex items-center gap-3 group cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-          <div className="w-10 h-10 flex items-center justify-center bg-transparent">
+          <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center">
             <img 
               src="/logo.png" 
               alt="CercArtigiano Logo" 
               className="w-full h-full object-contain group-hover:scale-110 transition-transform" 
+              onError={(e) => {
+                const target = e.currentTarget;
+                target.style.display = 'none';
+                const fallback = document.createElement('div');
+                fallback.className = "w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-white text-xs";
+                fallback.innerText = "C";
+                target.parentElement?.appendChild(fallback);
+              }}
             />
           </div>
           <div className="flex flex-col">
@@ -103,13 +111,17 @@ export function LandingPage({ onLogin, onShowPrivacy, onShowTerms, onShowCookies
       {/* Hero Section */}
       <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
         {/* User uploaded realistic background image */}
-        <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 z-0 select-none pointer-events-none overflow-hidden h-full w-full">
+          <div className="absolute inset-0 bg-gradient-to-br from-[#F5F5F7] to-[#D2D2D7]" /> {/* Background fallback color */}
           <img 
             src="/Foto_homepage.png" 
-            alt="Artigiano al lavoro con famiglia felice" 
-            className="w-full h-full object-cover scale-105"
+            alt="Artigiano al lavoro" 
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent block md:hidden z-10" />
+          <div className="absolute inset-0 bg-black/10" /> {/* Subtle overlay for better contrast */}
         </div>
 
         <div className="max-w-[1400px] mx-auto w-full relative z-20 px-6 pt-24 pb-8 h-screen flex flex-col justify-end items-end">
@@ -523,7 +535,21 @@ export function LandingPage({ onLogin, onShowPrivacy, onShowTerms, onShowCookies
             <div className="inline-flex items-center gap-3 bg-white px-5 py-2.5 rounded-full group cursor-pointer shadow-xl shadow-black/40 hover:scale-105 transition-all outline outline-1 outline-white/10" 
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             >
-              <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain transition-transform" />
+              <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
+                <img 
+                  src="/logo.png" 
+                  alt="Logo" 
+                  className="w-full h-full object-contain transition-transform" 
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    target.style.display = 'none';
+                    const fallback = document.createElement('div');
+                    fallback.className = "w-6 h-6 rounded bg-blue-600 flex items-center justify-center font-bold text-white text-[10px]";
+                    fallback.innerText = "C";
+                    target.parentElement?.appendChild(fallback);
+                  }}
+                />
+              </div>
               <div className="flex flex-col">
                 <span className="text-xl font-black tracking-tighter leading-none text-[#1D1D1F]">
                   Cerc<span className="text-blue-600">Artigiano</span>

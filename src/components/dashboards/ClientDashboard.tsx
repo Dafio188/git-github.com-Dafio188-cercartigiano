@@ -28,7 +28,7 @@ import { ProposalsModal } from '../modals/ProposalsModal';
 import { ReviewModal } from '../modals/ReviewModal';
 import { SettingsView } from '../SettingsView';
 import { PeerContactInfo } from '../PeerContactInfo';
-import { SERVICE_CATEGORIES } from '../../constants';
+import { handleFirestoreError, OperationType } from '../../lib/firestore-errors';
 
 interface ClientDashboardProps {
   user: User;
@@ -54,6 +54,8 @@ export function ClientDashboard({ user, activeTab }: ClientDashboardProps) {
       if (docSnap.exists()) {
         setClientProfile(docSnap.data() as UserProfile);
       }
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, `users/${user.id}`);
     });
 
     // Fetch active artisans for the ticker
@@ -66,6 +68,8 @@ export function ClientDashboard({ user, activeTab }: ClientDashboardProps) {
     const unsubArtisans = onSnapshot(artisansQuery, (snapshot) => {
       const artisansData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any as UserProfile));
       setActiveArtisans(artisansData);
+    }, (error) => {
+       handleFirestoreError(error, OperationType.LIST, 'workerProfiles');
     });
 
     const q = query(
@@ -77,6 +81,9 @@ export function ClientDashboard({ user, activeTab }: ClientDashboardProps) {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const jobsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Job));
       setJobs(jobsData);
+      setLoading(false);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'jobs');
       setLoading(false);
     });
 

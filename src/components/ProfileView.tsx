@@ -153,6 +153,8 @@ export function ProfileView({ user }: ProfileViewProps) {
             civico: data.civico || prev.civico
           }));
         }
+      }, (error) => {
+        handleFirestoreError(error, OperationType.GET, `workerProfiles/${user.id}`);
       });
       return () => unsub();
     }
