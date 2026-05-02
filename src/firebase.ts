@@ -14,6 +14,10 @@ const firebaseConfig = {
   measurementId: "G-9QXNNWTHNE"
 };
 
+if (!firebaseConfig.apiKey && process.env.NODE_ENV !== 'test') {
+  console.error("CRITICAL: VITE_FIREBASE_API_KEY is missing! Authentication and Database will not work.");
+}
+
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const auth = getAuth(app);

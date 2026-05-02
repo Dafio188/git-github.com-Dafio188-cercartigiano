@@ -110,7 +110,7 @@ export function LandingPage({ onLogin, onShowPrivacy, onShowTerms, onShowCookies
         {/* User uploaded realistic background image */}
         <div className="absolute inset-0 z-0 select-none pointer-events-none overflow-hidden h-full w-full bg-[#F5F5F7]">
           <img 
-            src="/foto_homepage.png" 
+            src="/Foto_homepage.png" 
             alt="Artigiano al lavoro" 
             className="w-full h-full object-cover"
             loading="eager"

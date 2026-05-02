@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CercArtigiano</title>
     <script>
+      // Force unregister of old Service Workers which might be intercepting missing files.
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) {
+            registration.unregister();
+            console.log('ServiceWorker unregistered to fix cache issues.');
+          }
+        }).catch(function(err) {
+          console.log('Service Worker unregistration failed: ', err);
+        });
+      }
+      
       // Fix for "Cannot set property fetch of #<Window> which has only a getter"
       // Some polyfills try to overwrite window.fetch which is a getter in some environments.
       try {
