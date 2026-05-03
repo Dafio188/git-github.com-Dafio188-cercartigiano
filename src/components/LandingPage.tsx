@@ -1,5 +1,3 @@
-import fotoUrl from '../assets/Foto_homepage.png';
-import logoUrl from '../assets/logo.png';
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -73,14 +71,10 @@ export function LandingPage({ onLogin, onShowPrivacy, onShowTerms, onShowCookies
         <div className="flex items-center gap-3 group cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
           <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center">
             <img 
-              src={logoUrl} 
+              src="/logo.png" 
               alt="CercArtigiano Logo" 
               className="w-full h-full object-contain group-hover:scale-110 transition-transform" 
-              onError={(e) => {
-                const target = e.currentTarget;
-                target.onerror = null;
-                target.src = "https://api.dicebear.com/7.x/initials/svg?seed=C&backgroundColor=1d4ed8";
-              }}
+              
             />
           </div>
           <div className="flex flex-col">
@@ -112,15 +106,11 @@ export function LandingPage({ onLogin, onShowPrivacy, onShowTerms, onShowCookies
         {/* User uploaded realistic background image */}
         <div className="absolute inset-0 z-0 select-none pointer-events-none overflow-hidden h-full w-full bg-[#F5F5F7]">
           <img 
-            src={fotoUrl} 
+            src="/Foto_homepage.png" 
             alt="Artigiano al lavoro" 
             className="w-full h-full object-cover"
             loading="eager"
-            onError={(e) => {
-              const target = e.currentTarget;
-              target.onerror = null;
-              target.src = "https://images.unsplash.com/photo-1542013936693-884638332954?auto=format&fit=crop&q=80&w=2000";
-            }}
+            
           />
           <div className="absolute inset-0 bg-black/10" /> {/* Subtle overlay for better contrast */}
         </div>
@@ -538,7 +528,7 @@ export function LandingPage({ onLogin, onShowPrivacy, onShowTerms, onShowCookies
             >
               <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
                 <img 
-                  src={logoUrl} 
+                  src="/logo.png" 
                   alt="Logo" 
                   className="w-full h-full object-contain transition-transform" 
                 />

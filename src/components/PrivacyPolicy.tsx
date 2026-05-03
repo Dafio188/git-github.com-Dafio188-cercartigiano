@@ -1,4 +1,3 @@
-import logoUrl from '../assets/logo.png';
 import React from 'react';
 import { motion } from 'motion/react';
 import { ShieldCheck, Mail, ArrowLeft } from 'lucide-react';
@@ -22,7 +21,7 @@ export function PrivacyPolicy({ onBack }: PrivacyPolicyProps) {
           <span className="font-bold">Indietro</span>
         </Button>
         <div className="flex items-center gap-2">
-          <img src={logoUrl} alt="Logo" className="w-8 h-8 object-contain" />
+          <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
           <span className="font-black text-lg tracking-tight">Privacy Policy</span>
         </div>
       </nav>

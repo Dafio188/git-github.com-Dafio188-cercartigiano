@@ -1,4 +1,3 @@
-import logoUrl from './assets/logo.png';
 import React, { useState, useEffect } from 'react';
 import { auth, db } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -335,7 +334,7 @@ export default function App() {
             >
               <div className="w-8 h-8 bg-white rounded-lg shadow-sm flex items-center justify-center group-active:scale-95 transition-transform">
                 <img 
-                  src={logoUrl} 
+                  src="/logo.png" 
                   alt="Logo" 
                   className="w-8 h-8 object-contain" 
                 />
