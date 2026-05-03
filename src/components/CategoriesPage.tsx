@@ -1,4 +1,3 @@
-import logoUrl from '../assets/logo.png';
 import React from 'react';
 import { motion } from 'motion/react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
@@ -25,7 +24,7 @@ export function CategoriesPage({ onBack, onSelectCategory }: CategoriesPageProps
         
         <div className="flex items-center gap-3">
           <img 
-            src={logoUrl} 
+            src="/logo.png" 
             alt="Logo" 
             className="w-8 h-8 object-contain" 
           />
