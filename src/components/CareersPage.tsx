@@ -1,3 +1,4 @@
+import logoUrl from '../assets/logo.png';
 import React from 'react';
 import { motion } from 'motion/react';
 import { Briefcase, Users, Rocket, Mail, ArrowLeft, MapPin, Clock } from 'lucide-react';
@@ -42,7 +43,7 @@ export function CareersPage({ onBack }: CareersPageProps) {
           <span className="font-bold">Indietro</span>
         </Button>
         <div className="flex items-center gap-2">
-          <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
+          <img src={logoUrl} alt="Logo" className="w-8 h-8 object-contain" />
           <span className="font-black text-lg tracking-tight">Lavora con noi</span>
         </div>
       </nav>
