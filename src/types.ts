@@ -112,6 +112,7 @@ export interface Job {
   unreadMessagesCount?: Record<string, number>; // uid -> count
   tokenCost?: number;
   createdAt: any; // Can be string or Firestore Timestamp
+  updatedAt?: any;
   expiresAt: any;
   publicationPlan: 'free' | 'premium';
   scheduledAt?: string;
