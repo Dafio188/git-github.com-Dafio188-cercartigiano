@@ -61,6 +61,8 @@ export function NotificationsView({ onClose }: { onClose?: () => void }) {
       })) as Notification[];
       setNotifications(data);
       setLoading(false);
+    }, (error) => {
+      console.error("NotificationsView onSnapshot error:", error);
     });
 
     return () => unsubscribe();

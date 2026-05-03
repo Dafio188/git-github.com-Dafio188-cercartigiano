@@ -45,6 +45,8 @@ export function ChatModal({ user, conversationId, onClose }: ChatModalProps) {
         setConversation({ id: docSnap.id, ...docSnap.data() } as Conversation);
       }
       setLoading(false);
+    }, (error) => {
+      console.error("ChatModal conversation onSnapshot error:", error);
     });
     return () => unsub();
   }, [conversationId]);
@@ -68,6 +70,8 @@ export function ChatModal({ user, conversationId, onClose }: ChatModalProps) {
         msgs = msgs.slice(-200);
       }
       setMessages(msgs);
+    }, (error) => {
+      console.error("ChatModal messages onSnapshot error:", error);
     });
 
     return () => unsub();

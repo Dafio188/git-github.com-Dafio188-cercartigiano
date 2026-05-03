@@ -19,6 +19,8 @@ export function GlobalQnAFeed() {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as JobQuestion));
       setQuestions(data);
+    }, (error) => {
+      console.error("GlobalQnAFeed onSnapshot error:", error);
     });
 
     return () => unsubscribe();

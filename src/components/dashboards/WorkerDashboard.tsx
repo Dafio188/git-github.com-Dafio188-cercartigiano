@@ -66,12 +66,16 @@ export function WorkerDashboard({ user, activeTab }: WorkerDashboardProps) {
     // Available jobs in categories the worker serves
     const qAvailable = query(
       collection(db, 'jobs'),
-      where('status', '==', 'open'),
-      where('expiresAt', '>', new Date())
+      where('status', '==', 'open')
     );
 
     const unsubAvailable = onSnapshot(qAvailable, (snapshot) => {
-      const jobs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Job));
+      let jobs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Job));
+      const now = new Date().getTime();
+      jobs = jobs.filter(j => {
+        const expiresTime = j.expiresAt instanceof Date ? j.expiresAt.getTime() : (j.expiresAt as any)?.seconds ? (j.expiresAt as any).seconds * 1000 : new Date(j.expiresAt || 0).getTime();
+        return expiresTime > now;
+      });
       jobs.sort((a, b) => {
         const dateA = a.expiresAt instanceof Date ? a.expiresAt.getTime() : (a.expiresAt as any)?.seconds ? (a.expiresAt as any).seconds * 1000 : new Date(a.expiresAt || 0).getTime();
         const dateB = b.expiresAt instanceof Date ? b.expiresAt.getTime() : (b.expiresAt as any)?.seconds ? (b.expiresAt as any).seconds * 1000 : new Date(b.expiresAt || 0).getTime();

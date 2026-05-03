@@ -57,6 +57,9 @@ export function ProposalsModal({ isOpen, onClose, job, user }: ProposalsModalPro
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as JobProposal));
       setProposals(data);
       setLoading(false);
+    }, (error) => {
+      console.error("ProposalsModal onSnapshot error:", error);
+      setLoading(false);
     });
 
     return () => unsubscribe();

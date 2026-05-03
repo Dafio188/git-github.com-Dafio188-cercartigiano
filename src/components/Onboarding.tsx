@@ -82,21 +82,23 @@ export function Onboarding({ user, onComplete }: OnboardingProps) {
 
       // Save Billing Profile
       const billingRef = doc(db, 'billingProfiles', user.id);
-      await setDoc(billingRef, {
+      const billingData: any = {
         userId: user.id,
         fiscalType,
-        ragioneSociale: ragioneSociale || undefined,
-        partitaIva: partitaIva || undefined,
         codiceFiscale: codiceFiscale,
-        codiceSdi: codiceSdi || undefined,
-        pec: pec || undefined,
         address: address,
         cap: cap,
         citta: citta,
         provincia: provincia,
-        regimeFiscale: regimeFiscale || undefined,
         updatedAt: new Date().toISOString()
-      });
+      };
+      if (ragioneSociale) billingData.ragioneSociale = ragioneSociale;
+      if (partitaIva) billingData.partitaIva = partitaIva;
+      if (codiceSdi) billingData.codiceSdi = codiceSdi;
+      if (pec) billingData.pec = pec;
+      if (regimeFiscale) billingData.regimeFiscale = regimeFiscale;
+
+      await setDoc(billingRef, billingData);
 
       // If worker, optionally initialize their public profile
       if (role === 'worker') {

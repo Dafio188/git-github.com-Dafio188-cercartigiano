@@ -115,9 +115,9 @@ export function LandingPage({ onLogin, onShowPrivacy, onShowTerms, onShowCookies
             className="w-full h-full object-cover"
             loading="eager"
             onError={(e) => {
-               const target = e.currentTarget;
-               target.onerror = null;
-               target.src = "https://images.unsplash.com/photo-1542013936693-884638332954?auto=format&fit=crop&q=80&w=2000";
+              const target = e.currentTarget;
+              target.onerror = null;
+              target.src = "https://images.unsplash.com/photo-1542013936693-884638332954?auto=format&fit=crop&q=80&w=2000";
             }}
           />
           <div className="absolute inset-0 bg-black/10" /> {/* Subtle overlay for better contrast */}

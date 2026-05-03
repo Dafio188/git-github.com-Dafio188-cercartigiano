@@ -33,6 +33,8 @@ export function JobQnA({ jobId, userId, userName, role }: JobQnAProps) {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as JobQuestion));
       setQuestions(data);
       setLoading(false);
+    }, (error) => {
+      console.error("JobQnA onSnapshot error:", error);
     });
 
     return () => unsubscribe();

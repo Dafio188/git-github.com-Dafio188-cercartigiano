@@ -320,6 +320,8 @@ export function AdminDashboard({ user, summaryOnly = false, initialTab }: AdminD
   useEffect(() => {
     const unsubInvoices = onSnapshot(collection(db, 'invoices'), (snap) => {
       setInvoicesList(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Invoice[]);
+    }, (error) => {
+      console.error("AdminDashboard invoices onSnapshot error:", error);
     });
 
     const unsubAdminConfig = onSnapshot(doc(db, 'adminSettings', 'config'), (snap) => {
@@ -328,6 +330,8 @@ export function AdminDashboard({ user, summaryOnly = false, initialTab }: AdminD
         setAdminConfig(data);
         setBillingConfigForm(data);
       }
+    }, (error) => {
+      console.error("AdminDashboard adminSettings onSnapshot error:", error);
     });
 
     const unsubUsers = onSnapshot(collection(db, 'users'), (snap) => {
