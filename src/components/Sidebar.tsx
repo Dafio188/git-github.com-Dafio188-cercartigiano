@@ -1,3 +1,4 @@
+import logoUrl from '../assets/logo.png';
 import React from 'react';
 import { auth } from '../firebase';
 import { cn } from '../lib/utils';
@@ -50,7 +51,7 @@ export function Sidebar({ activeTab, setActiveTab, role }: SidebarProps) {
         onClick={() => setActiveTab('home')}
       >
         <div className="w-10 h-10 bg-white rounded-[10px] shadow-sm flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-          <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
+          <img src={logoUrl} alt="Logo" className="w-8 h-8 object-contain" />
         </div>
         <div className="flex flex-col">
           <span className="font-black text-sm tracking-tight">CercArtigiano</span>
