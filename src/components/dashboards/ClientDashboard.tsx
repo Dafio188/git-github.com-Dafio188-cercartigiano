@@ -24,6 +24,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { GlobalQnAFeed } from '../shared/GlobalQnAFeed';
 import { NewJobModal } from '../modals/NewJobModal';
+import { ChatModal } from '../modals/ChatModal';
 import { ProposalsModal } from '../modals/ProposalsModal';
 import { ReviewModal } from '../modals/ReviewModal';
 import { SettingsView } from '../SettingsView';
@@ -40,6 +41,7 @@ export function ClientDashboard({ user, activeTab }: ClientDashboardProps) {
   const [loading, setLoading] = useState(true);
   const [isNewJobModalOpen, setIsNewJobModalOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [activeChatConvId, setActiveChatConvId] = useState<string | null>(null);
   const [isProposalsModalOpen, setIsProposalsModalOpen] = useState(false);
   const [clientProfile, setClientProfile] = useState<UserProfile | null>(null);
   const [activeArtisans, setActiveArtisans] = useState<UserProfile[]>([]);
@@ -319,6 +321,9 @@ export function ClientDashboard({ user, activeTab }: ClientDashboardProps) {
                         if (job.status === 'completed' && !job.reviewId) {
                           setReviewJob(job);
                           setIsReviewModalOpen(true);
+                        } else if (job.status === 'in_progress' && job.assignedWorkerId) {
+                          const participants = [user.id, job.assignedWorkerId].sort();
+                          setActiveChatConvId(`job_${job.id}_${participants.join('_')}`);
                         } else {
                           setSelectedJob(job);
                           setIsProposalsModalOpen(true);
@@ -453,6 +458,13 @@ export function ClientDashboard({ user, activeTab }: ClientDashboardProps) {
            onClose={() => setIsReviewModalOpen(false)}
            job={reviewJob}
            clientId={user.id}
+         />
+       )}
+       {activeChatConvId && (
+         <ChatModal 
+           user={user} 
+           conversationId={activeChatConvId} 
+           onClose={() => setActiveChatConvId(null)} 
          />
        )}
     </div>

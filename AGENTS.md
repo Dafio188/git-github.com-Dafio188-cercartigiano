@@ -15,3 +15,7 @@
 ## Utilizzo
 - Il logo deve essere utilizzato in tutte le testate, nella barra laterale e nelle comunicazioni ufficiali.
 - Se il file grafico non è presente, il sistema utilizzerà un fallback grafico (sfondo blu brand con lettera 'C' bianca).
+
+## Gestione Immagini e Asset
+- **Cartella Pubblica:** Le immagini come `logo.png` e `Foto_homepage.png` devono essere salvate fisicamente nella directory `/public`.
+- **Riferimenti nel Codice:** Non importare le immagini da cartelle assets con import (es. evitare `import logoUrl from`). Usa rigorosamente riferimenti root assoluti (es. `src="/logo.png"` e `src="/Foto_homepage.png"`) all'interno dei tag `<img>` nei componenti React. Ciò garantisce che le immagini nella cartella public siano risolte correttamente durante l'hosting su Firebase (permettendo uniformità tra preview e produzione).
