@@ -195,6 +195,33 @@
         "codiceSdi": { "type": "string" }
       },
       "required": ["companyName", "partitaIva", "address", "cap", "citta"]
+    },
+    "JobQuestion": {
+      "title": "JobQuestion",
+      "description": "A public question on a job post",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "jobId": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "text": { "type": "string" },
+        "role": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "jobId", "userId", "text", "createdAt"]
+    },
+    "Verification": {
+      "title": "Verification",
+      "description": "User identity verification document metadata",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "verified", "rejected"] },
+        "docUrl": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "status", "updatedAt"]
     }
   },
   "firestore": {
@@ -237,6 +264,14 @@
     "/notifications/{notificationId}": {
       "schema": "Notification",
       "description": "System or personal notifications"
+    },
+    "/jobQuestions/{questionId}": {
+      "schema": "JobQuestion",
+      "description": "Public questions on job posts"
+    },
+    "/verifications/{userId}": {
+      "schema": "Verification",
+      "description": "User identity verification data"
     }
   }
 }

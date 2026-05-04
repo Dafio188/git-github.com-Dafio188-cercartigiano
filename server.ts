@@ -33,6 +33,9 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
+  // Serve static files from public folder immediately
+  app.use(express.static(path.join(process.cwd(), 'public')));
+
   // OpenAPI.it helper for invoicing
   async function sendInvoiceToSdi(billingData: any, session: Stripe.Checkout.Session, tokens: number) {
     const apiKey = process.env.OPENAPI_API_KEY;
@@ -253,7 +256,6 @@ async function startServer() {
     }
   });
 
-  app.use(express.static(path.join(process.cwd(), 'public')));
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const { createServer: createViteServer } = await import("vite");

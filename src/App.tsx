@@ -38,6 +38,8 @@ import { ScrollArea } from './components/ui/scroll-area';
 import { cn } from './lib/utils';
 import { collection, query, where, onSnapshot as onSnapshotCollection } from 'firebase/firestore';
 
+import { BrandLogo } from './components/BrandLogo';
+
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -285,7 +287,7 @@ export default function App() {
                 <p className="text-blue-100 font-medium max-w-md">Il sistema è stabile. Hai 4 profili artigiano da revisionare e 2 segnalazioni aperte.</p>
                 <Button className="mt-8 bg-white text-blue-600 rounded-full font-black px-8" onClick={() => setActiveTab('admin')}>Vai al CRM</Button>
              </div>
-             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
           </div>
           <AdminDashboard user={user!} summaryOnly={true} />
         </div>
@@ -333,11 +335,7 @@ export default function App() {
               onClick={() => setActiveTab('home')}
             >
               <div className="w-8 h-8 bg-white rounded-lg shadow-sm flex items-center justify-center group-active:scale-95 transition-transform">
-                <img 
-                  src="/logo.png?v=3" 
-                  alt="Logo" 
-                  className="w-8 h-8 object-contain" 
-                />
+                <BrandLogo className="w-8 h-8" />
               </div>
               <span className="font-black text-[11px] tracking-tight text-[#1D1D1F] uppercase">
                 CercArtigiano

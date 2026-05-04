@@ -27,6 +27,8 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 
+import { BrandLogo } from './BrandLogo';
+
 type AuthMode = 'login' | 'register' | 'forgot-password';
 
 export function Auth() {
@@ -161,7 +163,7 @@ export function Auth() {
         <div className="w-full max-w-sm space-y-6">
           <div className="flex flex-col items-center text-center">
             <div className="p-6 bg-white rounded-[2.5rem] shadow-xl border border-[#D2D2D7]/20 flex-shrink-0 flex items-center justify-center">
-              <img src="/logo.png?v=3" alt="Logo" className="w-24 h-24 lg:w-28 lg:h-28 object-contain" />
+              <BrandLogo className="w-24 h-24 lg:w-28 lg:h-28" />
             </div>
             <h3 className="text-3xl font-black text-[#1D1D1F] tracking-tight">Crea Account</h3>
             <p className="text-[#86868B] text-sm font-bold mt-2">Unisciti alla nostra eccellenza artigiana</p>
@@ -227,7 +229,7 @@ export function Auth() {
         "hidden lg:flex w-1/2 flex-col items-center pt-24 px-12 transition-all duration-700",
         mode === 'register' ? "opacity-0 invisible scale-95" : "opacity-100 visible scale-100"
       )}>
-        <div className="w-full max-w-sm h-full" style={{ perspective: '2000px' }}>
+        <div className="w-full max-sm h-full" style={{ perspective: '2000px' }}>
           <motion.div 
             className="relative w-full h-[600px]"
             animate={{ rotateY: mode === 'forgot-password' ? 180 : 0 }}
@@ -241,7 +243,7 @@ export function Auth() {
             >
               <div className="flex flex-col items-center text-center">
               <div className="p-6 bg-white rounded-[2.5rem] shadow-xl border border-[#D2D2D7]/20 flex items-center justify-center">
-                <img src="/logo.png?v=3" alt="Logo" className="w-24 h-24 lg:w-28 lg:h-28 object-contain" />
+                <BrandLogo className="w-24 h-24 lg:w-28 lg:h-28" />
               </div>
                 <h3 className="text-3xl font-black text-[#1D1D1F] tracking-tight">Bentornato</h3>
                 <p className="text-[#86868B] text-sm font-bold mt-2">Accedi al tuo spazio professionale</p>
@@ -362,7 +364,7 @@ export function Auth() {
       {/* 3. Mobile View Section (Visible only on mobile) */}
       <div className="lg:hidden flex-1 relative flex flex-col items-center justify-center p-8 bg-white overflow-hidden" style={{ perspective: '2000px' }}>
         <motion.div
-          className="w-full max-w-sm relative h-[600px] flex flex-col justify-center"
+          className="w-full max-sm relative h-[600px] flex flex-col justify-center"
           style={{ transformStyle: 'preserve-3d' }}
           animate={{ rotateY: mode === 'forgot-password' ? 180 : 0 }}
           transition={{ duration: 0.8, type: "spring", stiffness: 100, damping: 20 }}
@@ -382,7 +384,7 @@ export function Auth() {
               >
                 <div className="flex flex-col items-center text-center">
                   <div className="p-5 bg-white rounded-[2rem] shadow-xl mb-6 border border-[#D2D2D7]/10 overflow-hidden flex items-center justify-center">
-                    <img src="/logo.png?v=3" alt="Logo" className="w-20 h-20 object-contain" />
+                    <BrandLogo className="w-20 h-20" />
                   </div>
                   <h3 className="text-3xl font-black text-[#1D1D1F]">{mode === 'login' ? 'Bentornato' : 'Inizia ora'}</h3>
                   <p className="text-[#86868B] font-bold text-sm">{mode === 'login' ? 'Accedi alle tue lavorazioni' : 'Crea il tuo profilo professionale'}</p>
@@ -478,7 +480,7 @@ export function Auth() {
         <div className="relative z-10 space-y-10 max-w-sm flex flex-col items-center">
           <div className="flex flex-col items-center gap-6 group cursor-default">
             <div className="p-6 bg-white rounded-[2.5rem] shadow-2xl border border-white/10 flex items-center justify-center">
-              <img src="/logo.png?v=3" alt="Logo" className="w-24 h-24 lg:w-28 lg:h-28 object-contain" />
+              <BrandLogo className="w-24 h-24 lg:w-28 lg:h-28" />
             </div>
             <span className="text-2xl font-black tracking-[0.2em] uppercase text-white/90">CERCARTIGIANO</span>
           </div>

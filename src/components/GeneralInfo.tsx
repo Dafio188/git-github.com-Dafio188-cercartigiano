@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { Info, Target, Award, Mail, MapPin, ArrowLeft, Building2, ShieldCheck } from 'lucide-react';
 import { Button } from './ui/button';
+import { BrandLogo } from './BrandLogo';
 
 interface GeneralInfoProps {
   onBack?: () => void;
@@ -21,7 +22,7 @@ export function GeneralInfo({ onBack }: GeneralInfoProps) {
           <span className="font-bold">Indietro</span>
         </Button>
         <div className="flex items-center gap-2">
-          <img src="/logo.png?v=3" alt="Logo" className="w-8 h-8 object-contain" />
+          <BrandLogo className="w-8 h-8" />
           <span className="font-black text-lg tracking-tight">Informazioni Generali</span>
         </div>
       </nav>

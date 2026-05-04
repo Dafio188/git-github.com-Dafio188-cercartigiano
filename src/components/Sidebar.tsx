@@ -18,6 +18,8 @@ import {
   FileText
 } from 'lucide-react';
 
+import { BrandLogo } from './BrandLogo';
+
 interface SidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
@@ -50,7 +52,7 @@ export function Sidebar({ activeTab, setActiveTab, role }: SidebarProps) {
         onClick={() => setActiveTab('home')}
       >
         <div className="w-10 h-10 bg-white rounded-[10px] shadow-sm flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-          <img src="/logo.png?v=3" alt="Logo" className="w-8 h-8 object-contain" />
+          <BrandLogo className="w-8 h-8" />
         </div>
         <div className="flex flex-col">
           <span className="font-black text-sm tracking-tight">CercArtigiano</span>

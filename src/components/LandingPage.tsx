@@ -18,6 +18,9 @@ import { cn } from '../lib/utils';
 import { SERVICE_CATEGORIES } from '../constants';
 import { GlobalQnAFeed } from './shared/GlobalQnAFeed';
 
+import { BrandLogo } from './BrandLogo';
+import { HeroBackground } from './HeroBackground';
+
 interface LandingPageProps {
   onLogin: () => void;
   onShowPrivacy?: () => void;
@@ -70,12 +73,7 @@ export function LandingPage({ onLogin, onShowPrivacy, onShowTerms, onShowCookies
       <nav className="h-16 lg:h-20 bg-white/80 backdrop-blur-md border-b border-[#D2D2D7]/30 fixed top-0 w-full z-50 flex items-center justify-between px-6 lg:px-12">
         <div className="flex items-center gap-3 group cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
           <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center">
-            <img 
-              src="/logo.png?v=3" 
-              alt="CercArtigiano Logo" 
-              className="w-full h-full object-contain group-hover:scale-110 transition-transform" 
-              
-            />
+            <BrandLogo className="w-full h-full group-hover:scale-110 transition-transform" />
           </div>
           <div className="flex flex-col">
             <span className="text-xl font-black tracking-tight leading-none bg-clip-text text-transparent bg-gradient-to-r from-[#1D1D1F] to-[#1D1D1F]/70">
@@ -103,17 +101,7 @@ export function LandingPage({ onLogin, onShowPrivacy, onShowTerms, onShowCookies
 
       {/* Hero Section */}
       <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
-        {/* User uploaded realistic background image */}
-        <div className="absolute inset-0 z-0 select-none pointer-events-none overflow-hidden h-full w-full bg-[#F5F5F7]">
-          <img 
-            src="/Foto_homepage.png?v=3" 
-            alt="Artigiano al lavoro" 
-            className="w-full h-full object-cover"
-            loading="eager"
-            
-          />
-          <div className="absolute inset-0 bg-black/10" /> {/* Subtle overlay for better contrast */}
-        </div>
+        <HeroBackground />
 
         <div className="max-w-[1400px] mx-auto w-full relative z-20 px-6 pt-24 pb-8 h-screen flex flex-col justify-end items-end">
           <div className="flex flex-col items-end justify-end w-full pb-8 lg:pb-12 gap-6 lg:gap-8">
@@ -527,11 +515,7 @@ export function LandingPage({ onLogin, onShowPrivacy, onShowTerms, onShowCookies
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             >
               <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
-                <img 
-                  src="/logo.png?v=3" 
-                  alt="Logo" 
-                  className="w-full h-full object-contain transition-transform" 
-                />
+                <BrandLogo className="w-full h-full" />
               </div>
               <div className="flex flex-col">
                 <span className="text-xl font-black tracking-tighter leading-none text-[#1D1D1F]">

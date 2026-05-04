@@ -1085,7 +1085,7 @@ export function AdminDashboard({ user, summaryOnly = false, initialTab }: AdminD
                    {filteredUsers.map(u => (
                      <tr key={u.id} className="hover:bg-[#F5F5F7]/30">
                        <td className="px-8 py-6">
-                          <div className="font-black text-[#1D1D1F] text-sm">{u.displayName || 'Anonimo'}</div>
+                          <div className="font-black text-[#1D1D1F] text-sm">{u.nome || u.displayName || 'Anonimo'}</div>
                           <div className="text-xs font-bold text-[#86868B]">{u.email}</div>
                        </td>
                        <td className="px-8 py-6">

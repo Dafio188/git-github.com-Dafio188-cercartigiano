@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { Button } from './ui/button';
 import { SERVICE_CATEGORIES } from '../constants';
+import { BrandLogo } from './BrandLogo';
 
 interface CategoriesPageProps {
   onBack: () => void;
@@ -23,11 +24,7 @@ export function CategoriesPage({ onBack, onSelectCategory }: CategoriesPageProps
         </button>
         
         <div className="flex items-center gap-3">
-          <img 
-            src="/logo.png?v=3" 
-            alt="Logo" 
-            className="w-8 h-8 object-contain" 
-          />
+          <BrandLogo className="w-8 h-8" />
           <span className="font-black text-xl tracking-tight">Esplora Categorie</span>
         </div>
         

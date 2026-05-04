@@ -21,7 +21,7 @@ export function TermsOfService({ onBack }: TermsOfServiceProps) {
           <span className="font-bold">Indietro</span>
         </Button>
         <div className="flex items-center gap-2">
-          <img src="/logo.png?v=3" alt="Logo" className="w-8 h-8 object-contain" />
+          <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
           <span className="font-black text-lg tracking-tight">Termini di Servizio</span>
         </div>
       </nav>
