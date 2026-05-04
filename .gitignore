@@ -1,6 +1,5 @@
 node_modules/
 build/
-dist/
 firebase-applet-config.json
 coverage/
 .DS_Store

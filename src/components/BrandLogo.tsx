@@ -14,6 +14,8 @@ export function BrandLogo({ className, imgClassName }: BrandLogoProps) {
   const [hasError, setHasError] = useState(false);
 
   // Fallback: Professional SVG Hexagon with Tools (Brand style)
+  const logoUrl = `/logo.png`;
+
   if (hasError) {
     return (
       <div 
@@ -43,7 +45,7 @@ export function BrandLogo({ className, imgClassName }: BrandLogoProps) {
   return (
     <div className={cn("relative flex items-center justify-center", className)}>
       <img 
-        src="/logo.png" 
+        src={logoUrl} 
         alt="CercArtigiano Logo" 
         className={cn("w-full h-full object-contain", imgClassName)}
         onError={() => setHasError(true)}

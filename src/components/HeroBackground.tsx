@@ -7,12 +7,13 @@ interface HeroBackgroundProps {
 
 export function HeroBackground({ className }: HeroBackgroundProps) {
   const [hasError, setHasError] = useState(false);
+  const heroUrl = `/Foto_homepage.png`;
 
   return (
     <div className={cn("absolute inset-0 z-0 select-none pointer-events-none overflow-hidden h-full w-full bg-[#1D1D1F]", className)}>
       {!hasError ? (
         <img 
-          src="/Foto_homepage.png" 
+          src={heroUrl} 
           alt="Artigiano al lavoro" 
           className="w-full h-full object-cover"
           loading="eager"

@@ -33,8 +33,9 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
-  // Serve static files from public folder immediately
-  app.use(express.static(path.join(process.cwd(), 'public')));
+  // Serve static files from public folder
+  const publicPath = path.resolve(__dirname, 'public');
+  app.use(express.static(publicPath));
 
   // OpenAPI.it helper for invoicing
   async function sendInvoiceToSdi(billingData: any, session: Stripe.Checkout.Session, tokens: number) {
