@@ -165,7 +165,7 @@ export function ProfileView({ user }: ProfileViewProps) {
     try {
       // 1. Update basic user data
       const isClientComplete = editUser.nome && editUser.phone && editUser.address;
-      const isWorkerComplete = editProfile.bio && editProfile.categories.length > 0 && editProfile.address;
+      const isWorkerComplete = editProfile.bio && editProfile.categories?.length > 0 && editUser.address;
       
       const onboardingComplete = user.role === 'worker' ? !!isWorkerComplete : !!isClientComplete;
 

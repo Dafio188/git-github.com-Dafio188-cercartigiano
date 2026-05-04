@@ -68,6 +68,7 @@ export function Onboarding({ user, onComplete }: OnboardingProps) {
       
       const updates: any = {
         role: role,
+        status: role === 'worker' ? 'pending' : 'active',
         onboardingComplete: true,
         tokens: role === 'worker' ? 10 : 5,
       };

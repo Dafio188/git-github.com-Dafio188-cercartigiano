@@ -52,7 +52,10 @@ export function ReviewModal({ isOpen, onClose, job, clientId }: ReviewModalProps
       return;
     }
 
-    if (!job.assignedWorkerId) return;
+    if (!job.assignedWorkerId) {
+      alert("Errore: Impossibile trovare l'artigiano assegnato a questo lavoro.");
+      return;
+    }
 
     setLoading(true);
     try {
@@ -77,19 +80,25 @@ export function ReviewModal({ isOpen, onClose, job, clientId }: ReviewModalProps
         status: 'completed'
       });
 
-      const workerRef = doc(db, 'workerProfiles', job.assignedWorkerId);
-      await updateDoc(workerRef, {
-        reviewCount: increment(1),
-        score: averageRating
-      });
-
       setSuccess(true);
       setTimeout(() => {
         setSuccess(false);
         onClose();
       }, 2000);
-    } catch (error) {
+
+      try {
+        const workerRef = doc(db, 'workerProfiles', job.assignedWorkerId);
+        await updateDoc(workerRef, {
+          reviewCount: increment(1),
+          score: averageRating
+        });
+      } catch (workerErr) {
+        console.warn("Could not update worker profile stats:", workerErr);
+      }
+
+    } catch (error: any) {
       console.error("Error submitting review:", error);
+      alert("Errore durante l'invio della recensione: " + error.message);
     } finally {
       setLoading(false);
     }
