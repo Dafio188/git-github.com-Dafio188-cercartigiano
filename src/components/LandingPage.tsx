@@ -71,7 +71,7 @@ export function LandingPage({ onLogin, onShowPrivacy, onShowTerms, onShowCookies
         <div className="flex items-center gap-3 group cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
           <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center">
             <img 
-              src="/logo.png" 
+              src="/logo.png?v=3" 
               alt="CercArtigiano Logo" 
               className="w-full h-full object-contain group-hover:scale-110 transition-transform" 
               
@@ -106,7 +106,7 @@ export function LandingPage({ onLogin, onShowPrivacy, onShowTerms, onShowCookies
         {/* User uploaded realistic background image */}
         <div className="absolute inset-0 z-0 select-none pointer-events-none overflow-hidden h-full w-full bg-[#F5F5F7]">
           <img 
-            src="/Foto_homepage.png" 
+            src="/Foto_homepage.png?v=3" 
             alt="Artigiano al lavoro" 
             className="w-full h-full object-cover"
             loading="eager"
@@ -528,7 +528,7 @@ export function LandingPage({ onLogin, onShowPrivacy, onShowTerms, onShowCookies
             >
               <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
                 <img 
-                  src="/logo.png" 
+                  src="/logo.png?v=3" 
                   alt="Logo" 
                   className="w-full h-full object-contain transition-transform" 
                 />

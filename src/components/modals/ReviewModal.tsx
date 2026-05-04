@@ -33,6 +33,7 @@ export function ReviewModal({ isOpen, onClose, job, clientId }: ReviewModalProps
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [workerName, setWorkerName] = useState('...');
+  const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
     if (job.assignedWorkerId) {
@@ -47,13 +48,14 @@ export function ReviewModal({ isOpen, onClose, job, clientId }: ReviewModalProps
   const averageRating = (Object.values(ratings) as number[]).filter(r => r > 0).reduce((a, b) => a + b, 0) / 4 || 0;
 
   const handleSubmit = async () => {
+    setErrorMsg('');
     if (Object.values(ratings).some(r => r === 0)) {
-      alert("Valuta tutti gli aspetti per completare la recensione.");
+      setErrorMsg("Valuta tutti gli aspetti per completare la recensione.");
       return;
     }
 
     if (!job.assignedWorkerId) {
-      alert("Errore: Impossibile trovare l'artigiano assegnato a questo lavoro.");
+      setErrorMsg("Errore: Impossibile trovare l'artigiano assegnato a questo lavoro.");
       return;
     }
 
@@ -98,7 +100,7 @@ export function ReviewModal({ isOpen, onClose, job, clientId }: ReviewModalProps
 
     } catch (error: any) {
       console.error("Error submitting review:", error);
-      alert("Errore durante l'invio della recensione: " + error.message);
+      setErrorMsg("Errore durante l'invio della recensione: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -170,6 +172,12 @@ export function ReviewModal({ isOpen, onClose, job, clientId }: ReviewModalProps
                     className="w-full p-6 rounded-3xl bg-[#F5F5F7] border-none font-bold text-sm focus:ring-2 focus:ring-blue-500/20 min-h-[120px] resize-none"
                   />
                 </div>
+
+                {errorMsg && (
+                  <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-bold border border-red-100 flex items-center justify-between">
+                    <span>{errorMsg}</span>
+                  </div>
+                )}
 
                 <div className="flex flex-col sm:flex-row items-center justify-between pt-4 gap-6">
                    <div className="flex items-center gap-3">

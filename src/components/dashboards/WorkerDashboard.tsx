@@ -23,7 +23,8 @@ import {
   Target,
   Bell,
   ArrowRight,
-  CreditCard
+  CreditCard,
+  ShieldCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GlobalQnAFeed } from '../shared/GlobalQnAFeed';
@@ -34,6 +35,8 @@ import { SERVICE_CATEGORIES } from '../../constants';
 
 import { notifyNewMessage } from '../../lib/notifications';
 import { handleFirestoreError, OperationType } from '../../lib/firestore-errors';
+
+import { WorkerVerificationPhase } from './WorkerVerificationPhase';
 
 interface WorkerDashboardProps {
   user: User;
@@ -177,21 +180,7 @@ export function WorkerDashboard({ user, activeTab }: WorkerDashboardProps) {
   if (loading) return null;
 
   if (user.status === 'pending') {
-    return (
-      <div className="py-20 flex flex-col items-center justify-center text-center space-y-6 max-w-2xl mx-auto">
-        <div className="w-20 h-20 bg-orange-100 rounded-[2rem] flex items-center justify-center shadow-inner">
-           <ShieldCheck className="w-10 h-10 text-orange-600" />
-        </div>
-        <div className="space-y-2">
-          <h2 className="text-3xl font-black text-[#1D1D1F] tracking-tight">In Attesa di Approvazione</h2>
-          <p className="text-sm font-bold text-[#86868B] leading-relaxed">
-            Il tuo profilo come artigiano o professionista è attualmente in fase di revisione. 
-            Il nostro team di amministratori sta verificando i tuoi dati per garantire la massima 
-            affidabilità ai clienti della piattaforma. Riceverai un'email non appena sarai approvato.
-          </p>
-        </div>
-      </div>
-    );
+    return <WorkerVerificationPhase user={user} />;
   }
 
   return (

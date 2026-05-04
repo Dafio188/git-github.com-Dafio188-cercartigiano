@@ -147,6 +147,8 @@ export function AdminDashboard({ user, summaryOnly = false, initialTab }: AdminD
   });
 
   const [usersList, setUsersList] = useState<any[]>([]);
+  const [selectedVerification, setSelectedVerification] = useState<any | null>(null);
+  const [verificationsList, setVerificationsList] = useState<any[]>([]);
   const [jobsList, setJobsList] = useState<Job[]>([]);
   const [invoicesList, setInvoicesList] = useState<Invoice[]>([]);
   const [adminConfig, setAdminConfig] = useState<AdminBillingConfig | null>(null);
@@ -208,6 +210,28 @@ export function AdminDashboard({ user, summaryOnly = false, initialTab }: AdminD
   };
 
   const [backupLoading, setBackupLoading] = useState(false);
+
+  
+  const handleApproveVerification = async (userId: string, isApproved: boolean) => {
+    setProcessing('approving_' + userId);
+    try {
+      if (isApproved) {
+        await updateDoc(doc(db, 'users', userId), { status: 'active' });
+        await updateDoc(doc(db, 'verifications', userId), { status: 'approved' });
+        alert('Artigiano approvato con successo!');
+      } else {
+        await updateDoc(doc(db, 'verifications', userId), { status: 'rejected' });
+        alert("Documenti rifiutati. L'utente dovrà ricaricarli.");
+      }
+      setSelectedVerification(null);
+    } catch (e) {
+      console.error(e);
+      alert("Errore durante l'operazione");
+    } finally {
+      setProcessing(null);
+    }
+  };
+
 
   const exportDatabase = async () => {
     setBackupLoading(true);
@@ -334,6 +358,10 @@ export function AdminDashboard({ user, summaryOnly = false, initialTab }: AdminD
       console.error("AdminDashboard adminSettings onSnapshot error:", error);
     });
 
+    const unsubVerifications = onSnapshot(collection(db, 'verifications'), (snap) => {
+      setVerificationsList(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    }); 
+
     const unsubUsers = onSnapshot(collection(db, 'users'), (snap) => {
       const allUsers = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       const now = new Date();
@@ -394,6 +422,7 @@ export function AdminDashboard({ user, summaryOnly = false, initialTab }: AdminD
     return () => {
       unsubInvoices();
       unsubAdminConfig();
+      unsubVerifications();
       unsubUsers();
       unsubJobs();
     };
@@ -1061,12 +1090,29 @@ export function AdminDashboard({ user, summaryOnly = false, initialTab }: AdminD
                        </td>
                        <td className="px-8 py-6">
                           <span className={cn(
-                            "text-[10px] font-black uppercase px-2 py-1 rounded",
+                            "text-[10px] font-black uppercase px-2 py-1 rounded inline-block",
                             u.role === 'admin' ? "bg-purple-50 text-purple-600" : "bg-blue-50 text-blue-600"
-                          )}>{u.role}</span>
+                          )}>
+                            {u.role}
+                          </span>
+                          {u.status === 'pending' && (
+                             <span className="ml-2 text-[10px] bg-orange-50 text-orange-600 font-black uppercase px-2 py-1 rounded inline-block">
+                               IN ATTESA
+                             </span>
+                          )}
                        </td>
                        <td className="px-8 py-6 font-black text-sm">{u.tokens || 0}</td>
                        <td className="px-8 py-6 text-right space-x-2">
+                          {u.status === 'pending' && verificationsList.find(v => v.userId === u.id) && (
+                            <Button 
+                              variant="default" 
+                              size="sm" 
+                              className="rounded-full h-8 px-4 text-[10px] font-black bg-orange-500 hover:bg-orange-600 text-white"
+                              onClick={() => setSelectedVerification(verificationsList.find(v => v.userId === u.id))}
+                            >
+                              VEDI DOCS
+                            </Button>
+                          )}
                           <Button variant="outline" size="sm" className="rounded-full h-8 px-4 text-[10px] font-black" onClick={() => handleAddTokens(u.id)} disabled={!!processing}>+ TOKEN</Button>
                           <Button 
                             variant="outline" 
@@ -1114,6 +1160,62 @@ export function AdminDashboard({ user, summaryOnly = false, initialTab }: AdminD
           </motion.div>
         )}
       </AnimatePresence>
+
+      <Dialog open={!!selectedVerification} onOpenChange={() => setSelectedVerification(null)}>
+        <DialogContent className="max-w-2xl bg-[#FBFBFD] border-none rounded-[3rem] p-8">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black text-[#1D1D1F]">Verifica Artigiano</DialogTitle>
+          </DialogHeader>
+          {selectedVerification && (
+            <div className="space-y-6 mt-4">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-[#86868B] font-bold block text-xs">Nome Utente</span>
+                  <span className="font-black text-[#1D1D1F]">{selectedVerification.userName}</span>
+                </div>
+                <div>
+                  <span className="text-[#86868B] font-bold block text-xs">Email</span>
+                  <span className="font-black text-[#1D1D1F]">{selectedVerification.userEmail}</span>
+                </div>
+                <div>
+                  <span className="text-[#86868B] font-bold block text-xs">Tipo Documento</span>
+                  <span className="font-black text-[#1D1D1F] uppercase">{selectedVerification.documentType}</span>
+                </div>
+                <div>
+                  <span className="text-[#86868B] font-bold block text-xs">Data Inviato</span>
+                  <span className="font-black text-[#1D1D1F]">{selectedVerification.submittedAt?.toDate().toLocaleString()}</span>
+                </div>
+              </div>
+              <div>
+                 <span className="text-[#86868B] font-bold block text-xs mb-1">Note/Descrizione</span>
+                 <p className="text-sm font-bold bg-[#F5F5F7] p-4 rounded-xl">{selectedVerification.description || 'Nessuna nota fornita.'}</p>
+              </div>
+              <div>
+                 <span className="text-[#86868B] font-bold block text-xs mb-2">Documento Allegato</span>
+                 <img src={selectedVerification.documentBase64} alt="Documento" className="w-full max-h-[400px] object-contain bg-[#F5F5F7] rounded-2xl border border-[#D2D2D7]/30" />
+              </div>
+              <div className="flex gap-4 pt-4 border-t border-[#D2D2D7]/30">
+                 <Button 
+                   variant="outline" 
+                   className="flex-1 h-14 rounded-2xl border-red-200 text-red-600 hover:bg-red-50 font-black text-lg"
+                   onClick={() => handleApproveVerification(selectedVerification.userId, false)}
+                   disabled={!!processing}
+                 >
+                   RIFIUTA
+                 </Button>
+                 <Button 
+                   className="flex-1 h-14 rounded-2xl bg-green-600 hover:bg-green-700 text-white font-black text-lg shadow-xl shadow-green-500/20"
+                   onClick={() => handleApproveVerification(selectedVerification.userId, true)}
+                   disabled={!!processing}
+                 >
+                   APPROVA
+                 </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
 
       <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
         <DialogContent className="max-w-2xl bg-white rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
