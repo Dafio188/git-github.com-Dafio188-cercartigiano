@@ -171,6 +171,70 @@ async function startServer() {
 
   app.use(express.json());
 
+  // Gemini AI endpoints
+  app.post('/api/ai/parse-address', async (req, res) => {
+    try {
+      const { addressString } = req.body;
+      if (!addressString) return res.status(400).json({ error: "Missing address" });
+      
+      const apiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
+      if (!apiKey) return res.status(500).json({ error: "Missing AI Key" });
+      
+      const { GoogleGenerativeAI } = await import('@google/generative-ai');
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+      
+      const prompt = `Analizza questo indirizzo parziale o completo e scomponilo nei suoi componenti. Se mancano delle informazioni (come il CAP o la provincia), deducili in base alla città se possibile in Italia.
+Indirizzo: "${addressString}"
+
+Restituisci SOLO un JSON valido con questa struttura esatta:
+{
+  "route": "nome della via/piazza senza civico",
+  "streetNumber": "numero civico se presente",
+  "city": "città",
+  "province": "sigla provincia 2 lettere",
+  "region": "regione",
+  "postalCode": "CAP 5 cifre",
+  "lat": 0,
+  "lng": 0
+}
+Se non riesci a dedurre un campo, lascialo vuoto "".`;
+
+      const result = await model.generateContent(prompt);
+      const text = result.response.text().trim();
+      const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
+      res.json(JSON.parse(jsonStr));
+    } catch (error: any) {
+      console.error("AI Parse Error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post('/api/ai/evaluate-complexity', async (req, res) => {
+    try {
+      const { title, description } = req.body;
+      const apiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
+      if (!apiKey) return res.json({ cost: 2 });
+      
+      const { GoogleGenerativeAI } = await import('@google/generative-ai');
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+      
+      const prompt = `Valuta la complessità di questo lavoro artigianale per determinare il costo in Token (da 1 a 10) che un professionista deve pagare per inviare un preventivo.
+Titolo: ${title}
+Descrizione: ${description}
+
+Restituisci SOLO un numero intero tra 1 e 10.`;
+
+      const result = await model.generateContent(prompt);
+      const cost = parseInt(result.response.text().trim());
+      res.json({ cost: isNaN(cost) ? 2 : Math.min(Math.max(cost, 1), 10) });
+    } catch (error) {
+      console.warn("AI complexity fallback:", error);
+      res.json({ cost: 2 });
+    }
+  });
+
   app.post('/api/log', (req, res) => {
     fs.appendFileSync('client_errors.log', JSON.stringify(req.body) + '\\n');
     console.error('[CLIENT ERROR LOG]', req.body);
@@ -182,7 +246,6 @@ async function startServer() {
     stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
   }
 
-  // OpenAPI.it VAT check proxy
   app.post("/api/billing/verify-vat", async (req, res) => {
     const { vat } = req.body;
     const apiKey = process.env.OPENAPI_API_KEY;

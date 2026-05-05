@@ -88,7 +88,13 @@ export function ProfileView({ user }: ProfileViewProps) {
     cap: user.cap || '',
     citta: user.citta || '',
     provincia: user.provincia || '',
-    regione: user.regione || ''
+    regione: user.regione || '',
+    privacySettings: user.privacySettings || {
+      showEmail: false,
+      showPhone: false,
+      showAddress: false,
+      showFullName: true
+    }
   });
 
   const [editProfile, setEditProfile] = useState<UserProfile>(() => {
@@ -546,14 +552,25 @@ export function ProfileView({ user }: ProfileViewProps) {
                         </div>
                         <input 
                            type="checkbox"
-                           checked={!!editProfile.privacySettings?.[setting.key as keyof UserPrivacySettings]}
-                           onChange={(e) => setEditProfile({
-                             ...editProfile,
-                             privacySettings: {
-                               ...(editProfile.privacySettings || { showEmail: false, showPhone: false, showAddress: false, showFullName: false }),
-                               [setting.key]: e.target.checked
-                             } as UserPrivacySettings
-                           })}
+                           checked={user.role === 'worker' ? !!editProfile.privacySettings?.[setting.key as keyof UserPrivacySettings] : !!editUser.privacySettings?.[setting.key as keyof UserPrivacySettings]}
+                           onChange={(e) => {
+                             if (user.role === 'worker') {
+                               setEditProfile({
+                                 ...editProfile,
+                                 privacySettings: {
+                                   ...(editProfile.privacySettings || { showEmail: false, showPhone: false, showAddress: false, showFullName: false }),
+                                   [setting.key]: e.target.checked
+                                 } as UserPrivacySettings
+                               });
+                             }
+                             setEditUser({
+                               ...editUser,
+                               privacySettings: {
+                                 ...(editUser.privacySettings || { showEmail: false, showPhone: false, showAddress: false, showFullName: false }),
+                                 [setting.key]: e.target.checked
+                               } as UserPrivacySettings
+                             });
+                           }}
                            className="w-5 h-5 rounded-lg bg-white/10 border-none text-blue-500 focus:ring-0"
                         />
                       </div>

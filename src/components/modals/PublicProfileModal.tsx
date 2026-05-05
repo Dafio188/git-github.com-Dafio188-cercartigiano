@@ -55,11 +55,7 @@ export function PublicProfileModal({ workerId, onClose }: PublicProfileModalProp
         ) : profile ? (
           <div className="p-8 pb-10 flex flex-col items-center text-center mt-6">
             <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-blue-50 rounded-[2rem] flex items-center justify-center shadow-inner mb-6 relative">
-              {profile.profileImageUrl ? (
-                <img src={profile.profileImageUrl} alt="Profile" className="w-full h-full object-cover rounded-[2rem]" />
-              ) : (
-                <UserIcon className="w-10 h-10 text-blue-600" />
-              )}
+              <UserIcon className="w-10 h-10 text-blue-600" />
               {profile.isVerified && (
                 <div className="absolute -bottom-2 -right-2 bg-white rounded-full p-1 shadow-sm">
                   <ShieldCheck className="w-5 h-5 text-green-500 fill-green-100" />
@@ -67,7 +63,7 @@ export function PublicProfileModal({ workerId, onClose }: PublicProfileModalProp
               )}
             </div>
 
-            <h2 className="text-2xl font-black text-[#1D1D1F] tracking-tight">{profile.fullName || 'Professionista'}</h2>
+            <h2 className="text-2xl font-black text-[#1D1D1F] tracking-tight">{profile.nome || 'Professionista'}</h2>
             
             {(profile.citta || profile.regione) && (
               <div className="flex items-center gap-1 text-[#86868B] mt-2 text-sm font-medium">
