@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react'; // Root app entry - Trigger GitHub Sync aggiornamento
-// Modifica per forzare il sync con Github
+import React, { useState, useEffect } from 'react'; // Sync for Shared Chat fix and public assets
 import { auth, db } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, onSnapshot, updateDoc } from 'firebase/firestore';

@@ -53,7 +53,7 @@ export function ChatModal({ user, job, onClose }: ChatModalProps) {
     const q = query(
       collection(db, 'messages'),
       where('conversationId', '==', conversationId),
-      where('participantIds', 'array-contains', user.id)
+      where('participantIds', 'array-contains-any', [user.id, 'SHARED'])
     );
 
     const unsub = onSnapshot(q, (snapshot) => {
@@ -97,7 +97,11 @@ export function ChatModal({ user, job, onClose }: ChatModalProps) {
         });
       }
 
-      const pIds = Array.from(new Set([job.clientId, job.assignedWorkerId, user.id].filter(Boolean) as string[]));
+      const defaultIds = [job.clientId, user.id];
+      if (job.assignedWorkerId) defaultIds.push(job.assignedWorkerId);
+      if (!job.assignedWorkerId) defaultIds.push('SHARED'); // 'open' job chat is shared
+
+      const pIds = Array.from(new Set(defaultIds.filter(Boolean) as string[]));
 
       await addDoc(collection(db, 'messages'), {
         conversationId: conversationId,
