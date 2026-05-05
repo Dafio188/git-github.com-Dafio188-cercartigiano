@@ -52,15 +52,20 @@ export function ChatModal({ user, job, onClose }: ChatModalProps) {
 
     const q = query(
       collection(db, 'messages'),
-      where('conversationId', '==', conversationId),
-      where('participantIds', 'array-contains-any', [user.id, 'SHARED'])
+      where('conversationId', '==', conversationId)
     );
 
     const unsub = onSnapshot(q, (snapshot) => {
       let msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as DirectMessage));
       msgs.sort((a, b) => {
-        const dateA = a.timestamp ? (a.timestamp as any).seconds ? (a.timestamp as any).seconds * 1000 : new Date(a.timestamp as unknown as string).getTime() : 0;
-        const dateB = b.timestamp ? (b.timestamp as any).seconds ? (b.timestamp as any).seconds * 1000 : new Date(b.timestamp as unknown as string).getTime() : 0;
+        // Se a.timestamp è null (messaggio in corso di salvataggio), mettiamo un dateA molto grande così va in fondo
+        const dateA = a.timestamp 
+          ? ((a.timestamp as any).seconds ? (a.timestamp as any).seconds * 1000 : new Date(a.timestamp as unknown as string).getTime()) 
+          : Date.now() + 100000;
+        
+        const dateB = b.timestamp 
+          ? ((b.timestamp as any).seconds ? (b.timestamp as any).seconds * 1000 : new Date(b.timestamp as unknown as string).getTime()) 
+          : Date.now() + 100000;
         return dateA - dateB;
       });
       if (msgs.length > 200) {
