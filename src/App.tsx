@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'; // Root app entry
+import React, { useState, useEffect } from 'react'; // Root app entry - Trigger GitHub Sync aggiornamento
 import { auth, db } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
