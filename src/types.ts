@@ -176,12 +176,10 @@ export interface WorkProof {
 
 export interface Conversation {
   id: string;
-  participants: string[];
   lastMessage?: string;
   lastUpdate: any;
   jobId?: string;
   jobTitle?: string;
-  isPublicContext?: boolean;
   unreadCount?: Record<string, number>; // uid -> count
 }
 

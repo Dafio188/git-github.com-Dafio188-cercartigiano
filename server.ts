@@ -171,6 +171,12 @@ async function startServer() {
 
   app.use(express.json());
 
+  app.post('/api/log', (req, res) => {
+    fs.appendFileSync('client_errors.log', JSON.stringify(req.body) + '\\n');
+    console.error('[CLIENT ERROR LOG]', req.body);
+    res.send({ok: true});
+  });
+
   let stripe: Stripe | null = null;
   if (process.env.STRIPE_SECRET_KEY) {
     stripe = new Stripe(process.env.STRIPE_SECRET_KEY);

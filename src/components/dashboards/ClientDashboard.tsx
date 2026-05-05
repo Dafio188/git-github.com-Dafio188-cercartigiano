@@ -22,7 +22,6 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { GlobalQnAFeed } from '../shared/GlobalQnAFeed';
 import { NewJobModal } from '../modals/NewJobModal';
 import { ChatModal } from '../modals/ChatModal';
 import { ProposalsModal } from '../modals/ProposalsModal';
@@ -41,7 +40,7 @@ export function ClientDashboard({ user, activeTab }: ClientDashboardProps) {
   const [loading, setLoading] = useState(true);
   const [isNewJobModalOpen, setIsNewJobModalOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-  const [activeChatConvId, setActiveChatConvId] = useState<string | null>(null);
+  const [chatJob, setChatJob] = useState<Job | null>(null);
   const [isProposalsModalOpen, setIsProposalsModalOpen] = useState(false);
   const [clientProfile, setClientProfile] = useState<UserProfile | null>(null);
   const [activeArtisans, setActiveArtisans] = useState<UserProfile[]>([]);
@@ -271,11 +270,6 @@ export function ClientDashboard({ user, activeTab }: ClientDashboardProps) {
                   )}
                 </div>
               </div>
-
-              {/* Global QnA Feed */}
-              <div className="mt-12">
-                <GlobalQnAFeed />
-              </div>
            </motion.div>
          ) : (
            <motion.div
@@ -322,8 +316,7 @@ export function ClientDashboard({ user, activeTab }: ClientDashboardProps) {
                           setReviewJob(job);
                           setIsReviewModalOpen(true);
                         } else if (job.status === 'in_progress' && job.assignedWorkerId) {
-                          const participants = [user.id, job.assignedWorkerId].sort();
-                          setActiveChatConvId(`job_${job.id}_${participants.join('_')}`);
+                          setChatJob(job);
                         } else {
                           setSelectedJob(job);
                           setIsProposalsModalOpen(true);
@@ -460,11 +453,11 @@ export function ClientDashboard({ user, activeTab }: ClientDashboardProps) {
            clientId={user.id}
          />
        )}
-       {activeChatConvId && (
+       {chatJob && (
          <ChatModal 
            user={user} 
-           conversationId={activeChatConvId} 
-           onClose={() => setActiveChatConvId(null)} 
+           job={chatJob} 
+           onClose={() => setChatJob(null)} 
          />
        )}
     </div>

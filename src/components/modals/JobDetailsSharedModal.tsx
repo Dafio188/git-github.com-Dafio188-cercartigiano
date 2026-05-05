@@ -8,7 +8,6 @@ import {
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { Button } from '../ui/button';
 import { MapPin, Clock, ArrowRight, ShieldCheck, MessageSquare } from 'lucide-react';
-import { JobQnA } from '../shared/JobQnA';
 
 interface JobDetailsSharedModalProps {
   isOpen: boolean;
@@ -22,16 +21,16 @@ interface JobDetailsSharedModalProps {
 export function JobDetailsSharedModal({ isOpen, onClose, job, user, onOpenProposal, onStartChat }: JobDetailsSharedModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl bg-[#FBFBFD] border-none rounded-[3rem] p-0 overflow-hidden shadow-2xl">
+      <DialogContent className="max-w-2xl bg-[#FBFBFD] border-none rounded-[3rem] p-0 overflow-hidden shadow-2xl">
         <VisuallyHidden>
           <DialogTitle>Dettagli Lavoro</DialogTitle>
         </VisuallyHidden>
-        <div className="flex flex-col md:flex-row h-[85vh]">
-          {/* Left: Job Details */}
-          <div className="w-full md:w-1/2 p-8 lg:p-10 flex flex-col items-start overflow-y-auto bg-white">
+        <div className="flex flex-col h-[85vh] max-h-[800px]">
+          {/* Job Details */}
+          <div className="flex-1 p-8 lg:p-10 flex flex-col items-start overflow-y-auto bg-white">
             <div className="space-y-6 w-full">
                <div className="flex items-center gap-3">
-                 <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center">
+                 <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center shrink-0">
                    <ShieldCheck className="w-6 h-6 text-blue-600" />
                  </div>
                  <div>
@@ -42,7 +41,7 @@ export function JobDetailsSharedModal({ isOpen, onClose, job, user, onOpenPropos
                  </div>
                </div>
 
-               <div className="flex items-center gap-4 text-xs font-bold text-[#86868B] pb-6 border-b border-[#F5F5F7]">
+               <div className="flex flex-wrap items-center gap-4 text-xs font-bold text-[#86868B] pb-6 border-b border-[#F5F5F7]">
                  <div className="flex items-center gap-1">
                    <MapPin className="w-4 h-4" />
                    {job.location?.address}
@@ -66,7 +65,7 @@ export function JobDetailsSharedModal({ isOpen, onClose, job, user, onOpenPropos
                </div>
             </div>
             
-            <div className="mt-8 w-full space-y-3">
+            <div className="mt-8 w-full space-y-3 pt-6 border-t border-[#F5F5F7]">
               <Button 
                 onClick={() => {
                   onClose();
@@ -88,7 +87,7 @@ export function JobDetailsSharedModal({ isOpen, onClose, job, user, onOpenPropos
               >
                 <div className="flex items-center justify-center gap-2">
                   <MessageSquare className="w-5 h-5" />
-                  Chiedi Chiarimenti in Privato
+                  Chat Condivisa
                 </div>
               </Button>
 
@@ -101,19 +100,8 @@ export function JobDetailsSharedModal({ isOpen, onClose, job, user, onOpenPropos
               </Button>
 
               <p className="text-[10px] text-center font-bold text-[#86868B] px-4 pt-2 leading-tight">
-                 Le chat preliminari sono sorvegliate. Lo scambio di contatti prima dell'accettazione del preventivo comporta la sospensione del profilo.
+                 Le chat preliminari sono condivise con gli altri artigiani interessati. Lo scambio di contatti prima dell'accettazione del preventivo comporta la sospensione del profilo.
               </p>
-            </div>
-          </div>
-
-          {/* Right: Q&A */}
-          <div className="w-full md:w-1/2 bg-[#FBFBFD] p-6 md:p-10 border-l border-[#D2D2D7]/30 flex flex-col h-full">
-            <div className="mb-4">
-              <h3 className="text-2xl font-black text-[#1D1D1F] tracking-tight">Domande Pubbliche</h3>
-              <p className="text-xs font-bold text-[#86868B]">Chiedi dettagli generali. Tutti possono leggere queste risposte.</p>
-            </div>
-            <div className="flex-1 overflow-hidden">
-               <JobQnA jobId={job.id} userId={user.id} userName={user.nome} role="worker" />
             </div>
           </div>
         </div>

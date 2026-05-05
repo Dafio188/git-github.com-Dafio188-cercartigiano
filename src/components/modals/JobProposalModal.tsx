@@ -129,22 +129,6 @@ export function JobProposalModal({ isOpen, onClose, job, workerId, workerTokens:
           hasNewProposals: true
         });
 
-        // 4. Create a conversation for the proposal
-        const participants = [job.clientId, workerId].sort();
-        const convId = `job_${job.id}_${participants.join('_')}`;
-        const convRef = doc(db, 'conversations', convId);
-        
-        transaction.set(convRef, {
-          id: convId,
-          participants,
-          jobId: job.id,
-          jobTitle: job.title,
-          lastUpdate: serverTimestamp(),
-          lastMessage: formData.message,
-          isPublicContext: true,
-          updatedAt: serverTimestamp()
-        }, { merge: true });
-
         // Trigger notification (after transaction for better stability, or inside if needed by logic)
         // We do it after generally, but here let's ensure the flag is set.
       });

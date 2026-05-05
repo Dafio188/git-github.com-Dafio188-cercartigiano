@@ -27,7 +27,6 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { GlobalQnAFeed } from '../shared/GlobalQnAFeed';
 import { JobProposalModal } from '../modals/JobProposalModal';
 import { ChatModal } from '../modals/ChatModal';
 import { JobDetailsSharedModal } from '../modals/JobDetailsSharedModal';
@@ -130,13 +129,12 @@ export function WorkerDashboard({ user, activeTab }: WorkerDashboardProps) {
     return matchesSearch && matchesCategory && servesCategory;
   });
 
-  const [activeChatConvId, setActiveChatConvId] = useState<string | null>(null);
+  const [chatJob, setChatJob] = useState<Job | null>(null);
 
   const handleStartChat = async (job: Job) => {
     try {
-      // Find or create conversation
-      const participants = [user.id, job.clientId].sort();
-      const conversationId = `job_${job.id}_${participants.join('_')}`;
+      // Find or create global job conversation
+      const conversationId = job.id;
       
       const convRef = doc(db, 'conversations', conversationId);
       const convSnap = await getDoc(convRef);
@@ -144,27 +142,24 @@ export function WorkerDashboard({ user, activeTab }: WorkerDashboardProps) {
       if (!convSnap.exists()) {
         await setDoc(convRef, {
           id: conversationId,
-          participants,
           jobId: job.id,
           jobTitle: job.title,
           lastUpdate: serverTimestamp(),
-          lastMessage: 'Richiesta di informazioni iniziata.',
           createdAt: serverTimestamp(),
-          isPublicContext: true // Until proposal accepted
+          isPublicContext: true
         });
 
-        // Notify client that a worker is asking for info
+        // Notify client that someone is asking for info
         await notifyNewMessage(
           job.clientId,
           user.nome || 'Un artigiano',
           job.id,
           job.title,
-          'Ha aperto una chat per chiederti chiarimenti.'
+          'Ha aperto una chat condivisa per il tuo lavoro.'
         );
       }
 
-      // Open inline ChatModal
-      setActiveChatConvId(conversationId);
+      setChatJob(job);
     } catch (error) {
       console.error("Error starting chat:", error);
       alert("Errore nel caricamento della chat.");
@@ -362,7 +357,7 @@ export function WorkerDashboard({ user, activeTab }: WorkerDashboardProps) {
                           <div className="flex items-center gap-6 w-full sm:w-auto">
                             <div className="flex items-center gap-2 cursor-pointer hover:text-blue-600 transition-colors" onClick={() => handleStartChat(job)}>
                               <MessageSquare className="w-4 h-4 text-blue-500" />
-                              <span className="text-[10px] font-black uppercase tracking-widest">Apri Chat</span>
+                              <span className="text-[10px] font-black uppercase tracking-widest">Chat Condivisa</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <DollarSign className="w-4 h-4 text-green-500" />
@@ -456,11 +451,6 @@ export function WorkerDashboard({ user, activeTab }: WorkerDashboardProps) {
                       </CardContent>
                     </Card>
                   ))}
-                </div>
-
-                {/* Global QnA Feed */}
-                <div className="pt-6">
-                  <GlobalQnAFeed />
                 </div>
               </div>
            </motion.div>
@@ -706,11 +696,11 @@ export function WorkerDashboard({ user, activeTab }: WorkerDashboardProps) {
          />
        )}
 
-       {activeChatConvId && (
+       {chatJob && (
          <ChatModal 
            user={user} 
-           conversationId={activeChatConvId} 
-           onClose={() => setActiveChatConvId(null)} 
+           job={chatJob} 
+           onClose={() => setChatJob(null)} 
          />
        )}
     </div>

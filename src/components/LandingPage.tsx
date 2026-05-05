@@ -16,7 +16,6 @@ import {
 import { Button } from './ui/button';
 import { cn } from '../lib/utils';
 import { SERVICE_CATEGORIES } from '../constants';
-import { GlobalQnAFeed } from './shared/GlobalQnAFeed';
 
 import { BrandLogo } from './BrandLogo';
 import { HeroBackground } from './HeroBackground';

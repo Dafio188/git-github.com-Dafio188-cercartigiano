@@ -36,6 +36,14 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      window.addEventListener('error', function(e) {
+        fetch('/api/log', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ error: e.message, src: e.filename, l: e.lineno, c: e.colno }) });
+      });
+      window.addEventListener('unhandledrejection', function(e) {
+        fetch('/api/log', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ error: e.reason ? e.reason.toString() : 'Unhandled Rejection' }) });
+      });
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

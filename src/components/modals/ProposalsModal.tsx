@@ -25,9 +25,9 @@ import {
 import { cn } from '../../lib/utils';
 import { JobProposal, Job, User } from '../../types';
 import { motion, AnimatePresence } from 'motion/react';
-import { JobQnA } from '../shared/JobQnA';
 import { BadgeList } from '../shared/BadgeList';
 import { ChatModal } from './ChatModal';
+import { PublicProfileModal } from './PublicProfileModal';
 
 interface ProposalsModalProps {
   isOpen: boolean;
@@ -40,8 +40,8 @@ export function ProposalsModal({ isOpen, onClose, job, user }: ProposalsModalPro
   const [proposals, setProposals] = useState<JobProposal[]>([]);
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'proposals' | 'qna'>('proposals');
-  const [activeChatConvId, setActiveChatConvId] = useState<string | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [viewProfileId, setViewProfileId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isOpen || !job?.id) return;
@@ -83,23 +83,20 @@ export function ProposalsModal({ isOpen, onClose, job, user }: ProposalsModalPro
         updatedAt: serverTimestamp()
       });
 
-      // 3. Create or update a conversation for them
-      const participants = [job.clientId, proposal.workerId].sort();
-      const conversationId = `job_${job.id}_${participants.join('_')}`;
+      // 3. Setup conversation doc
+      const conversationId = job.id;
       
       await setDoc(doc(db, 'conversations', conversationId), {
         id: conversationId,
-        participants,
         jobId: job.id,
         jobTitle: job.title,
         lastUpdate: serverTimestamp(),
         lastMessage: 'Hai accettato la proposta. Potete ora scambiarvi i dettagli dell\'intervento.',
-        isPublicContext: false, // Now private
         updatedAt: serverTimestamp()
       }, { merge: true });
 
       onClose();
-      alert("Proposta accettata! Ora puoi messaggiare liberamente con l'artigiano.");
+      alert("Proposta accettata! Ora puoi messaggiare in modo esclusivo con l'artigiano.");
     } catch (error) {
       console.error("Error accepting proposal:", error);
       alert("Errore durante l'accettazione della proposta");
@@ -130,24 +127,18 @@ export function ProposalsModal({ isOpen, onClose, job, user }: ProposalsModalPro
                 
                 <div className="space-y-2">
                    <Button 
-                     onClick={() => setActiveTab('proposals')}
                      variant="ghost" 
-                     className={cn(
-                       "w-full justify-start h-12 rounded-xl font-black transition-all",
-                       activeTab === 'proposals' ? "bg-white text-[#1D1D1F]" : "text-white/60 hover:text-white hover:bg-white/10"
-                     )}
+                     className="w-full justify-start h-12 rounded-xl font-black transition-all bg-white text-[#1D1D1F]"
                    >
                      Preventivi Ricevuti ({proposals.length})
                    </Button>
                    <Button 
-                     onClick={() => setActiveTab('qna')}
+                     onClick={() => setIsChatOpen(true)}
                      variant="ghost" 
-                     className={cn(
-                       "w-full justify-start h-12 rounded-xl font-black transition-all",
-                       activeTab === 'qna' ? "bg-white text-[#1D1D1F]" : "text-white/60 hover:text-white hover:bg-white/10"
-                     )}
+                     className="w-full justify-start h-12 rounded-xl font-black transition-all text-white/60 hover:text-white hover:bg-white/10"
                    >
-                     Domande Pubbliche
+                     <MessageSquare className="w-4 h-4 mr-2" />
+                     Chat Condivisa
                    </Button>
                 </div>
                 
@@ -170,24 +161,22 @@ export function ProposalsModal({ isOpen, onClose, job, user }: ProposalsModalPro
              <div className="flex items-center gap-2 mt-4">
                 <Button 
                   size="sm"
-                  onClick={() => setActiveTab('proposals')}
-                  className={cn("rounded-full font-black text-[10px] uppercase", activeTab === 'proposals' ? 'bg-white text-[#1D1D1F]' : 'bg-white/10 text-white')}
+                  className="rounded-full font-black text-[10px] uppercase bg-white text-[#1D1D1F]"
                 >
                   Preventivi ({proposals.length})
                 </Button>
                 <Button 
                   size="sm"
-                  onClick={() => setActiveTab('qna')}
-                  className={cn("rounded-full font-black text-[10px] uppercase", activeTab === 'qna' ? 'bg-white text-[#1D1D1F]' : 'bg-white/10 text-white')}
+                  onClick={() => setIsChatOpen(true)}
+                  className="rounded-full font-black text-[10px] uppercase bg-white/10 text-white"
                 >
-                  Domande Pubbliche
+                  Chat Condivisa
                 </Button>
              </div>
           </div>
 
           {/* Right Panel: Content */}
           <div className="flex-1 p-6 md:p-10 overflow-y-auto">
-            {activeTab === 'proposals' ? (
               <div className="space-y-6">
                 <div className="flex items-center justify-between mb-2 text-[#1D1D1F]">
                   <h3 className="text-2xl font-black tracking-tight">Preventivi Ricevuti</h3>
@@ -237,7 +226,10 @@ export function ProposalsModal({ isOpen, onClose, job, user }: ProposalsModalPro
                                <div className="flex items-center mt-1.5">
                                  <BadgeList badges={prop.workerBadges || []} />
                                </div>
-                               <button className="text-[10px] font-black text-blue-600 hover:text-blue-800 transition-colors mt-2 hover:underline uppercase tracking-widest">
+                               <button 
+                                 onClick={() => setViewProfileId(prop.workerId)}
+                                 className="text-[10px] font-black text-blue-600 hover:text-blue-800 transition-colors mt-2 hover:underline uppercase tracking-widest cursor-pointer"
+                               >
                                  Guarda il Portfolio →
                                </button>
                             </div>
@@ -321,34 +313,6 @@ export function ProposalsModal({ isOpen, onClose, job, user }: ProposalsModalPro
                              <div className="text-2xl font-black text-green-600 sm:hidden">€{prop.price || (prop.materialsCost + prop.laborCost)}</div>
                              <div className="flex items-center gap-3 w-full sm:w-auto">
                                <Button 
-                                 onClick={async () => {
-                                   const participants = [job.clientId, prop.workerId].sort();
-                                   const conversationId = `job_${job.id}_${participants.join('_')}`;
-                                   const convRef = doc(db, 'conversations', conversationId);
-                                   const convSnap = await getDoc(convRef);
-                                   
-                                   if (!convSnap.exists()) {
-                                     await setDoc(convRef, {
-                                       id: conversationId,
-                                       participants,
-                                       jobId: job.id,
-                                       jobTitle: job.title,
-                                       lastUpdate: serverTimestamp(),
-                                       lastMessage: 'Richiesta di informazioni dai preventivi.',
-                                       createdAt: serverTimestamp(),
-                                       isPublicContext: true
-                                     });
-                                   }
-
-                                   setActiveChatConvId(conversationId);
-                                 }}
-                                 variant="outline"
-                                 className="flex-1 sm:flex-none h-14 px-6 rounded-2xl border-[#D2D2D7]/30 text-[#1D1D1F] font-black group shadow-sm hover:bg-[#F5F5F7]"
-                               >
-                                  <MessageSquare className="w-5 h-5 mr-2 group-hover:text-blue-600 transition-colors" />
-                                  Chat Privata
-                               </Button>
-                               <Button 
                                  onClick={() => handleAcceptProposal(prop)}
                                  disabled={!!acting}
                                  className="flex-1 sm:flex-none h-14 px-10 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-sm group/btn shadow-xl shadow-blue-600/20"
@@ -365,28 +329,20 @@ export function ProposalsModal({ isOpen, onClose, job, user }: ProposalsModalPro
                   </AnimatePresence>
                 )}
               </div>
-            ) : (
-              <div className="space-y-6 h-full flex flex-col">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-2xl font-black text-[#1D1D1F] tracking-tight">Domande Pubbliche</h3>
-                    <p className="text-sm font-bold text-[#86868B]">Rispondi alle domande degli artigiani per aiutarli a formulare un preventivo più preciso.</p>
-                  </div>
-                  <Button variant="ghost" onClick={onClose} className="md:hidden">Chiudi</Button>
-                </div>
-                <div className="flex-1">
-                  <JobQnA jobId={job.id} userId={job.clientId} userName="Cliente" role="client" />
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </DialogContent>
-      {activeChatConvId && (
+      {isChatOpen && (
         <ChatModal 
           user={user} 
-          conversationId={activeChatConvId} 
-          onClose={() => setActiveChatConvId(null)} 
+          job={job} 
+          onClose={() => setIsChatOpen(false)} 
+        />
+      )}
+      {viewProfileId && (
+        <PublicProfileModal
+          workerId={viewProfileId}
+          onClose={() => setViewProfileId(null)}
         />
       )}
     </Dialog>
