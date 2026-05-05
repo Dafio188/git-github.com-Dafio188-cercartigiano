@@ -1,20 +1,8 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# CercArtigiano
 
-# Run and deploy your AI Studio app
+Benvenuto nel repository di CercArtigiano.
 
-This contains everything you need to run your app locally.
+## Deploy Automatizzato (GitHub Actions)
+Questo progetto è configurato per essere distribuito automaticamente su Firebase Hosting tramite GitHub Actions ogni volta che viene effettuato un push sul branch `main`.
 
-View your app in AI Studio: https://ai.studio/apps/62c63647-f43b-4207-874e-291c0c8ba92b
-
-## Run Locally
-
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+Se stai effettuando la sincronizzazione da Google AI Studio, assicurati di inviare le modifiche (Sync to GitHub) e GitHub si occuperà del resto!
