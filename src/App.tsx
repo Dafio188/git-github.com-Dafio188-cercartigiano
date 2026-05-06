@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'; // Sync for Shared Chat fix, public assets, and deploy fix
+import React, { useState, useEffect } from 'react'; // Sync for Shared Chat fix, public assets, and deploy fix, github rollback
 import { auth, db } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
