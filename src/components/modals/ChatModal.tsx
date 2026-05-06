@@ -52,7 +52,8 @@ export function ChatModal({ user, job, onClose }: ChatModalProps) {
 
     const q = query(
       collection(db, 'messages'),
-      where('conversationId', '==', conversationId)
+      where('conversationId', '==', conversationId),
+      where('participantIds', 'array-contains', user.id)
     );
 
     const unsub = onSnapshot(q, (snapshot) => {
