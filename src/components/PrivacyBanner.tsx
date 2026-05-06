@@ -25,7 +25,7 @@ export function PrivacyBanner() {
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
-          className="fixed bottom-6 right-6 left-6 md:left-auto md:w-96 bg-white/80 backdrop-blur-2xl border border-[#D2D2D7]/50 rounded-3xl p-6 shadow-2xl z-[100]"
+          className="fixed bottom-[104px] md:bottom-6 right-6 left-6 lg:left-auto md:left-auto md:w-96 bg-white/80 backdrop-blur-2xl border border-[#D2D2D7]/50 rounded-3xl p-6 shadow-2xl z-[110]"
         >
           <div className="flex items-start gap-4">
             <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
