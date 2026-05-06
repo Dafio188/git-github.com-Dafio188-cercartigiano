@@ -1072,13 +1072,14 @@ export function AdminDashboard({ user, summaryOnly = false, initialTab }: AdminD
         {activeTab === 'utenti' && (
           <motion.div key="utenti" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
             <div className="bg-white rounded-[2.5rem] border border-[#D2D2D7]/30 shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
                <table className="w-full text-left">
                  <thead className="bg-[#F5F5F7] text-[10px] font-black uppercase text-[#86868B]">
                    <tr>
                      <th className="px-8 py-5">Utente</th>
                      <th className="px-8 py-5">Ruolo</th>
                      <th className="px-8 py-5">Tokens</th>
-                     <th className="px-8 py-5 text-right">Azioni CRM</th>
+                     <th className="px-8 py-5 text-right w-full min-w-[max-content]">Azioni CRM</th>
                    </tr>
                  </thead>
                  <tbody className="divide-y divide-[#D2D2D7]/10">
@@ -1102,16 +1103,46 @@ export function AdminDashboard({ user, summaryOnly = false, initialTab }: AdminD
                           )}
                        </td>
                        <td className="px-8 py-6 font-black text-sm">{u.tokens || 0}</td>
-                       <td className="px-8 py-6 text-right space-x-2">
-                          {u.status === 'pending' && verificationsList.find(v => v.userId === u.id) && (
-                            <Button 
-                              variant="default" 
-                              size="sm" 
-                              className="rounded-full h-8 px-4 text-[10px] font-black bg-orange-500 hover:bg-orange-600 text-white"
-                              onClick={() => setSelectedVerification(verificationsList.find(v => v.userId === u.id))}
-                            >
-                              VEDI DOCS
-                            </Button>
+                       <td className="px-8 py-6 text-right space-x-2 whitespace-nowrap">
+                          {u.status === 'pending' && (
+                             <>
+                               {verificationsList.find(v => v.userId === u.id) ? (
+                                 <Button 
+                                   variant="default" 
+                                   size="sm" 
+                                   className="rounded-full h-8 px-4 text-[10px] font-black bg-orange-500 hover:bg-orange-600 text-white"
+                                   onClick={() => setSelectedVerification(verificationsList.find(v => v.userId === u.id))}
+                                 >
+                                   VEDI DOCS
+                                 </Button>
+                               ) : (
+                                 <span className="text-[10px] text-orange-500 font-bold px-2">No Docs Uploaded</span>
+                               )}
+                               <Button 
+                                 variant="default" 
+                                 size="sm" 
+                                 className="rounded-full h-8 px-4 text-[10px] font-black bg-green-600 hover:bg-green-700 text-white ml-2"
+                                 onClick={async () => {
+                                   if(confirm('Vuoi approvare manualmente questo utente?')) {
+                                      setProcessing('approving_' + u.id);
+                                      try {
+                                        await updateDoc(doc(db, 'users', u.id), { status: 'active' });
+                                        if (verificationsList.find(v => v.userId === u.id)) {
+                                          await updateDoc(doc(db, 'verifications', u.id), { status: 'approved' });
+                                        }
+                                        alert('Approvato.');
+                                      } catch (e) {
+                                        console.error(e);
+                                      } finally {
+                                        setProcessing(null);
+                                      }
+                                   }
+                                 }}
+                                 disabled={!!processing}
+                               >
+                                 APPROVA
+                               </Button>
+                             </>
                           )}
                           <Button variant="outline" size="sm" className="rounded-full h-8 px-4 text-[10px] font-black" onClick={() => handleAddTokens(u.id)} disabled={!!processing}>+ TOKEN</Button>
                           <Button 
@@ -1130,6 +1161,7 @@ export function AdminDashboard({ user, summaryOnly = false, initialTab }: AdminD
                    ))}
                  </tbody>
                </table>
+              </div>
             </div>
           </motion.div>
         )}
