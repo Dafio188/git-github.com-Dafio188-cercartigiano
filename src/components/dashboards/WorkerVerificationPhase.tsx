@@ -3,7 +3,7 @@ import { db } from '../../firebase';
 import { doc, getDoc, setDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { User } from '../../types';
 import { Button } from '../ui/button';
-import { ShieldCheck, Upload, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Shield, Upload, CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface WorkerVerificationPhaseProps {
   user: User;
@@ -109,7 +109,7 @@ export function WorkerVerificationPhase({ user }: WorkerVerificationPhaseProps) 
     return (
       <div className="py-20 flex flex-col items-center justify-center text-center space-y-6 max-w-2xl mx-auto px-6">
         <div className="w-20 h-20 bg-orange-100 rounded-[2rem] flex items-center justify-center shadow-inner">
-           <ShieldCheck className="w-10 h-10 text-orange-600" />
+           <Shield className="w-10 h-10 text-orange-600" />
         </div>
         <div className="space-y-4">
           <h2 className="text-3xl font-black text-[#1D1D1F] tracking-tight">In Attesa di Approvazione</h2>
@@ -149,7 +149,7 @@ export function WorkerVerificationPhase({ user }: WorkerVerificationPhaseProps) 
        <div className="bg-white rounded-[2.5rem] p-8 lg:p-12 border border-[#D2D2D7]/30 shadow-xl shadow-black/5 space-y-8">
           <div className="space-y-2 text-center">
              <div className="mx-auto w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 mb-6">
-               <ShieldCheck className="w-8 h-8" />
+               <Shield className="w-8 h-8" />
              </div>
              <h2 className="text-3xl font-black text-[#1D1D1F] tracking-tight">Verifica il tuo Account</h2>
              <p className="text-sm font-bold text-[#86868B] max-w-md mx-auto leading-relaxed">

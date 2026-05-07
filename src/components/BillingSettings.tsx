@@ -5,7 +5,7 @@ import { BillingProfile } from '../types';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { motion } from 'motion/react';
-import { ShieldCheck, Building2, User, Landmark, Save, ArrowLeft } from 'lucide-react';
+import { Shield, Building2, User, Landmark, Save, ArrowLeft } from 'lucide-react';
 
 interface BillingSettingsProps {
   onBack: () => void;
@@ -170,7 +170,7 @@ export function BillingSettings({ onBack }: BillingSettingsProps) {
         </div>
 
         <div className="flex bg-blue-50/50 p-6 rounded-3xl border border-blue-100 gap-4">
-          <ShieldCheck className="w-6 h-6 text-blue-600 shrink-0" />
+          <Shield className="w-6 h-6 text-blue-600 shrink-0" />
           <p className="text-xs font-bold text-blue-900 leading-relaxed">
             I dati inseriti sono necessari per l'emissione delle fatture pro-forma e l'invio telematico allo SDI. Assicurati di aver inserito correttamente Partita IVA e Codice Destinatario.
           </p>

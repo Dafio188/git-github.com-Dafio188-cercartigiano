@@ -5,7 +5,7 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import { UserProfile } from '../types';
 import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
-import { MapPin, Star, ShieldCheck, ChevronRight, Home } from 'lucide-react';
+import { MapPin, Star, Shield, ChevronRight, Home, CheckCircle2 as CheckCircleIcon } from 'lucide-react';
 import { motion } from 'motion/react';
 import { handleFirestoreError, OperationType } from '../lib/firestore-errors';
 
@@ -19,6 +19,21 @@ export function SeoLandingPage() {
   const formattedCategoria = categoria ? categoria.charAt(0).toUpperCase() + categoria.slice(1).replace(/-/g, ' ') : '';
   const formattedComune = comune ? comune.charAt(0).toUpperCase() + comune.slice(1).replace(/-/g, ' ') : '';
   const formattedProvincia = provincia ? provincia.toUpperCase() : '';
+
+  // Pool di frasi per generare contenuti unici
+  const introTexts = [
+    `Cerchi un ${formattedCategoria} affidabile a ${formattedComune}? Abbiamo selezionato i migliori professionisti della zona per garantirti interventi rapidi e certificati.`,
+    `A ${formattedComune}, la ricerca di un ${formattedCategoria} esperto finisce qui. Confronta i profili più votati e richiedi un appuntamento in pochi clic.`,
+    `Hai bisogno di un intervento di ${formattedCategoria} a ${formattedComune} (${formattedProvincia})? La nostra piattaforma ti connette con artigiani verificati e pronti all'azione.`
+  ];
+
+  const benefitTexts = [
+    { title: "Interventi Rapidi", desc: "Professionisti residenti vicino a te per minimizzare i tempi di attesa." },
+    { title: "Prezzi Trasparenti", desc: "Ricevi fino a 5 preventivi gratuiti e scegli quello più adatto al tuo budget." },
+    { title: "Qualità Garantita", desc: "Solo artigiani con recensioni verificate dall'amministrazione di CercArtigiano." }
+  ];
+
+  const dynamicIntro = introTexts[formattedComune.length % introTexts.length];
 
   useEffect(() => {
     // Aggiorna Meta-Data del documento
@@ -107,9 +122,20 @@ export function SeoLandingPage() {
              </p>
           ) : (
              <p className="text-lg md:text-xl text-[#86868B] font-medium max-w-3xl">
-               Confronta preventivi, leggi le recensioni dei clienti e affida i tuoi lavori ai migliori professionisti di {formattedComune}.
+               {dynamicIntro}
              </p>
           )}
+
+          {/* Sezione Benefici Dinamici */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+            {benefitTexts.map((benefit, i) => (
+              <div key={i} className="bg-white p-6 rounded-3xl border border-[#D2D2D7]/30">
+                <CheckCircleIcon className="w-8 h-8 text-blue-600 mb-3" />
+                <h4 className="text-lg font-black text-[#1D1D1F] mb-2">{benefit.title}</h4>
+                <p className="text-sm text-[#86868B] leading-relaxed">{benefit.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
 
         {loading ? (
@@ -138,7 +164,7 @@ export function SeoLandingPage() {
                         )}
                         {pro.isVerified && (
                           <div className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-1 border-2 border-white shadow-lg">
-                            <ShieldCheck className="w-3 h-3 text-white" />
+                            <Shield className="w-3 h-3 text-white" />
                           </div>
                         )}
                       </div>

@@ -17,7 +17,7 @@ import {
   Wrench,
   Activity,
   Trophy,
-  ShieldCheck,
+  Shield,
   Clock,
   HeartHandshake
 } from 'lucide-react';
@@ -53,8 +53,8 @@ export const SECONDARY_SLOGAN = "Tutto nel palmo della Tua mano";
 
 export const TRUST_BADGES: { id: BadgeType; label: string; icon: any; color: string; bg: string; description: string }[] = [
   { id: 'top_pro', label: 'Top Pro', icon: Trophy, color: 'text-amber-600', bg: 'bg-amber-50', description: 'Professionista d\'eccellenza con recensioni eccezionali.' },
-  { id: 'verified', label: 'Verificato', icon: ShieldCheck, color: 'text-blue-600', bg: 'bg-blue-50', description: 'Identità e documenti verificati dal nostro team.' },
+  { id: 'verified', label: 'Verificato', icon: Shield, color: 'text-blue-600', bg: 'bg-blue-50', description: 'Identità e documenti verificati dal nostro team.' },
   { id: 'fast_responder', label: 'Rapido', icon: Clock, color: 'text-orange-600', bg: 'bg-orange-50', description: 'Risponde solitamente entro un\'ora.' },
-  { id: 'insurance_active', label: 'Assicurato', icon: ShieldCheck, color: 'text-emerald-600', bg: 'bg-emerald-50', description: 'Copertura assicurativa RC professionale attiva.' },
+  { id: 'insurance_active', label: 'Assicurato', icon: Shield, color: 'text-emerald-600', bg: 'bg-emerald-50', description: 'Copertura assicurativa RC professionale attiva.' },
   { id: 'elderly_friendly', label: 'Supporto Senior', icon: HeartHandshake, color: 'text-rose-600', bg: 'bg-rose-50', description: 'Particolarmente sensibile alle esigenze dei clienti senior.' },
 ];

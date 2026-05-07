@@ -3,7 +3,7 @@ import { db } from '../../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
-import { X, Star, CheckCircle2, User as UserIcon, ShieldCheck, MapPin } from 'lucide-react';
+import { X, Star, CheckCircle2, User as UserIcon, Shield, MapPin } from 'lucide-react';
 import { UserProfile } from '../../types';
 import { BadgeList } from '../shared/BadgeList';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
@@ -58,7 +58,7 @@ export function PublicProfileModal({ workerId, onClose }: PublicProfileModalProp
               <UserIcon className="w-10 h-10 text-blue-600" />
               {profile.isVerified && (
                 <div className="absolute -bottom-2 -right-2 bg-white rounded-full p-1 shadow-sm">
-                  <ShieldCheck className="w-5 h-5 text-green-500 fill-green-100" />
+                  <Shield className="w-5 h-5 text-green-500 fill-green-100" />
                 </div>
               )}
             </div>

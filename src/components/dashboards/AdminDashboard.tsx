@@ -69,7 +69,7 @@ import {
   Users, 
   Briefcase, 
   Zap, 
-  ShieldCheck, 
+  Shield, 
   Search,
   DollarSign,
   Activity,
@@ -182,11 +182,14 @@ export function AdminDashboard({ user, summaryOnly = false, initialTab }: AdminD
   const saveAdminSettings = async () => {
     setProcessing('saving_settings');
     try {
+      // Salviamo in entrambi i posti per compatibilità e permessi
       await setDoc(doc(db, 'adminSettings', 'config'), { ...billingConfigForm });
-      alert('Impostazioni fiscali salvate.');
+      // Salviamo solo i link stripe in config/billing che è leggibile da tutti
+      await setDoc(doc(db, 'config', 'billing'), { stripeLinks: billingConfigForm.stripeLinks }, { merge: true });
+      alert('Impostazioni fiscali e link Stripe salvati con successo.');
     } catch (e) {
       console.error(e);
-      alert('Errore nel salvataggio.');
+      alert('Errore nel salvataggio. Verifica i permessi.');
     } finally {
       setProcessing(null);
     }
@@ -352,10 +355,23 @@ export function AdminDashboard({ user, summaryOnly = false, initialTab }: AdminD
       if (snap.exists()) {
         const data = snap.data() as AdminBillingConfig;
         setAdminConfig(data);
-        setBillingConfigForm(data);
+        setBillingConfigForm(prev => ({
+          ...prev,
+          ...data,
+          stripeLinks: data.stripeLinks || prev.stripeLinks
+        }));
       }
     }, (error) => {
-      console.error("AdminDashboard adminSettings onSnapshot error:", error);
+      console.warn("AdminDashboard adminSettings onSnapshot warn (retrying with config/billing?):", error);
+      // Try fallback to config/billing if restricted
+      getDoc(doc(db, 'config', 'billing')).then(snap => {
+        if (snap.exists() && snap.data().stripeLinks) {
+          setBillingConfigForm(prev => ({
+            ...prev,
+            stripeLinks: snap.data().stripeLinks
+          }));
+        }
+      }).catch(e => console.error("AdminDashboard billing config fallback failed:", e));
     });
 
     const unsubVerifications = onSnapshot(collection(db, 'verifications'), (snap) => {
@@ -576,7 +592,7 @@ export function AdminDashboard({ user, summaryOnly = false, initialTab }: AdminD
           { id: 'panoramica', label: 'Monitor', icon: Activity },
           { id: 'utenti', label: 'CRM Utenti', icon: Users },
           { id: 'finanza', label: 'Economia', icon: DollarSign },
-          { id: 'moderazione', label: 'Moderazione', icon: ShieldCheck },
+          { id: 'moderazione', label: 'Moderazione', icon: Shield },
           { id: 'notifiche', label: 'Broadcast', icon: Bell },
           { id: 'fatturazione', label: 'Fatturazione', icon: FileText },
           { id: 'impostazioni', label: 'Sistema', icon: Lock },
@@ -924,7 +940,7 @@ export function AdminDashboard({ user, summaryOnly = false, initialTab }: AdminD
 
                    <div className="p-6 bg-white rounded-2xl border border-[#D2D2D7]/20 space-y-4">
                       <div className="flex items-center gap-4">
-                        <ShieldCheck className="w-5 h-5 text-green-600" />
+                        <Shield className="w-5 h-5 text-green-600" />
                         <div className="font-black text-sm">Ripristino Dati</div>
                       </div>
                       <p className="text-[10px] font-bold text-[#86868B] leading-tight">
@@ -1054,7 +1070,7 @@ export function AdminDashboard({ user, summaryOnly = false, initialTab }: AdminD
                     <div key={i} className="p-6 flex items-center justify-between">
                        <div className="flex items-center gap-4">
                           <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", log.type === 'job' ? 'bg-blue-50' : 'bg-green-50')}>
-                             {log.type === 'job' ? <Plus className="w-5 h-5 text-blue-600" /> : <ShieldCheck className="w-5 h-5 text-green-600" />}
+                             {log.type === 'job' ? <Plus className="w-5 h-5 text-blue-600" /> : <Shield className="w-5 h-5 text-green-600" />}
                           </div>
                           <div>
                              <div className="font-black text-sm text-[#1D1D1F]">{log.title}</div>

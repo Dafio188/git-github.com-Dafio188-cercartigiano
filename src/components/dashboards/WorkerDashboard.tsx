@@ -24,7 +24,7 @@ import {
   Bell,
   ArrowRight,
   CreditCard,
-  ShieldCheck
+  Shield
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { JobProposalModal } from '../modals/JobProposalModal';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Info, Target, Award, Mail, MapPin, ArrowLeft, Building2, ShieldCheck } from 'lucide-react';
+import { Info, Target, Award, Mail, MapPin, ArrowLeft, Building2, Shield } from 'lucide-react';
 import { Button } from './ui/button';
 import { BrandLogo } from './BrandLogo';
 
@@ -61,8 +61,8 @@ export function GeneralInfo({ onBack }: GeneralInfoProps) {
               <h2 className="text-3xl font-black mb-10">In cosa crediamo</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div className="space-y-4">
-                  <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-[#D2D2D7]/30">
-                    <ShieldCheck className="w-6 h-6 text-blue-600" />
+                  <div className="w-12 l-12 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-[#D2D2D7]/30">
+                    <Shield className="w-6 h-6 text-blue-600" />
                   </div>
                   <h3 className="text-xl font-black">Trasparenza</h3>
                   <p className="text-[#86868B] leading-relaxed">

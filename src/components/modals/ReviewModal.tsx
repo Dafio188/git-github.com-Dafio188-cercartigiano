@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent } from '../ui/dialog';
 import { Button } from '../ui/button';
-import { Star, CheckCircle2, ShieldCheck, Heart, Sparkles, Send, User as UserIcon } from 'lucide-react';
+import { Star, CheckCircle2, Shield, Heart, Sparkles, Send, User as UserIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { db } from '../../firebase';
@@ -19,7 +19,7 @@ const METRICS = [
   { id: 'quality', label: 'Qualità del Lavoro', icon: Sparkles },
   { id: 'speed', label: 'Velocità / Puntualità', icon: Heart },
   { id: 'cleanliness', label: 'Pulizia e Ordine', icon: CheckCircle2 },
-  { id: 'courtesy', label: 'Cortesia e Professionalità', icon: ShieldCheck },
+  { id: 'courtesy', label: 'Cortesia e Professionalità', icon: Shield },
 ];
 
 export function ReviewModal({ isOpen, onClose, job, clientId }: ReviewModalProps) {
@@ -182,7 +182,7 @@ export function ReviewModal({ isOpen, onClose, job, clientId }: ReviewModalProps
                 <div className="flex flex-col sm:flex-row items-center justify-between pt-4 gap-6">
                    <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center">
-                        <ShieldCheck className="w-5 h-5 text-blue-600" />
+                        <Shield className="w-5 h-5 text-blue-600" />
                       </div>
                       <div className="flex flex-col">
                         <span className="text-[10px] font-black uppercase tracking-widest text-[#1D1D1F]">Recensione Verificata</span>

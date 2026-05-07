@@ -18,7 +18,7 @@ import {
   Clock,
   Briefcase,
   ArrowRight,
-  ShieldCheck,
+  Shield,
   Star
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
@@ -259,7 +259,7 @@ export function JobProposalModal({ isOpen, onClose, job, workerId, workerTokens:
               </div>
 
               <div className="text-[10px] text-[#86868B] bg-gray-50 p-3 rounded-xl border border-gray-100 flex gap-2">
-                <ShieldCheck className="w-10 h-10 shrink-0 text-gray-400" />
+                <Shield className="w-10 h-10 shrink-0 text-gray-400" />
                 <p>
                   <strong>Disclaimer:</strong> CercArtigiano.it opera esclusivamente come intermediario per mettere in contatto domanda e offerta. La piattaforma non è in alcun modo responsabile o garante dell'esecuzione dei lavori, della qualità degli stessi o delle transazioni economiche tra le parti. Accordi, fatturazioni (o quietanze per prestazioni occasionali) sono a cura esclusiva tra cliente e professionista. Non condividere contatti personali (telefono/email) finché il preventivo non è approvato.
                 </p>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  ShieldCheck, 
+  Shield, 
   Search, 
   ArrowRight, 
   CheckCircle2, 
@@ -22,17 +22,20 @@ import { HeroBackground } from './HeroBackground';
 
 interface LandingPageProps {
   onLogin: () => void;
+  onSelectCategory: (id: string) => void;
   onShowPrivacy?: () => void;
   onShowTerms?: () => void;
   onShowCookies?: () => void;
   onShowInfo?: () => void;
   onShowCareers?: () => void;
   onShowCategories?: () => void;
+  onRegisterWorker?: () => void;
 }
 
-export function LandingPage({ onLogin, onShowPrivacy, onShowTerms, onShowCookies, onShowInfo, onShowCareers, onShowCategories }: LandingPageProps) {
+export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTerms, onShowCookies, onShowInfo, onShowCareers, onShowCategories, onRegisterWorker }: LandingPageProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [howItWorksTab, setHowItWorksTab] = useState<'client' | 'worker'>('client');
+  const [searchQuery, setSearchQuery] = useState('');
   
   const heroSlides = [
     {
@@ -44,13 +47,13 @@ export function LandingPage({ onLogin, onShowPrivacy, onShowTerms, onShowCookies
     {
       main: "5 Preventivi reali,",
       sub: "qualità e prezzo garantiti.",
-      image: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&q=80&w=2000",
+      image: "/Foto_homepage2.png",
       keyword: "CONFRONTO"
     },
     {
       main: "Professionisti verificati,",
       sub: "direttamente dall'amministrazione.",
-      image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&q=80&w=2000",
+      image: "/Foto_homepage.png", // Fallback to first if only two exist
       keyword: "FIDUCIA"
     }
   ];
@@ -61,6 +64,31 @@ export function LandingPage({ onLogin, onShowPrivacy, onShowTerms, onShowCookies
     }, 6000); // 6 seconds for each slide
     return () => clearInterval(timer);
   }, [heroSlides.length]);
+
+  const handleStartSearch = () => {
+    console.log("handleStartSearch triggered with query:", searchQuery);
+    if (!searchQuery) {
+      console.log("No query, defaulting to electrical");
+      onSelectCategory('electrical'); // Default fallback
+      return;
+    }
+    
+    const query = searchQuery.toLowerCase();
+    let detectedCategory = 'electrical'; // Fallback
+    
+    if (query.includes('elettri') || query.includes('luce') || query.includes('corrente')) {
+      detectedCategory = 'electrical';
+    } else if (query.includes('idrau') || query.includes('acqua') || query.includes('bagno') || query.includes('tubi')) {
+      detectedCategory = 'plumbing';
+    } else if (query.includes('pittore') || query.includes('vernice') || query.includes('muro')) {
+      detectedCategory = 'painting';
+    } else if (query.includes('sgomber') || query.includes('trasloc')) {
+      detectedCategory = 'cleaning'; 
+    }
+    
+    console.log("Detected category:", detectedCategory);
+    onSelectCategory(detectedCategory);
+  };
 
   const tickerItems = [
     "Ricerca nuovi incarichi in tempo reale...",
@@ -145,6 +173,41 @@ export function LandingPage({ onLogin, onShowPrivacy, onShowTerms, onShowCookies
                     </motion.div>
                   </AnimatePresence>
                 </div>
+
+                {/* Quick Request Box */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5, duration: 0.8 }}
+                  className="mt-8 bg-white/10 backdrop-blur-2xl rounded-[2rem] p-2 border border-white/20 shadow-2xl flex flex-col md:flex-row gap-2 w-full max-w-2xl"
+                >
+                  <div className="flex-1 relative z-30">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-400" />
+                    <input 
+                      type="text"
+                      placeholder="Di quale artigiano hai bisogno?"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                           handleStartSearch();
+                        }
+                      }}
+                      className="w-full h-14 bg-transparent pl-12 pr-4 text-white placeholder:text-white/40 focus:outline-none font-medium"
+                    />
+                  </div>
+                  <button 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleStartSearch();
+                    }}
+                    className="h-14 px-8 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-2xl transition-all shadow-lg shadow-blue-600/20 active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap z-30 relative"
+                  >
+                    INIZIA ORA
+                    <ArrowRight className="w-5 h-5" />
+                  </button>
+                </motion.div>
               </motion.div>
             </div>
 
@@ -204,7 +267,7 @@ export function LandingPage({ onLogin, onShowPrivacy, onShowTerms, onShowCookies
               <motion.div
                 key={i}
                 whileHover={{ y: -10 }}
-                onClick={onShowCategories}
+                onClick={() => onSelectCategory(cat.id)}
                 className="group p-6 bg-[#F5F5F7] rounded-[2rem] border border-transparent hover:border-blue-200 transition-all cursor-pointer flex flex-col items-center text-center justify-between h-auto min-h-[220px]"
               >
                 <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-4 shadow-xl shadow-black/5 group-hover:scale-110 transition-transform">
@@ -283,7 +346,7 @@ export function LandingPage({ onLogin, onShowPrivacy, onShowTerms, onShowCookies
                       desc: "Il nostro sistema seleziona prima l'artigiano più vicino e meglio quotato. Se non è disponibile entro 5 ore, espandiamo la ricerca ogni passo per garantirti il meglio a KM 0." 
                     },
                     { 
-                      icon: ShieldCheck, 
+                      icon: Shield, 
                       title: "Rating Certificato", 
                       desc: "Nessun profilo improvvisato. Ogni professionista riceve un punteggio iniziale dall'amministrazione dopo rigidi controlli. La reputazione cresce poi con le recensioni reali." 
                     },
@@ -314,7 +377,7 @@ export function LandingPage({ onLogin, onShowPrivacy, onShowTerms, onShowCookies
                 >
                   {[
                     { icon: Zap, title: "Portafoglio Crediti", desc: "Nessun abbonamento mensile. Carica crediti e spendili solo per sbloccare i lavori che ti interessano davvero." },
-                    { icon: ShieldCheck, title: "Contatti Protetti", desc: "Ricevi richieste dettagliate grazie al Triage. Vedi subito la descrizione prima di spendere i tuoi crediti." },
+                    { icon: Shield, title: "Contatti Protetti", desc: "Ricevi richieste dettagliate grazie al Triage. Vedi subito la descrizione prima di spendere i tuoi crediti." },
                     { icon: Briefcase, title: "Gestione Premium", desc: "Una dashboard dedicata per gestire appuntamenti, messaggi e pagamenti in un unico posto." }
                   ].map((step, i) => (
                     <div key={i} className="flex flex-col items-center text-center space-y-6 p-8 rounded-[2.5rem] bg-[#F5F5F7]/50 border border-transparent hover:border-orange-200 transition-all">
@@ -427,7 +490,7 @@ export function LandingPage({ onLogin, onShowPrivacy, onShowTerms, onShowCookies
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
                 <Button 
                   size="lg" 
-                  onClick={onLogin}
+                  onClick={onRegisterWorker}
                   className="w-full sm:w-auto h-14 px-8 rounded-3xl bg-white text-blue-600 hover:bg-gray-50 font-bold shadow-xl transition-all"
                 >
                   Unisciti come Professionista

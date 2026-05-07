@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react'; // Sync for Shared Chat fix, public assets, and deploy fix, github rollback
 import { auth, db } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc, collection, addDoc, serverTimestamp, query, where, setDoc, getDoc } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from './lib/firestore-errors';
+import { evaluateJobComplexity } from './services/aiService';
 import { Auth } from './components/Auth';
 import { Sidebar } from './components/Sidebar';
 import { ClientDashboard } from './components/dashboards/ClientDashboard';
@@ -19,6 +20,7 @@ import { GeneralInfo } from './components/GeneralInfo';
 import { CareersPage } from './components/CareersPage';
 import { CategoriesPage } from './components/CategoriesPage';
 import { NotificationsModal } from './components/modals/NotificationsModal';
+import { GuidedJobModal } from './components/modals/GuidedJobModal';
 import { MobileTabBar } from './components/navigation/MobileTabBar';
 import { Onboarding } from './components/Onboarding';
 import { User, UserProfile } from './types';
@@ -36,8 +38,6 @@ import { Button } from './components/ui/button';
 import { Input } from './components/ui/input';
 import { ScrollArea } from './components/ui/scroll-area';
 import { cn } from './lib/utils';
-import { collection, query, where, onSnapshot as onSnapshotCollection } from 'firebase/firestore';
-
 import { BrandLogo } from './components/BrandLogo';
 
 import { Routes, Route } from 'react-router-dom';
@@ -54,6 +54,22 @@ function App() {
   const [showAuth, setShowAuth] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [pendingCategoryId, setPendingCategoryId] = useState<string | null>(null);
+  const [pendingJobDraft, setPendingJobDraft] = useState<any | null>(null);
+  const [pendingWorkerRegistration, setPendingWorkerRegistration] = useState(false);
+  const [showGuidedJobModal, setShowGuidedJobModal] = useState(false);
+
+  useEffect(() => {
+    const savedDraft = sessionStorage.getItem('pending_job_draft');
+    if (savedDraft) {
+      try {
+        setPendingJobDraft(JSON.parse(savedDraft));
+        console.log("Recovered job draft from session storage");
+      } catch (e) {
+        console.error("Failed to parse saved draft", e);
+      }
+    }
+  }, []);
 
   // Handler for mobile navigation in landing page
   const handleLandingTabChange = (tabId: string) => {
@@ -90,6 +106,57 @@ function App() {
     }
   };
 
+  const handleSelectCategory = (categoryId: string) => {
+    console.log("App handleSelectCategory called with:", categoryId);
+    setPendingCategoryId(categoryId);
+    setShowGuidedJobModal(true);
+    setShowCategories(false);
+    if (user && user.role === 'client') {
+      setActiveTab('home');
+    }
+  };
+
+  const handleGuidedJobComplete = (jobData: any) => {
+    console.log("App handleGuidedJobComplete called with:", jobData);
+    setPendingJobDraft(jobData);
+    setPendingWorkerRegistration(false); // Definitely a client
+    setShowGuidedJobModal(false);
+    
+    // Solo se non è loggato mostriamo la schermata auth
+    if (!auth.currentUser) {
+      setShowAuth(true);
+    }
+  };
+
+  useEffect(() => {
+    if (user && pendingJobDraft && user.role === 'client') {
+      const publishDraft = async () => {
+        try {
+          const aiTokenCost = await evaluateJobComplexity(pendingJobDraft.title, pendingJobDraft.description);
+
+          await addDoc(collection(db, 'jobs'), {
+            ...pendingJobDraft,
+            clientId: user.id,
+            status: 'open',
+            tokenCost: aiTokenCost,
+            proposalCount: 0,
+            publicationPlan: 'free',
+            expiresAt: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          });
+          
+          // Clear draft and redirect
+          setPendingJobDraft(null);
+          setActiveTab('jobs'); 
+        } catch (error) {
+          console.error("Error publishing draft job:", error);
+        }
+      };
+      publishDraft();
+    }
+  }, [user, pendingJobDraft]);
+
   useEffect(() => {
     if (!user) {
       setUnreadCount(0);
@@ -102,7 +169,7 @@ function App() {
       where('read', '==', false)
     );
 
-    const unsubscribe = onSnapshotCollection(q, (snap) => {
+    const unsubscribe = onSnapshot(q, (snap) => {
       setUnreadCount(snap.size);
     }, (error) => {
       handleFirestoreError(error, OperationType.GET, 'notifications');
@@ -138,6 +205,11 @@ function App() {
             if (isDefaultAdmin && data.role !== 'admin') {
               try {
                 await updateDoc(userRef, { role: 'admin' });
+                // Also ensures they're in the admins collection for rules path
+                await setDoc(doc(db, 'admins', firebaseUser.uid), { 
+                  email: firebaseUser.email,
+                  addedAt: serverTimestamp()
+                }, { merge: true });
                 data.role = 'admin';
               } catch(e) {
                 console.error("Failed to update role to admin", e);
@@ -151,15 +223,14 @@ function App() {
               id: firebaseUser.uid,
               nome: firebaseUser.displayName || 'Utente',
               email: firebaseUser.email || '',
-              role: isDefaultAdmin ? 'admin' : 'client',
+              role: isDefaultAdmin ? 'admin' : (pendingWorkerRegistration ? 'worker' : 'client'),
               status: 'active',
               createdAt: new Date().toISOString(),
               tokens: 0,
-              onboardingComplete: isDefaultAdmin ? true : false
+              onboardingComplete: isDefaultAdmin ? true : (pendingJobDraft ? true : false)
             };
             
             try {
-              const { setDoc } = await import('firebase/firestore');
               await setDoc(userRef, newUser);
               setUser(newUser);
               setShowAuth(false);
@@ -221,15 +292,20 @@ function App() {
           <div className="w-full bg-white pb-32 lg:pb-0">
             <CategoriesPage 
               onBack={() => setShowCategories(false)} 
-              onSelectCategory={() => {
-                setShowCategories(false);
-                setShowAuth(true);
-              }}
+              onSelectCategory={handleSelectCategory}
             />
           </div>
         ) : (
           <LandingPage 
-            onLogin={() => setShowAuth(true)} 
+            onLogin={() => {
+              setPendingWorkerRegistration(false);
+              setShowAuth(true);
+            }} 
+            onRegisterWorker={() => {
+              setPendingWorkerRegistration(true);
+              setShowAuth(true);
+            }}
+            onSelectCategory={handleSelectCategory}
             onShowInfo={() => {
               setShowInfo(false);
               setShowInfo(true);
@@ -246,6 +322,14 @@ function App() {
             onLoginRequest={() => setShowAuth(true)}
           />
         </div>
+        
+        <GuidedJobModal
+          isOpen={showGuidedJobModal}
+          onClose={() => setShowGuidedJobModal(false)}
+          categoryId={pendingCategoryId}
+          onComplete={handleGuidedJobComplete}
+        />
+        <PrivacyBanner />
       </div>
     );
   }
@@ -253,6 +337,22 @@ function App() {
   // Not logged in but in auth view -> Auth Page
   // Or logged in but waiting for user doc
   if ((!user && showAuth) || (auth.currentUser && !user && loading)) {
+    // Se c'è già un utente firebase ma manca il profilo, mostriamo caricamento invece che Auth
+    if (auth.currentUser && !user) {
+      return (
+        <div className="h-screen w-full flex flex-col items-center justify-center bg-white gap-4">
+          <motion.div 
+            animate={{ scale: [1, 1.1, 1], rotate: 360 }}
+            transition={{ repeat: Infinity, duration: 2 }}
+            className="w-12 h-12 bg-primary rounded-xl shadow-xl shadow-primary/20"
+          />
+          <p className="text-sm font-bold text-[#86868B] animate-pulse italic">
+            {pendingJobDraft ? "Pubblicazione richiesta in corso..." : "Caricamento profilo..."}
+          </p>
+        </div>
+      );
+    }
+
     return (
       <div className="h-screen w-full flex items-center justify-center bg-[#FBFBFD] p-4 overflow-hidden relative">
         {/* Background blobs for Mac feel */}
@@ -265,7 +365,7 @@ function App() {
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="z-10 w-full max-w-4xl"
         >
-          <Auth />
+          <Auth isCompletingRequest={!!pendingJobDraft} />
         </motion.div>
       </div>
     );
@@ -454,6 +554,13 @@ function App() {
         <NotificationsModal 
           isOpen={showNotifications} 
           onClose={() => setShowNotifications(false)} 
+        />
+
+        <GuidedJobModal
+          isOpen={showGuidedJobModal}
+          onClose={() => setShowGuidedJobModal(false)}
+          categoryId={pendingCategoryId}
+          onComplete={handleGuidedJobComplete}
         />
 
         {/* Mobile Bottom Navigation - Using new superstudiata component */}

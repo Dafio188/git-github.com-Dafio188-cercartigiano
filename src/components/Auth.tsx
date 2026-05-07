@@ -31,8 +31,12 @@ import { BrandLogo } from './BrandLogo';
 
 type AuthMode = 'login' | 'register' | 'forgot-password';
 
-export function Auth() {
-  const [mode, setMode] = useState<AuthMode>('login');
+interface AuthProps {
+  isCompletingRequest?: boolean;
+}
+
+export function Auth({ isCompletingRequest = false }: AuthProps) {
+  const [mode, setMode] = useState<AuthMode>(isCompletingRequest ? 'register' : 'login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -59,13 +63,15 @@ export function Auth() {
       
       console.error("Auth error:", error);
       
-      // Controllo specifico per domini non autorizzati
+      // Controllo specifico per errori comuni
       if (error.code === 'auth/unauthorized-domain') {
         setError(`Dominio non autorizzato. Vai nella Console Firebase > Authentication > Settings e aggiungi "${window.location.hostname}" ai domini autorizzati.`);
       } else if (error.code === 'auth/network-request-failed') {
         setError("Errore di rete. Verifica la connessione o se i cookie di terze parti sono bloccati (comune negli iframe). Prova ad aprire l'app in una nuova scheda.");
+      } else if (error.code === 'auth/invalid-credential' || error.code === 'auth/invalid-api-key') {
+        setError("Chiave API o Credenziali non valide. Verifica la configurazione di Firebase e assicurati che l'API Key sia corretta.");
       } else {
-        setError("Errore accesso Google: " + (error.message || "Riprova tra poco."));
+        setError(`Errore accesso Google (${error.code}): ` + (error.message || "Riprova tra poco."));
       }
     } finally {
       setLoading(false);
@@ -92,8 +98,9 @@ export function Auth() {
     } catch (error: any) {
       console.error("Auth error:", error);
       let message = "Si è verificato un errore.";
-      if (error.code === 'auth/user-not-found') message = "Utente non trovato.";
-      if (error.code === 'auth/wrong-password') message = "Password errata.";
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+        message = "Credenziali non valide. Verifica email e password.";
+      }
       if (error.code === 'auth/email-already-in-use') message = "Email già in uso.";
       if (error.code === 'auth/invalid-email') message = "Email non valida.";
       if (error.code === 'auth/weak-password') message = "La password deve avere almeno 6 caratteri.";
@@ -165,8 +172,12 @@ export function Auth() {
             <div className="p-6 bg-white rounded-[2.5rem] shadow-xl border border-[#D2D2D7]/20 flex-shrink-0 flex items-center justify-center">
               <BrandLogo className="w-24 h-24 lg:w-28 lg:h-28" />
             </div>
-            <h3 className="text-3xl font-black text-[#1D1D1F] tracking-tight">Crea Account</h3>
-            <p className="text-[#86868B] text-sm font-bold mt-2">Unisciti alla nostra eccellenza artigiana</p>
+            <h3 className="text-3xl font-black text-[#1D1D1F] tracking-tight">
+              {isCompletingRequest ? "Completa Richiesta" : "Crea Account"}
+            </h3>
+            <p className="text-[#86868B] text-sm font-bold mt-2">
+              {isCompletingRequest ? "Ultimo step per pubblicare la tua proposta" : "Unisciti alla nostra eccellenza artigiana"}
+            </p>
           </div>
 
           <form onSubmit={handleEmailAuth} className="space-y-3">
@@ -494,11 +505,15 @@ export function Auth() {
               className="space-y-6"
             >
               <h2 className="text-5xl font-black leading-tight tracking-tighter">
-                {mode === 'register' ? "Torna a Casa." : "Entra nel Futuro."}
+                {mode === 'register' 
+                  ? (isCompletingRequest ? "Quasi Fatto." : "Torna a Casa.") 
+                  : "Entra nel Futuro."}
               </h2>
               <p className="text-white/60 text-lg font-medium leading-relaxed">
                 {mode === 'register' 
-                  ? "Accedi al tuo pannello per gestire i tuoi lavori e messaggi."
+                  ? (isCompletingRequest 
+                      ? "Registrati per ricevere preventivi dai migliori artigiani della tua zona." 
+                      : "Accedi al tuo pannello per gestire i tuoi lavori e messaggi.")
                   : "La tua attività merita il miglior palcoscenico digitale. Registrati ora in pochi secondi."}
               </p>
             </motion.div>

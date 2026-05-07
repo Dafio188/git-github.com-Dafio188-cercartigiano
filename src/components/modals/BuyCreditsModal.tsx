@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
 import { Button } from '../ui/button';
-import { Zap, ShieldCheck, Check, Star, TrendingUp, ArrowRight, CreditCard } from 'lucide-react';
+import { Zap, Shield, Check, Star, TrendingUp, ArrowRight, CreditCard } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { db } from '../../firebase';
@@ -103,7 +103,7 @@ export function BuyCreditsModal({ isOpen, onClose, userId, currentBalance }: Buy
                  {[
                    { icon: Check, label: 'Zero Commissioni sul lavoro', desc: 'Tieni il 100% di quello che guadagni.' },
                    { icon: TrendingUp, label: 'Più visibilità', desc: 'I crediti acquistati migliorano il tuo ranking.' },
-                   { icon: ShieldCheck, label: 'Pagamenti Sicuri', desc: 'Tutte le transazioni sono protette.' }
+                   { icon: Shield, label: 'Pagamenti Sicuri', desc: 'Tutte le transazioni sono protette.' }
                  ].map((item, i) => (
                    <div key={i} className="flex gap-4">
                      <div className="w-6 h-6 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0">

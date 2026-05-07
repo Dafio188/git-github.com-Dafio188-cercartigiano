@@ -6,7 +6,7 @@ import {
   Star, 
   ArrowRight, 
   CreditCard,
-  ShieldCheck,
+  Shield,
   CheckCircle2,
   Lock,
   ChevronRight,
@@ -74,7 +74,13 @@ export function CreditsView({ user }: { user: any }) {
   useEffect(() => {
     const fetchConfig = async () => {
       try {
-        const snap = await getDoc(doc(db, 'adminSettings', 'config'));
+        // Proviamo prima la collezione config (più permissiva)
+        let snap = await getDoc(doc(db, 'config', 'billing'));
+        if (!snap.exists()) {
+          // Fallback legacy
+          snap = await getDoc(doc(db, 'adminSettings', 'config'));
+        }
+        
         if (snap.exists()) {
           setStripeLinks(snap.data().stripeLinks);
         }
@@ -324,7 +330,7 @@ export function CreditsView({ user }: { user: any }) {
             
             <Card className="rounded-[2.5rem] border-[#D2D2D7]/30 bg-white p-10 space-y-10 shadow-lg relative overflow-hidden group">
                <div className="flex items-center gap-3 relative z-10 transition-transform group-hover:translate-x-2">
-                 <ShieldCheck className="w-6 h-6 text-[#0066FF]" />
+                 <Shield className="w-6 h-6 text-[#0066FF]" />
                  <h4 className="text-xl font-black text-[#1D1D1F]">Perché scegliere Premium?</h4>
                </div>
                

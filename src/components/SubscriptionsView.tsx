@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
-import { CheckCircle2, Zap, ShieldCheck, Star, ArrowRight } from 'lucide-react';
+import { CheckCircle2, Zap, Shield, Star, ArrowRight } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion } from 'motion/react';
 
@@ -103,7 +103,7 @@ export function SubscriptionsView({ user }: any) {
         <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="space-y-4 max-w-xl">
              <div className="inline-flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full border border-white/20">
-               <ShieldCheck className="w-4 h-4 text-white" />
+               <Shield className="w-4 h-4 text-white" />
                <span className="text-[10px] font-black uppercase tracking-widest">Garanzia Business</span>
              </div>
              <h3 className="text-3xl font-black tracking-tight">Hai bisogno di una soluzione personalizzata?</h3>

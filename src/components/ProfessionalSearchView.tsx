@@ -10,19 +10,23 @@ import {
   Star, 
   MapPin, 
   ChevronRight, 
-  ShieldCheck,
+  Shield,
   Hammer,
-  Filter
+  Filter,
+  LayoutGrid,
+  Map as MapIcon
 } from 'lucide-react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { SERVICE_CATEGORIES } from '../constants';
 import { cn } from '../lib/utils';
+import { ArtisanMap } from './ArtisanMap';
 
 export function ProfessionalSearchView({ currentUser }: any) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [professionals, setProfessionals] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
 
   useEffect(() => {
     const fetchProfessionals = async () => {
@@ -75,10 +79,32 @@ export function ProfessionalSearchView({ currentUser }: any) {
             className="pl-12 h-14 bg-white border-[#D2D2D7]/50 rounded-2xl shadow-sm text-lg focus-visible:ring-primary/20"
           />
         </div>
-        <Button variant="outline" className="h-14 px-6 rounded-2xl border-[#D2D2D7]/50 bg-white hover:bg-[#F5F5F7]">
-          <Filter className="w-5 h-5 mr-2" />
-          Filtri avanzati
-        </Button>
+        <div className="flex gap-2">
+          <div className="bg-[#F5F5F7] p-1 rounded-2xl flex border border-[#D2D2D7]/30">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={cn(
+                "p-3 rounded-xl transition-all",
+                viewMode === 'grid' ? "bg-white shadow-sm text-blue-600" : "text-[#86868B] hover:text-[#1D1D1F]"
+              )}
+            >
+              <LayoutGrid className="w-6 h-6" />
+            </button>
+            <button
+              onClick={() => setViewMode('map')}
+              className={cn(
+                "p-3 rounded-xl transition-all",
+                viewMode === 'map' ? "bg-white shadow-sm text-blue-600" : "text-[#86868B] hover:text-[#1D1D1F]"
+              )}
+            >
+              <MapIcon className="w-6 h-6" />
+            </button>
+          </div>
+          <Button variant="outline" className="h-14 px-6 rounded-2xl border-[#D2D2D7]/50 bg-white hover:bg-[#F5F5F7]">
+            <Filter className="w-5 h-5 mr-2" />
+            Filtri
+          </Button>
+        </div>
       </div>
 
       <div className="flex gap-2 overflow-x-auto pb-2 -mx-2 px-2 scrollbar-hide">
@@ -107,81 +133,116 @@ export function ProfessionalSearchView({ currentUser }: any) {
         ))}
       </div>
 
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1,2,3].map(i => (
-            <div key={i} className="h-80 bg-[#F5F5F7] rounded-3xl animate-pulse" />
-          ))}
-        </div>
-      ) : filteredProfessionals.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProfessionals.map((prof) => (
-            <motion.div
-              key={prof.uid || prof.id}
-              whileHover={{ y: -5 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <Card className="rounded-[2rem] border-none shadow-xl shadow-black/5 overflow-hidden bg-white group cursor-pointer">
-                <CardContent className="p-0">
-                  <div className="relative h-48 bg-gradient-to-br from-blue-500 to-indigo-600">
-                    {prof.photoURL && (
-                      <img 
-                        src={prof.photoURL} 
-                        alt={prof.displayName} 
-                        className="w-full h-full object-cover mix-blend-overlay opacity-60 group-hover:scale-105 transition-transform duration-500" 
-                      />
-                    )}
-                    <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1.5 rounded-full flex items-center gap-1.5 text-sm font-black shadow-sm">
-                      <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                      <span>{prof.rating || 'New'}</span>
-                    </div>
-                    {prof.isVerified && (
-                      <div className="absolute top-4 left-4 bg-blue-500 text-white p-1.5 rounded-full shadow-lg">
-                        <ShieldCheck className="w-4 h-4" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-6 space-y-4">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h4 className="text-xl font-black text-[#1D1D1F] tracking-tight">{prof.displayName}</h4>
-                        <p className="text-sm font-bold text-blue-600 uppercase tracking-wider mt-1">
-                          {SERVICE_CATEGORIES.find(c => c.id === prof.category)?.label || 'Artigiano'}
-                        </p>
-                      </div>
-                      <div className="p-3 bg-[#F5F5F7] rounded-2xl">
-                        <Hammer className="w-5 h-5 text-[#1D1D1F]" />
-                      </div>
-                    </div>
-                    
-                    <p className="text-[#86868B] text-sm line-clamp-2 leading-relaxed">
-                      {prof.bio || "Nessuna biografia fornita."}
-                    </p>
-
-                    <div className="flex items-center gap-2 text-[#86868B] text-sm">
-                      <MapPin className="w-4 h-4" />
-                      <span className="font-medium">{prof.location?.address || 'Provincia non specificata'}</span>
-                    </div>
-
-                    <Button className="w-full h-12 rounded-xl bg-[#F5F5F7] hover:bg-[#E8E8ED] text-[#1D1D1F] font-black group-hover:bg-blue-600 group-hover:text-white transition-all">
-                      Visualizza Profilo
-                      <ChevronRight className="ml-1 w-4 h-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-20 bg-[#F5F5F7] rounded-[3rem] border-2 border-dashed border-[#D2D2D7]">
-          <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl shadow-black/5">
-            <Search className="w-10 h-10 text-[#D2D2D7]" />
-          </div>
-          <h3 className="text-xl font-black text-[#1D1D1F] mb-2">Nessun professionista trovato</h3>
-          <p className="text-[#86868B]">Prova a cambiare categoria o termini di ricerca.</p>
-        </div>
-      )}
+      <AnimatePresence mode="wait">
+        {loading ? (
+          <motion.div 
+            key="loading"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className={cn(
+               viewMode === 'grid' 
+                 ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" 
+                 : "h-[600px] bg-[#F5F5F7] rounded-[3rem] animate-pulse w-full"
+            )}
+          >
+            {viewMode === 'grid' && [1,2,3].map(i => (
+              <div key={i} className="h-80 bg-[#F5F5F7] rounded-3xl animate-pulse" />
+            ))}
+          </motion.div>
+        ) : filteredProfessionals.length > 0 ? (
+          <motion.div
+            key={viewMode}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+          >
+            {viewMode === 'grid' ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredProfessionals.map((prof) => (
+                  <motion.div
+                    key={prof.uid || prof.id}
+                    whileHover={{ y: -5 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <Card className="rounded-[2rem] border-none shadow-xl shadow-black/5 overflow-hidden bg-white group cursor-pointer">
+                      <CardContent className="p-0">
+                        <div className="relative h-48 bg-gradient-to-br from-blue-500 to-indigo-600">
+                          {prof.photoURL && (
+                            <img 
+                              src={prof.photoURL} 
+                              alt={prof.displayName} 
+                              className="w-full h-full object-cover mix-blend-overlay opacity-60 group-hover:scale-105 transition-transform duration-500" 
+                            />
+                          )}
+                          <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1.5 rounded-full flex items-center gap-1.5 text-sm font-black shadow-sm">
+                            <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                            <span>{prof.rating || 'New'}</span>
+                          </div>
+                          {prof.isVerified && (
+                            <div className="absolute top-4 left-4 bg-blue-500 text-white p-1.5 rounded-full shadow-lg">
+                              <Shield className="w-4 h-4" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-6 space-y-4">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h4 className="text-xl font-black text-[#1D1D1F] tracking-tight">{prof.displayName}</h4>
+                              <p className="text-sm font-bold text-blue-600 uppercase tracking-wider mt-1">
+                                {SERVICE_CATEGORIES.find(c => c.id === prof.category)?.label || 'Artigiano'}
+                              </p>
+                            </div>
+                            <div className="p-3 bg-[#F5F5F7] rounded-2xl">
+                              <Hammer className="w-5 h-5 text-[#1D1D1F]" />
+                            </div>
+                          </div>
+                          
+                          <p className="text-[#86868B] text-sm line-clamp-2 leading-relaxed">
+                            {prof.bio || "Nessuna biografia fornita."}
+                          </p>
+      
+                          <div className="flex items-center gap-2 text-[#86868B] text-sm">
+                            <MapPin className="w-4 h-4" />
+                            <span className="font-medium">{prof.location?.address || 'Provincia non specificata'}</span>
+                          </div>
+      
+                          <Button className="w-full h-12 rounded-xl bg-[#F5F5F7] hover:bg-[#E8E8ED] text-[#1D1D1F] font-black group-hover:bg-blue-600 group-hover:text-white transition-all">
+                            Visualizza Profilo
+                            <ChevronRight className="ml-1 w-4 h-4" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="h-[650px] w-full">
+                <ArtisanMap 
+                  professionals={filteredProfessionals} 
+                  center={currentUser?.location}
+                  onSelectArtisan={(prof) => console.log("Selected", prof)}
+                />
+              </div>
+            )}
+          </motion.div>
+        ) : (
+          <motion.div 
+            key="empty"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-20 bg-[#F5F5F7] rounded-[3rem] border-2 border-dashed border-[#D2D2D7]"
+          >
+            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl shadow-black/5">
+              <Search className="w-10 h-10 text-[#D2D2D7]" />
+            </div>
+            <h3 className="text-xl font-black text-[#1D1D1F] mb-2">Nessun professionista trovato</h3>
+            <p className="text-[#86868B]">Prova a cambiare categoria o termini di ricerca.</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

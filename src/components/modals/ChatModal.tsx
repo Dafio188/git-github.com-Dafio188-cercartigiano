@@ -10,10 +10,11 @@ import {
   doc, 
   setDoc,
   getDoc,
-  updateDoc
+  updateDoc,
+  increment
 } from 'firebase/firestore';
 import { User, Job, DirectMessage } from '../../types';
-import { Send, User as UserIcon, ShieldCheck, Lock, X } from 'lucide-react';
+import { Send, User as UserIcon, Shield, Lock, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '../ui/dialog';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { Button } from '../ui/button';
@@ -50,10 +51,22 @@ export function ChatModal({ user, job, onClose }: ChatModalProps) {
       return;
     }
 
+    // Reset unread count for this user
+    const resetUnread = async () => {
+      try {
+        await updateDoc(doc(db, 'jobs', job.id), {
+          [`unreadMessagesCount.${user.id}`]: 0
+        });
+      } catch (e) {
+        console.error("Error resetting unread count:", e);
+      }
+    };
+    resetUnread();
+
     const q = query(
       collection(db, 'messages'),
       where('conversationId', '==', conversationId),
-      where('participantIds', 'array-contains', user.id)
+      where('participantIds', 'array-contains-any', [user.id, 'SHARED'])
     );
 
     const unsub = onSnapshot(q, (snapshot) => {
@@ -90,24 +103,41 @@ export function ChatModal({ user, job, onClose }: ChatModalProps) {
     setNewMessage('');
 
     try {
-      // Ensure conversation doc exists
+      // Ensure conversation doc exists and update participants
       const convRef = doc(db, 'conversations', conversationId);
       const convSnap = await getDoc(convRef);
+      
+      let participants = [job.clientId];
+      if (job.assignedWorkerId) participants.push(job.assignedWorkerId);
+      
       if (!convSnap.exists()) {
+        if (!participants.includes(user.id)) participants.push(user.id);
         await setDoc(convRef, {
           id: conversationId,
           jobId: job.id,
           jobTitle: job.title,
-          participants: [job.clientId],
-          lastUpdate: serverTimestamp()
+          participants: Array.from(new Set(participants)),
+          lastUpdate: serverTimestamp(),
+          createdAt: serverTimestamp()
         });
+      } else {
+        const existingData = convSnap.data();
+        const currentParticipants = existingData.participants || [];
+        if (!currentParticipants.includes(user.id)) {
+          await updateDoc(convRef, {
+            participants: Array.from(new Set([...currentParticipants, user.id]))
+          });
+          participants = Array.from(new Set([...currentParticipants, user.id]));
+        } else {
+          participants = currentParticipants;
+        }
       }
 
       const defaultIds = [job.clientId, user.id];
       if (job.assignedWorkerId) defaultIds.push(job.assignedWorkerId);
-      if (!job.assignedWorkerId) defaultIds.push('SHARED'); // 'open' job chat is shared
+      if (!job.assignedWorkerId) defaultIds.push('SHARED'); 
 
-      const pIds = Array.from(new Set(defaultIds.filter(Boolean) as string[]));
+      const pIds = Array.from(new Set([...defaultIds, ...participants].filter(Boolean) as string[]));
 
       await addDoc(collection(db, 'messages'), {
         conversationId: conversationId,
@@ -122,27 +152,30 @@ export function ChatModal({ user, job, onClose }: ChatModalProps) {
         lastUpdate: serverTimestamp()
       });
 
-      // Simple notification logic
-      // Se scrive un artigiano, notifichiamo il cliente
-      if (!isClient) {
+      // Update unread counts and send notifications
+      const notifyIds = Array.from(new Set([
+        ...participants,
+        ...(job.assignedWorkerId ? [job.assignedWorkerId] : [])
+      ])).filter(p => p !== user.id);
+      
+      const updateData: any = {
+        updatedAt: serverTimestamp()
+      };
+      
+      for (const otherId of notifyIds) {
+        updateData[`unreadMessagesCount.${otherId}`] = increment(1);
+        
+        // Notify
         await notifyNewMessage(
-          job.clientId, 
-          user.nome || 'Un Artigiano', 
+          otherId, 
+          user.nome || (isClient ? 'Il Cliente' : 'Un Artigiano'), 
           job.id, 
           job.title,
           messageText
         );
       }
-      // Se scrive il cliente e c'è un artigiano assegnato, notifichiamo lui
-      else if (isClient && job.assignedWorkerId) {
-        await notifyNewMessage(
-          job.assignedWorkerId, 
-          user.nome || 'Il Cliente', 
-          job.id, 
-          job.title,
-          messageText
-        );
-      }
+      
+      await updateDoc(doc(db, 'jobs', job.id), updateData);
 
     } catch (error) {
       console.error("Error sending message:", error);
@@ -179,7 +212,7 @@ export function ChatModal({ user, job, onClose }: ChatModalProps) {
                     </>
                   ) : (
                     <>
-                      <ShieldCheck className="w-3 h-3 text-green-500" />
+                      <Shield className="w-3 h-3 text-green-500" />
                       <span className="text-[10px] font-bold text-[#86868B] uppercase tracking-widest">
                         Chat Condivisa e Protetta
                       </span>
@@ -199,7 +232,7 @@ export function ChatModal({ user, job, onClose }: ChatModalProps) {
              </div>
           ) : messages.length === 0 ? (
              <div className="h-full flex flex-col items-center justify-center text-center text-[#86868B]">
-               <ShieldCheck className="w-12 h-12 mb-4 opacity-20" />
+               <Shield className="w-12 h-12 mb-4 opacity-20" />
                <p className="text-sm font-bold">Questa chat è condivisa.<br/>Tutti i partecipanti possono leggere i messaggi fino all'assegnazione del lavoro.</p>
              </div>
           ) : (

@@ -17,12 +17,11 @@ import {
   Activity,
   Zap,
   TrendingUp,
-  ShieldCheck,
   Package,
   ArrowRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { NewJobModal } from '../modals/NewJobModal';
+import { GuidedJobModal } from '../modals/GuidedJobModal';
 import { ChatModal } from '../modals/ChatModal';
 import { ProposalsModal } from '../modals/ProposalsModal';
 import { ReviewModal } from '../modals/ReviewModal';
@@ -33,13 +32,24 @@ import { handleFirestoreError, OperationType } from '../../lib/firestore-errors'
 interface ClientDashboardProps {
   user: User;
   activeTab: string;
+  initialCategoryId?: string | null;
+  onClearPendingCategory?: () => void;
 }
 
-export function ClientDashboard({ user, activeTab }: ClientDashboardProps) {
+export function ClientDashboard({ user, activeTab, initialCategoryId, onClearPendingCategory }: ClientDashboardProps) {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isNewJobModalOpen, setIsNewJobModalOpen] = useState(false);
+  const [isGuidedModalOpen, setIsGuidedModalOpen] = useState(false);
+  const [preSelectedCategoryId, setPreSelectedCategoryId] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  
+  useEffect(() => {
+    if (initialCategoryId) {
+      setPreSelectedCategoryId(initialCategoryId);
+      setIsGuidedModalOpen(true);
+      onClearPendingCategory?.();
+    }
+  }, [initialCategoryId]);
   const [chatJob, setChatJob] = useState<Job | null>(null);
   const [isProposalsModalOpen, setIsProposalsModalOpen] = useState(false);
   const [clientProfile, setClientProfile] = useState<UserProfile | null>(null);
@@ -80,9 +90,11 @@ export function ClientDashboard({ user, activeTab }: ClientDashboardProps) {
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const jobsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Job));
+      // Sort client-side for immediate consistency if necessary, 
+      // although the query should ideally handle it (added orderBy to query below)
       jobsData.sort((a, b) => {
-        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        const dateA = a.createdAt?.seconds ? a.createdAt.seconds : 0;
+        const dateB = b.createdAt?.seconds ? b.createdAt.seconds : 0;
         return dateB - dateA;
       });
       setJobs(jobsData);
@@ -190,7 +202,7 @@ export function ClientDashboard({ user, activeTab }: ClientDashboardProps) {
                      
                      <div className="flex flex-col sm:flex-row gap-4">
                        <Button 
-                         onClick={() => setIsNewJobModalOpen(true)}
+                         onClick={() => setIsGuidedModalOpen(true)}
                          className="h-14 px-8 rounded-2xl bg-[#1D1D1F] hover:bg-black text-white font-bold text-lg shadow-xl shadow-[#1D1D1F]/20 group"
                        >
                          <Plus className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform" />
@@ -285,7 +297,7 @@ export function ClientDashboard({ user, activeTab }: ClientDashboardProps) {
                   <p className="text-sm font-bold text-[#86868B]">Monitora lo stato dei tuoi lavori e interagisci con gli artigiani.</p>
                 </div>
                 <Button 
-                  onClick={() => setIsNewJobModalOpen(true)}
+                  onClick={() => setIsGuidedModalOpen(true)}
                   className="rounded-full bg-blue-600 hover:bg-blue-700 text-white font-black px-6"
                 >
                   Nuova Richiesta
@@ -432,10 +444,15 @@ export function ClientDashboard({ user, activeTab }: ClientDashboardProps) {
            </motion.div>
          )}
        </AnimatePresence>
-       <NewJobModal 
-         isOpen={isNewJobModalOpen} 
-         onClose={() => setIsNewJobModalOpen(false)} 
-         userId={user.id} 
+       <GuidedJobModal 
+         isOpen={isGuidedModalOpen} 
+         onClose={() => {
+           setIsGuidedModalOpen(false);
+           setPreSelectedCategoryId(null);
+         }} 
+         categoryId={preSelectedCategoryId}
+         userId={user.id}
+         onComplete={() => {}} // Logged in
        />
        {selectedJob && (
          <ProposalsModal 

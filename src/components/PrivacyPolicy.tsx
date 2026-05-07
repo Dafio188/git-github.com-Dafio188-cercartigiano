@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { ShieldCheck, Mail, ArrowLeft } from 'lucide-react';
+import { Shield, Mail, ArrowLeft } from 'lucide-react';
 import { Button } from './ui/button';
 
 interface PrivacyPolicyProps {
@@ -33,7 +33,7 @@ export function PrivacyPolicy({ onBack }: PrivacyPolicyProps) {
           transition={{ duration: 0.6 }}
         >
           <div className="flex items-center gap-3 bg-blue-50 w-fit px-4 py-1.5 rounded-full mb-8 border border-blue-100">
-            <ShieldCheck className="w-4 h-4 text-blue-600" />
+            <Shield className="w-4 h-4 text-blue-600" />
             <span className="text-[11px] font-black uppercase tracking-widest text-blue-700">Versione Certificata GDPR</span>
           </div>
 

@@ -7,7 +7,7 @@ import {
 } from '../ui/dialog';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { Button } from '../ui/button';
-import { MapPin, Clock, ArrowRight, ShieldCheck, MessageSquare } from 'lucide-react';
+import { MapPin, Clock, ArrowRight, Shield, MessageSquare } from 'lucide-react';
 
 interface JobDetailsSharedModalProps {
   isOpen: boolean;
@@ -31,7 +31,7 @@ export function JobDetailsSharedModal({ isOpen, onClose, job, user, onOpenPropos
             <div className="space-y-6 w-full">
                <div className="flex items-center gap-3">
                  <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center shrink-0">
-                   <ShieldCheck className="w-6 h-6 text-blue-600" />
+                   <Shield className="w-6 h-6 text-blue-600" />
                  </div>
                  <div>
                    <h2 className="text-2xl font-black tracking-tight text-[#1D1D1F] leading-tight">{job.title}</h2>

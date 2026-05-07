@@ -16,7 +16,7 @@ import {
   Clock, 
   MessageSquare, 
   ArrowRight,
-  ShieldCheck,
+  Shield,
   User as UserIcon,
   DollarSign,
   Package,
@@ -115,7 +115,7 @@ export function ProposalsModal({ isOpen, onClose, job, user }: ProposalsModalPro
              <div className="space-y-8">
                 <div className="space-y-4">
                    <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center">
-                     <ShieldCheck className="w-6 h-6 text-white" />
+                     <Shield className="w-6 h-6 text-white" />
                    </div>
                    <div>
                      <h2 className="text-2xl font-black tracking-tight leading-tight">{job.title}</h2>
@@ -297,7 +297,7 @@ export function ProposalsModal({ isOpen, onClose, job, user }: ProposalsModalPro
                            )}
                            <div className="space-y-1 col-start-4">
                              <div className="text-[10px] font-black uppercase tracking-widest text-[#86868B] flex items-center gap-1">
-                               <ShieldCheck className="w-3 h-3" /> Validità
+                               <Shield className="w-3 h-3" /> Validità
                              </div>
                              <div className="font-black text-[#1D1D1F]">{prop.validityDays} Giorni</div>
                            </div>

@@ -50,7 +50,7 @@ import {
   Phone, 
   MapPin, 
   Save, 
-  ShieldCheck, 
+  Shield, 
   Briefcase,
   PenTool,
   Activity,
@@ -255,7 +255,7 @@ export function ProfileView({ user }: ProfileViewProps) {
                  <UserIcon className="w-10 h-10" />
                  {user.onboardingComplete && (
                    <div className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-1 border-2 border-white shadow-lg">
-                      <ShieldCheck className="w-4 h-4" />
+                      <Shield className="w-4 h-4" />
                    </div>
                  )}
               </div>
@@ -344,11 +344,9 @@ export function ProfileView({ user }: ProfileViewProps) {
                         placeholder="es. Via Roma"
                         className="h-12 pl-12 rounded-xl bg-[#F5F5F7] border-none font-bold"
                         onChange={(address, lat, lng, details) => {
-                          const streetOnly = details?.route || address?.split(',')[0];
-                          
                           const updatedUser = {
                             ...editUser, 
-                            address: streetOnly,
+                            address: details?.route || address?.split(',')[0] || address,
                             civico: details?.streetNumber || editUser.civico,
                             location: lat ? { lat, lng } : editUser.location,
                             cap: details?.postalCode || editUser.cap,
@@ -360,6 +358,9 @@ export function ProfileView({ user }: ProfileViewProps) {
                           if (user.role === 'worker') {
                             setEditProfile(prev => ({
                               ...prev,
+                              address: details?.route || address?.split(',')[0] || address,
+                              civico: details?.streetNumber || prev.civico,
+                              location: lat ? { lat, lng } : prev.location,
                               cap: details?.postalCode || prev.cap,
                               citta: details?.city || prev.citta,
                               provincia: details?.province || prev.provincia,
@@ -532,7 +533,7 @@ export function ProfileView({ user }: ProfileViewProps) {
            <Card className="rounded-[2rem] bg-[#1D1D1F] text-white border-none shadow-2xl shadow-blue-900/20 overflow-hidden relative group">
               <CardContent className="p-8 z-10 relative">
                  <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center mb-6">
-                    <ShieldCheck className="w-6 h-6 text-blue-400" />
+                    <Shield className="w-6 h-6 text-blue-400" />
                  </div>
                  <h3 className="text-xl font-black tracking-tight mb-2">Visibilità Dati</h3>
                  <p className="text-xs text-[#86868B] font-bold leading-relaxed mb-8">
