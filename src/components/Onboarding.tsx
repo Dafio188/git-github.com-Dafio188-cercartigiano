@@ -17,16 +17,24 @@ interface OnboardingProps {
 export function Onboarding({ user, onComplete }: OnboardingProps) {
   const [role, setRole] = useState<'client' | 'worker' | null>(user.role as any || null);
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState(user.role ? 2 : 1);
+  const [step, setStep] = useState((user.role === 'client' || !!sessionStorage.getItem('pending_job_draft')) ? 2 : 1);
   const [showWorkerFlow, setShowWorkerFlow] = useState(user.role === 'worker');
 
-  // Form states for client details (workers now have their own flow)
-  const [phone, setPhone] = useState('');
-  const [citta, setCitta] = useState('');
-  const [address, setAddress] = useState('');
-  const [cap, setCap] = useState('');
-  const [provincia, setProvincia] = useState('');
-  const [location, setLocation] = useState<{lat: number, lng: number} | null>(null);
+  // If they are redirected back from a job creation, we know they are a client
+  React.useEffect(() => {
+    if (!!sessionStorage.getItem('pending_job_draft') && !role) {
+      setRole('client');
+      setStep(2);
+    }
+  }, [role]);
+
+  // Form states for client details - Pre-fill from user object
+  const [phone, setPhone] = useState(user.phone || '');
+  const [citta, setCitta] = useState(user.citta || '');
+  const [address, setAddress] = useState(user.address || '');
+  const [cap, setCap] = useState(user.cap || '');
+  const [provincia, setProvincia] = useState(user.provincia || '');
+  const [location, setLocation] = useState<{lat: number, lng: number} | null>(user.location || null);
 
   const handleRoleSelect = (selected: 'client' | 'worker') => {
     setRole(selected);
@@ -38,20 +46,26 @@ export function Onboarding({ user, onComplete }: OnboardingProps) {
   };
 
   const handleClientSubmit = async () => {
+    // Se i dati sono già presenti (es. inseriti nel Guided Modal), completiamo subito
+    if (user.role === 'client' && user.onboardingComplete) {
+      onComplete();
+      return;
+    }
+
     setLoading(true);
     try {
       const userRef = doc(db, 'users', user.id);
       await updateDoc(userRef, {
         role: 'client',
-        phone,
-        address,
-        location,
-        citta,
-        provincia,
-        cap,
+        phone: phone || user.phone || '',
+        address: address || user.address || '',
+        location: location || user.location || null,
+        citta: citta || user.citta || '',
+        provincia: provincia || user.provincia || '',
+        cap: cap || user.cap || '',
         status: 'active',
         onboardingComplete: true,
-        tokens: 5
+        tokens: user.tokens || 5
       });
       onComplete();
     } catch (error) {

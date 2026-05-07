@@ -36,12 +36,32 @@
   </head>
   <body>
     <div id="root"></div>
+    <div id="debug-check" style="position:fixed;bottom:0;right:0;font-size:10px;color:rgba(29,29,31,0.05);pointer-events:none;">v1.0.2</div>
     <script>
       window.addEventListener('error', function(e) {
-        fetch('/api/log', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ error: e.message, src: e.filename, l: e.lineno, c: e.colno }) });
+        console.error('Runtime Error:', e.message);
+        fetch('/api/log', { 
+          method: 'POST', 
+          headers: {'Content-Type': 'application/json'}, 
+          body: JSON.stringify({ 
+            error: e.message, 
+            src: e.filename, 
+            l: e.lineno, 
+            c: e.colno,
+            stack: e.error ? e.error.stack : null
+          }) 
+        }).catch(() => {});
       });
       window.addEventListener('unhandledrejection', function(e) {
-        fetch('/api/log', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ error: e.reason ? e.reason.toString() : 'Unhandled Rejection' }) });
+        console.error('Unhandled Rejection:', e.reason);
+        fetch('/api/log', { 
+          method: 'POST', 
+          headers: {'Content-Type': 'application/json'}, 
+          body: JSON.stringify({ 
+            error: e.reason ? e.reason.toString() : 'Unhandled Rejection',
+            stack: e.reason ? e.reason.stack : null
+          }) 
+        }).catch(() => {});
       });
     </script>
     <script type="module" src="/src/main.tsx"></script>

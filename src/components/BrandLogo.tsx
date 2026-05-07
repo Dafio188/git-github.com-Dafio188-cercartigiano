@@ -25,17 +25,23 @@ export function BrandLogo({ className, imgClassName }: BrandLogoProps) {
         )}
         title="CercArtigiano"
       >
-        <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-sm">
-          {/* Blue Hexagon (Brand Color) */}
+        <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-xl">
+          <defs>
+            <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="oklch(0.55 0.22 255)" />
+              <stop offset="100%" stopColor="oklch(0.40 0.18 255)" />
+            </linearGradient>
+          </defs>
+          {/* Blue Hexagon (Brand Color) with Apple-like gradient */}
           <path 
             d="M50 5 L89 27.5 L89 72.5 L50 95 L11 72.5 L11 27.5 Z" 
-            fill="oklch(0.45 0.18 255)"
+            fill="url(#logoGradient)"
           />
           {/* Stylized Tools Icon */}
-          <g fill="white" opacity="0.9">
-            <rect x="42" y="30" width="16" height="40" rx="2" transform="rotate(-45 50 50)" />
-            <circle cx="35" cy="35" r="8" />
-            <path d="M60 60 L75 75 L70 80 L55 65 Z" />
+          <g fill="white" opacity="0.95">
+             <path d="M42 35 L58 35 L58 65 L42 65 Z" transform="rotate(-45 50 50)" />
+             <circle cx="35" cy="35" r="7" />
+             <path d="M55 55 L75 75" stroke="white" strokeWidth="6" strokeLinecap="round" />
           </g>
         </svg>
       </div>

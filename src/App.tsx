@@ -21,6 +21,7 @@ import { CareersPage } from './components/CareersPage';
 import { CategoriesPage } from './components/CategoriesPage';
 import { NotificationsModal } from './components/modals/NotificationsModal';
 import { GuidedJobModal } from './components/modals/GuidedJobModal';
+import { GuidedWorkerModal } from './components/modals/GuidedWorkerModal';
 import { MobileTabBar } from './components/navigation/MobileTabBar';
 import { Onboarding } from './components/Onboarding';
 import { User, UserProfile } from './types';
@@ -58,6 +59,7 @@ function App() {
   const [pendingJobDraft, setPendingJobDraft] = useState<any | null>(null);
   const [pendingWorkerRegistration, setPendingWorkerRegistration] = useState(false);
   const [showGuidedJobModal, setShowGuidedJobModal] = useState(false);
+  const [showGuidedWorkerModal, setShowGuidedWorkerModal] = useState(false);
 
   useEffect(() => {
     const savedDraft = sessionStorage.getItem('pending_job_draft');
@@ -126,6 +128,13 @@ function App() {
     if (!auth.currentUser) {
       setShowAuth(true);
     }
+  };
+
+  const handleGuidedWorkerComplete = () => {
+    setShowGuidedWorkerModal(false);
+    // After guided registration, they are probably already logged in and profile created
+    // The modal handles registration logic. 
+    // App.tsx auth observer will pick it up.
   };
 
   useEffect(() => {
@@ -302,8 +311,7 @@ function App() {
               setShowAuth(true);
             }} 
             onRegisterWorker={() => {
-              setPendingWorkerRegistration(true);
-              setShowAuth(true);
+              setShowGuidedWorkerModal(true);
             }}
             onSelectCategory={handleSelectCategory}
             onShowInfo={() => {
@@ -328,6 +336,11 @@ function App() {
           onClose={() => setShowGuidedJobModal(false)}
           categoryId={pendingCategoryId}
           onComplete={handleGuidedJobComplete}
+        />
+        <GuidedWorkerModal
+          isOpen={showGuidedWorkerModal}
+          onClose={() => setShowGuidedWorkerModal(false)}
+          onComplete={handleGuidedWorkerComplete}
         />
         <PrivacyBanner />
       </div>
@@ -561,6 +574,12 @@ function App() {
           onClose={() => setShowGuidedJobModal(false)}
           categoryId={pendingCategoryId}
           onComplete={handleGuidedJobComplete}
+        />
+
+        <GuidedWorkerModal
+          isOpen={showGuidedWorkerModal}
+          onClose={() => setShowGuidedWorkerModal(false)}
+          onComplete={handleGuidedWorkerComplete}
         />
 
         {/* Mobile Bottom Navigation - Using new superstudiata component */}

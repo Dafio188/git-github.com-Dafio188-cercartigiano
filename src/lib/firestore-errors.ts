@@ -1,5 +1,7 @@
 
-import { auth } from '../firebase';
+import { getAuth } from 'firebase/auth';
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import firebaseConfig from '../firebase-config.json';
 
 export enum OperationType {
   CREATE = 'create',
@@ -28,6 +30,10 @@ export interface FirestoreErrorInfo {
 }
 
 export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  // Initialize app and auth locally to avoid circular dependency
+  const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  
   const errInfo: FirestoreErrorInfo = {
     error: error instanceof Error ? error.message : String(error),
     authInfo: {

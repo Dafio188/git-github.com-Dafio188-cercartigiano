@@ -15,18 +15,24 @@ function getDb() {
   
   const configPath = path.join(process.cwd(), 'firebase-applet-config.json');
   if (!fs.existsSync(configPath)) {
-    throw new Error("Firebase configuration file missing. Please run firebase setup.");
+    console.warn("WARNING: Firebase configuration file missing. Admin features dependent on Firestore will be disabled.");
+    return null;
   }
 
-  const firebaseConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-  
-  if (!admin.apps.length) {
-    admin.initializeApp({
-      projectId: firebaseConfig.projectId,
-    });
+  try {
+    const firebaseConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    
+    if (!admin.apps.length) {
+      admin.initializeApp({
+        projectId: firebaseConfig.projectId,
+      });
+    }
+    _db = admin.firestore(firebaseConfig.firestoreDatabaseId);
+    return _db;
+  } catch (error) {
+    console.error("Failed to initialize Firebase Admin:", error);
+    return null;
   }
-  _db = admin.firestore(firebaseConfig.firestoreDatabaseId);
-  return _db;
 }
 
 async function startServer() {
@@ -171,6 +177,17 @@ async function startServer() {
 
   app.use(express.json());
 
+  // Log endpoint for client errors
+  app.post('/api/log', (req, res) => {
+    try {
+      fs.appendFileSync('client_errors.log', JSON.stringify(req.body) + '\n');
+    } catch (e) {
+      console.warn("Could not write to client_errors.log");
+    }
+    console.error('[CLIENT ERROR LOG]', req.body);
+    res.send({ok: true});
+  });
+
   // Gemini AI endpoints
   app.post('/api/ai/parse-address', async (req, res) => {
     try {
@@ -182,7 +199,7 @@ async function startServer() {
       
       const { GoogleGenerativeAI } = await import('@google/generative-ai');
       const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
       
       const prompt = `Analizza questo indirizzo parziale o completo e scomponilo nei suoi componenti. Se mancano delle informazioni (come il CAP o la provincia), deducili in base alla città se possibile in Italia.
 Indirizzo: "${addressString}"
@@ -218,7 +235,7 @@ Se non riesci a dedurre un campo, lascialo vuoto "".`;
       
       const { GoogleGenerativeAI } = await import('@google/generative-ai');
       const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
       
       const prompt = `Valuta la complessità di questo lavoro artigianale per determinare il costo in Token (da 1 a 10) che un professionista deve pagare per inviare un preventivo.
 Titolo: ${title}
@@ -233,12 +250,6 @@ Restituisci SOLO un numero intero tra 1 e 10.`;
       console.warn("AI complexity fallback:", error);
       res.json({ cost: 2 });
     }
-  });
-
-  app.post('/api/log', (req, res) => {
-    fs.appendFileSync('client_errors.log', JSON.stringify(req.body) + '\\n');
-    console.error('[CLIENT ERROR LOG]', req.body);
-    res.send({ok: true});
   });
 
   let stripe: Stripe | null = null;

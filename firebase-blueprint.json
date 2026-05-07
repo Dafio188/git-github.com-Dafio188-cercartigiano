@@ -272,6 +272,18 @@
     "/verifications/{userId}": {
       "schema": "Verification",
       "description": "User identity verification data"
+    },
+    "/config/billing": {
+      "schema": {
+        "type": "object",
+        "properties": {
+          "stripeLinks": {
+             "type": "object",
+             "additionalProperties": { "type": "string" }
+          }
+        }
+      },
+      "description": "Public billing configuration"
     }
   }
 }

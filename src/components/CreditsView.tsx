@@ -74,18 +74,22 @@ export function CreditsView({ user }: { user: any }) {
   useEffect(() => {
     const fetchConfig = async () => {
       try {
-        // Proviamo prima la collezione config (più permissiva)
-        let snap = await getDoc(doc(db, 'config', 'billing'));
-        if (!snap.exists()) {
-          // Fallback legacy
-          snap = await getDoc(doc(db, 'adminSettings', 'config'));
-        }
-        
+        // Proviamo prima la collezione config (pubblica e dedicata)
+        const snap = await getDoc(doc(db, 'config', 'billing'));
         if (snap.exists()) {
           setStripeLinks(snap.data().stripeLinks);
+        } else if (user) {
+          // Fallback legacy SOLO se l'utente è loggato (per evitare errori di permessi ai guest)
+          const legacySnap = await getDoc(doc(db, 'adminSettings', 'config'));
+          if (legacySnap.exists()) {
+            setStripeLinks(legacySnap.data().stripeLinks);
+          }
         }
-      } catch (e) {
-        console.error("Error fetching stripe links config", e);
+      } catch (e: any) {
+        // Logghiamo solo se non è un errore di permessi (che è atteso per i guest sul fallback)
+        if (!e.message?.includes('permission')) {
+          console.error("Error fetching stripe links config", e);
+        }
       }
     };
     fetchConfig();

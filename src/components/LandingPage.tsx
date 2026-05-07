@@ -34,6 +34,7 @@ interface LandingPageProps {
 
 export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTerms, onShowCookies, onShowInfo, onShowCareers, onShowCategories, onRegisterWorker }: LandingPageProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [workerBackgroundIndex, setWorkerBackgroundIndex] = useState(0);
   const [howItWorksTab, setHowItWorksTab] = useState<'client' | 'worker'>('client');
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -51,19 +52,33 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
       keyword: "CONFRONTO"
     },
     {
-      main: "Professionisti verificati,",
-      sub: "direttamente dall'amministrazione.",
-      image: "/Foto_homepage.png", // Fallback to first if only two exist
-      keyword: "FIDUCIA"
+      main: "Tutto nel palmo",
+      sub: "della Tua mano.",
+      image: "https://images.unsplash.com/photo-1512428559087-560fa5ceab42?auto=format&fit=crop&q=80&w=2000",
+      keyword: "CONTROLLO"
     }
+  ];
+
+  const workerBackgrounds = [
+    "/Foto_homepage.png",
+    "/Foto_homepage2.png",
+    "https://images.unsplash.com/photo-1581578731522-745d05db97c7?auto=format&fit=crop&q=80&w=2000"
   ];
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % heroSlides.length);
-    }, 6000); // 6 seconds for each slide
-    return () => clearInterval(timer);
-  }, [heroSlides.length]);
+    }, 6000); 
+    
+    const workerTimer = setInterval(() => {
+      setWorkerBackgroundIndex((prev) => (prev + 1) % workerBackgrounds.length);
+    }, 8000);
+
+    return () => {
+      clearInterval(timer);
+      clearInterval(workerTimer);
+    };
+  }, [heroSlides.length, workerBackgrounds.length]);
 
   const handleStartSearch = () => {
     console.log("handleStartSearch triggered with query:", searchQuery);
@@ -235,6 +250,236 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
                   Scopri di più
                 </Button>
               </motion.div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Elegant Divider / Separation */}
+      <div className="h-24 bg-gradient-to-b from-[#1D1D1F] to-[#1D1D1F]" />
+      <div className="h-32 bg-white" />
+
+      {/* Mobile Experience Section - "Tutto nel palmo della Tua mano" */}
+      <section className="py-32 bg-[#FBFBFD] overflow-hidden relative">
+        <div className="absolute top-0 right-0 w-1/3 h-full bg-blue-50/30 blur-[120px] -z-10" />
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex flex-col lg:flex-row items-center gap-20">
+            <motion.div 
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="flex-1 space-y-8"
+            >
+              <div className="inline-flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-full border border-blue-100 shadow-sm">
+                 <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
+                 <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">L'esperienza Mobile</span>
+              </div>
+              <h2 className="text-4xl md:text-7xl font-black tracking-tighter text-[#1D1D1F] leading-[0.9]">
+                La tua attività, <br />
+                <span className="text-blue-600 italic">nel palmo della tua mano.</span>
+              </h2>
+              <p className="text-xl text-[#86868B] font-medium leading-relaxed max-w-xl">
+                Non siamo solo un sito web. Siamo il compagno di lavoro che porti sempre con te. 
+                Monitora preventivi, ricevi notifiche istantanee e chiudi affari ovunque ti trovi.
+              </p>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4">
+                 {[
+                   { icon: Zap, text: "Notifiche Real-time" },
+                   { icon: Shield, text: "Pagamenti Sicuri" },
+                   { icon: MessageSquare, text: "Chat Integrata" },
+                   { icon: Clock, text: "Gestione Agenda" }
+                 ].map((item, i) => (
+                   <div key={i} className="flex items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-[#D2D2D7]/30">
+                      <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
+                        <item.icon className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <span className="font-black text-[#1D1D1F] text-sm uppercase tracking-tight">{item.text}</span>
+                   </div>
+                 ))}
+              </div>
+            </motion.div>
+            
+            {/* Phone Mockup Container */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 50 }}
+              whileInView={{ opacity: 1, scale: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+              className="flex-1 relative flex justify-center lg:justify-end"
+            >
+              <div className="relative w-[320px] h-[650px] bg-[#000] rounded-[3.5rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.4)] border-[12px] border-[#1D1D1F] overflow-hidden group">
+                {/* Status Bar */}
+                <div className="absolute top-0 left-0 w-full h-8 flex justify-between items-center px-8 z-20">
+                   <span className="text-[10px] font-bold text-black/80">9:41</span>
+                   <div className="flex gap-1.5 items-center">
+                      <div className="w-4 h-2 bg-black/20 rounded-sm" />
+                      <div className="w-3 h-3 rounded-full border border-black/20" />
+                   </div>
+                </div>
+
+                {/* Phone Screen Mockup Content */}
+                <div className="absolute inset-0 bg-[#FBFBFD] pt-12 p-6 flex flex-col">
+                   <div className="flex items-center justify-between mb-8">
+                      <div className="flex items-center gap-2">
+                        <BrandLogo className="w-8 h-8" />
+                        <span className="text-xs font-black tracking-tight">CercArtigiano</span>
+                      </div>
+                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                        <Star className="w-4 h-4 text-blue-600" />
+                      </div>
+                   </div>
+                   
+                   <div className="space-y-4">
+                      <div className="p-4 bg-white rounded-3xl shadow-sm border border-[#D2D2D7]/20">
+                         <div className="flex justify-between items-center mb-3">
+                            <span className="text-[10px] font-black uppercase text-blue-600 tracking-widest">Nuova Richiesta</span>
+                            <span className="text-[8px] font-bold text-[#86868B]">Ora</span>
+                         </div>
+                         <h4 className="text-xs font-black text-[#1D1D1F] mb-1">Riparazione Impianto</h4>
+                         <p className="text-[10px] text-[#86868B] font-medium">Bari, 2km da te</p>
+                         <div className="mt-4 flex gap-2">
+                            <div className="h-8 flex-1 bg-blue-600 rounded-xl" />
+                            <div className="h-8 w-8 bg-gray-100 rounded-xl" />
+                         </div>
+                      </div>
+
+                      <div className="p-4 bg-white rounded-3xl shadow-sm border border-[#D2D2D7]/20 opacity-60 scale-95 translate-y-4">
+                         <div className="flex justify-between items-center mb-3">
+                            <span className="text-[10px] font-black uppercase text-green-600 tracking-widest">Pagamento Ricevuto</span>
+                         </div>
+                         <div className="h-2 w-1/2 bg-gray-100 rounded-full mb-1" />
+                         <div className="h-2 w-1/3 bg-gray-100 rounded-full" />
+                      </div>
+                   </div>
+
+                   <div className="mt-auto flex items-center justify-between bg-white p-3 rounded-2xl shadow-xl border border-[#D2D2D7]/20">
+                      {[1,2,3,4].map(i => (
+                        <div key={i} className={`w-8 h-8 rounded-xl ${i === 1 ? 'bg-blue-600' : 'bg-[#F5F5F7]'}`} />
+                      ))}
+                   </div>
+                </div>
+                {/* Dynamic Island Area */}
+                <div className="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-6 bg-[#1D1D1F] rounded-full z-30" />
+                
+                {/* Reflection Glass Effect */}
+                <div className="absolute top-0 left-0 w-full h-[200%] bg-gradient-to-b from-white/20 via-transparent to-transparent -skew-y-[45deg] pointer-events-none transition-transform duration-1000 group-hover:translate-x-full" />
+              </div>
+              
+              {/* Floating Dashboard Element */}
+              <motion.div 
+                animate={{ y: [0, -10, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute -right-12 top-1/4 bg-white/80 backdrop-blur-xl p-4 rounded-3xl border border-white shadow-2xl z-20 hidden md:block"
+              >
+                <div className="flex items-center gap-3">
+                   <div className="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center text-white font-black">€</div>
+                   <div>
+                      <div className="text-[10px] font-black text-[#86868B] uppercase tracking-widest">Guadagno</div>
+                      <div className="text-xl font-black text-[#1D1D1F]">€ 1.240</div>
+                   </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Artigiani and Occasional Workers Section - MOVED HERE */}
+      <section className="py-32 relative overflow-hidden group">
+        {/* Background Image with Overlay and Rotation */}
+        <div className="absolute inset-0 z-0">
+          <AnimatePresence mode="wait">
+            <motion.img 
+              key={workerBackgroundIndex}
+              initial={{ opacity: 0, scale: 1.1 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.5 }}
+              src={workerBackgrounds[workerBackgroundIndex]} 
+              alt="Artigiani al lavoro" 
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                // Fallback if user hasn't uploaded custom images yet
+                (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1581578731522-745d05db97c7?auto=format&fit=crop&q=80&w=2000";
+              }}
+            />
+          </AnimatePresence>
+          <div className="absolute inset-0 bg-gradient-to-r from-[#1D1D1F]/90 via-[#1D1D1F]/60 to-blue-900/20" />
+          <div className="absolute inset-0 bg-black/10" />
+        </div>
+
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-16">
+            <div className="max-w-2xl text-left">
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                className="inline-flex items-center gap-2 bg-blue-600/20 backdrop-blur-md px-4 py-2 rounded-full mb-8 border border-blue-500/30"
+              >
+                <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                <span className="text-[11px] font-black uppercase tracking-widest text-blue-400">Opportunità per tutti</span>
+              </motion.div>
+              
+              <h2 className="text-4xl md:text-6xl font-black tracking-tighter text-white mb-8 leading-[0.9]">
+                Trasforma il tuo lavoro <br />
+                <span className="text-blue-500 italic">in un'impresa di successo.</span>
+              </h2>
+              
+              <p className="text-xl text-[#86868B] font-medium mb-10 leading-relaxed">
+                CercArtigiano non è solo per grandi aziende. Supportiamo privati e professionisti per <strong>prestazioni occasionali</strong>. Unisciti a migliaia di esperti e inizia a ricevere richieste qualificate nella tua zona immediatamente.
+              </p>
+
+              <div className="flex flex-col sm:flex-row items-center gap-6">
+                <Button 
+                  size="lg" 
+                  onClick={onRegisterWorker}
+                  className="w-full sm:w-auto h-16 px-10 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-black text-lg shadow-2xl shadow-blue-600/30 transition-all hover:scale-105 active:scale-95 group border-none"
+                >
+                  Unisciti come Professionista
+                  <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </Button>
+                
+                <div className="flex items-center gap-4">
+                   <div className="flex -space-x-3">
+                      {[1,2,3,4].map(i => (
+                        <div key={i} className="w-10 h-10 rounded-full border-2 border-[#1D1D1F] bg-[#F5F5F7] overflow-hidden">
+                           <img src={`https://i.pravatar.cc/100?u=prof${i}`} alt="pro" />
+                        </div>
+                      ))}
+                   </div>
+                   <div className="text-xs font-bold text-white/60">
+                      <span className="text-white block font-black text-sm">12.000+</span>
+                      Già iscritti
+                   </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Grid of benefits */}
+            <div className="w-full lg:w-[450px] grid grid-cols-1 sm:grid-cols-2 gap-4">
+               {[
+                 { title: "Zero Costi Fissi", desc: "Paghi solo quando decidi di rispondere a un cliente." },
+                 { icon: Shield, title: "Fiducia Totale", desc: "Profilo verificato che ispira serietà immediata." },
+                 { icon: Zap, title: "KM zero", desc: "Ti avvisiamo per lavori realmente vicini a te." },
+                 { icon: Star, title: "Rating Premium", desc: "Costruisci il tuo futuro professionale." }
+               ].map((item, i) => (
+                 <motion.div 
+                   key={i}
+                   initial={{ opacity: 0, y: 20 }}
+                   whileInView={{ opacity: 1, y: 0 }}
+                   viewport={{ once: true }}
+                   transition={{ delay: i * 0.1 }}
+                   className="p-8 rounded-[2.5rem] bg-white/[0.01] backdrop-blur-[2px] border border-white/5 hover:bg-white/10 transition-all group/card shadow-2xl shadow-black/5"
+                 >
+                   <div className="w-12 h-12 bg-blue-600/10 rounded-2xl flex items-center justify-center mb-6 border border-blue-500/20">
+                     {item.icon ? <item.icon className="w-6 h-6 text-blue-500" /> : <Shield className="w-6 h-6 text-blue-500" />}
+                   </div>
+                   <h4 className="text-white font-black text-xl mb-3 group-hover/card:text-blue-400 transition-colors uppercase tracking-tight">{item.title}</h4>
+                   <p className="text-sm text-[#86868B] font-bold leading-relaxed">{item.desc}</p>
+                 </motion.div>
+               ))}
             </div>
           </div>
         </div>
@@ -467,54 +712,6 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Artigiani and Occasional Workers Section */}
-      <section className="py-24 bg-blue-600 text-white relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-1/2 h-full bg-blue-500/50 blur-[100px] pointer-events-none" />
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
-            <div className="max-w-2xl text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 bg-white/20 px-4 py-1.5 rounded-full mb-6">
-                <Star className="w-4 h-4 text-yellow-300" />
-                <span className="text-[11px] font-black uppercase tracking-widest text-white">Opportunità per tutti</span>
-              </div>
-              <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-6">
-                Hai esperienza e vuoi fare piccoli lavoretti?
-              </h2>
-              <p className="text-xl text-blue-100 font-medium mb-8 leading-relaxed">
-                CercArtigiano non è solo per grandi imprese. Siamo aperti anche a privati e professionisti per <strong>prestazioni occasionali</strong>. Non richiediamo visura camerale: se hai le competenze e la passione, questa è la piattaforma giusta per trovare rapidamente richieste vicino a te.
-              </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-                <Button 
-                  size="lg" 
-                  onClick={onRegisterWorker}
-                  className="w-full sm:w-auto h-14 px-8 rounded-3xl bg-white text-blue-600 hover:bg-gray-50 font-bold shadow-xl transition-all"
-                >
-                  Unisciti come Professionista
-                </Button>
-              </div>
-            </div>
-            
-            {/* Visual element */}
-            <div className="hidden lg:flex w-[400px] h-[400px] bg-white/10 rounded-[3rem] border border-white/20 backdrop-blur-md items-center justify-center relative">
-               <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-[3rem]" />
-               <div className="grid grid-cols-2 gap-4 p-8 w-full relative z-10">
-                  {[
-                    { title: "Nessun costo fisso", desc: "Paghi solo i preventivi che invii" },
-                    { title: "No P.IVA obbligatoria", desc: "Valido per prestazioni occasionali" },
-                    { title: "Visibilità locale", desc: "Richieste nella tua zona" },
-                    { title: "Feedback garantiti", desc: "Costruisci la tua reputazione" }
-                  ].map((item, i) => (
-                    <div key={i} className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 flex flex-col justify-center text-center">
-                       <h4 className="font-bold text-lg mb-1">{item.title}</h4>
-                       <p className="text-xs text-blue-100 font-medium">{item.desc}</p>
-                    </div>
-                  ))}
-               </div>
-            </div>
           </div>
         </div>
       </section>

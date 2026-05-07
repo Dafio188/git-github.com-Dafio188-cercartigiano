@@ -2,9 +2,9 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Test doc
-    match /_internal_/connection_test {
-      allow get: if true; 
+    // 0. Default Deny Catch-all
+    match /{document=**} {
+      allow read, write: if false;
     }
 
     // ===============================================================
@@ -12,6 +12,7 @@ service cloud.firestore {
     // ===============================================================
 
     function isSignedIn() { return request.auth != null; }
+    function isVerified() { return isSignedIn() && request.auth.token.email_verified == true; }
     function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
     
     function isAdmin() { 
@@ -41,7 +42,8 @@ service cloud.firestore {
 
     // --- USERS ---
     match /users/{userId} {
-      allow read: if isSignedIn();
+      // Gli admin possono leggere tutti, gli utenti possono leggere se stessi o se sono in una conversazione (semplificato qui per ora)
+      allow read: if isSignedIn() && (isOwner(userId) || isAdmin() || (exists(/databases/$(database)/documents/workerProfiles/$(userId))));
       allow create: if isOwner(userId) || isAdmin();
       allow update: if isOwner(userId) || isAdmin() || (isSignedIn() && incoming().diff(existing()).affectedKeys().hasOnly(['lastActiveAt', 'onboardingComplete', 'address', 'location', 'phone', 'nome', 'tokens', 'transactionHistory']));
       allow delete: if isAdmin();
@@ -49,7 +51,7 @@ service cloud.firestore {
 
     // --- WORKER PROFILES ---
     match /workerProfiles/{userId} {
-      allow read: if isSignedIn();
+      allow read: if true; // Profili pubblici
       allow create: if isOwner(userId) || isAdmin();
       allow update: if isOwner(userId) || isAdmin();
       allow delete: if isAdmin();
@@ -57,90 +59,72 @@ service cloud.firestore {
 
     // --- JOBS ---
     match /jobs/{jobId} {
-      allow read: if true; // Permettiamo la lettura pubblica per la home
-      allow create: if isSignedIn();
-      allow update: if isSignedIn();
+      allow read: if true;
+      allow create: if isVerified();
+      allow update: if isAdmin() || (isSignedIn() && (existing().clientId == request.auth.uid || existing().assignedWorkerId == request.auth.uid));
       allow delete: if isAdmin();
     }
 
     // --- PROPOSALS ---
     match /proposals/{proposalId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn();
-      allow update: if isSignedIn();
+      allow read: if isSignedIn() && (resource.data.workerId == request.auth.uid || resource.data.clientId == request.auth.uid || isAdmin());
+      allow create: if isVerified();
+      allow update: if isSignedIn() && (existing().workerId == request.auth.uid || existing().clientId == request.auth.uid || isAdmin());
       allow delete: if isAdmin();
     }
 
-    // --- CONVERSATIONS & MESSAGES ---
+    // --- CONVERSATIONS ---
     match /conversations/{convId} {
-      allow read, write: if isSignedIn();
+      allow read: if isSignedIn() && (request.auth.uid in resource.data.participants || isAdmin());
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && (request.auth.uid in existing().participants || isAdmin());
+      allow delete: if isAdmin();
     }
 
     // --- MESSAGES ---
     match /messages/{msgId} {
-      allow read, write: if isSignedIn();
-    }
-
-    // --- BOOKINGS & WORK PROOFS ---
-    match /bookings/{bookingId} {
-      allow read, write: if isSignedIn();
-    }
-
-    match /workProofs/{proofId} {
-      allow read, write: if isSignedIn();
+      allow read: if isSignedIn() && (request.auth.uid in resource.data.participantIds || isAdmin());
+      allow create: if isSignedIn();
+      allow delete: if isAdmin();
     }
 
     // --- REVIEWS ---
     match /reviews/{reviewId} {
       allow read: if true;
-      allow create, update: if isSignedIn();
+      allow create: if isVerified();
+      allow update: if isAdmin() || (isSignedIn() && existing().clientId == request.auth.uid);
       allow delete: if isAdmin();
     }
 
-    // --- JOB Q&A ---
-    match /jobQuestions/{questionId} {
-      allow read: if true;
-      allow create: if isSignedIn();
-      allow update: if isSignedIn();
-      allow delete: if isAdmin();
-    }
-
-    // --- NOTIFICATIONS ---
-    match /notifications/{notifId} {
-      allow read: if isSignedIn();
-      allow create, update, delete: if isAdmin() || isSignedIn(); 
-    }
-    
-    // --- VERIFICATIONS ---
-    match /verifications/{userId} {
-      allow read, write: if isOwner(userId) || isAdmin();
-    }
-
-    // --- BILLING PROFILES ---
-    match /billingProfiles/{userId} {
-      allow read, write: if isOwner(userId) || isAdmin();
-    }
-
-    // --- INVOICES ---
-    match /invoices/{invoiceId} {
-      allow read: if (isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin()));
-      allow create, update, delete: if isAdmin();
-    }
-
-    // --- ADMIN SETTINGS & CONFIG ---
-    match /adminSettings/{docId} {
-      allow read: if (docId == "config" && isSignedIn()) || isAdmin();
-      allow write: if isAdmin();
-    }
-
+    // --- CONFIG & SETTINGS ---
     match /config/{docId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // Default deny for everything else unprotected
-    match /{document=**} {
-      allow read, write: if isAdmin();
+    match /adminSettings/{docId} {
+      allow read: if isAdmin() || (isSignedIn() && docId == 'config');
+      allow write: if isAdmin();
+    }
+
+    // Invoices are sensitive
+    match /invoices/{invoiceId} {
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Other collections
+    match /notifications/{notifId} {
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.userId == 'all' || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    match /verifications/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+    
+    match /billingProfiles/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
     }
   }
 }
