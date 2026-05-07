@@ -31,31 +31,36 @@ interface LandingPageProps {
 }
 
 export function LandingPage({ onLogin, onShowPrivacy, onShowTerms, onShowCookies, onShowInfo, onShowCareers, onShowCategories }: LandingPageProps) {
-  const [activeSlide, setActiveSlide] = useState(0);
-  const [currentHeadline, setCurrentHeadline] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [howItWorksTab, setHowItWorksTab] = useState<'client' | 'worker'>('client');
   
-  const headlines = [
+  const heroSlides = [
     {
       main: "L'artigiano più vicino,",
-      sub: "scelto dal nostro algoritmo."
+      sub: "scelto dal nostro algoritmo.",
+      image: "/Foto_homepage.png",
+      keyword: "VICINANZA"
     },
     {
       main: "5 Preventivi reali,",
-      sub: "qualità e prezzo garantiti."
+      sub: "qualità e prezzo garantiti.",
+      image: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&q=80&w=2000",
+      keyword: "CONFRONTO"
     },
     {
       main: "Professionisti verificati,",
-      sub: "direttamente dall'amministrazione."
+      sub: "direttamente dall'amministrazione.",
+      image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&q=80&w=2000",
+      keyword: "FIDUCIA"
     }
   ];
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentHeadline((prev) => (prev + 1) % headlines.length);
-    }, 5000);
+      setCurrentIndex((prev) => (prev + 1) % heroSlides.length);
+    }, 6000); // 6 seconds for each slide
     return () => clearInterval(timer);
-  }, []);
+  }, [heroSlides.length]);
 
   const tickerItems = [
     "Ricerca nuovi incarichi in tempo reale...",
@@ -100,7 +105,10 @@ export function LandingPage({ onLogin, onShowPrivacy, onShowTerms, onShowCookies
 
       {/* Hero Section */}
       <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
-        <HeroBackground />
+        <HeroBackground 
+          currentIndex={currentIndex} 
+          assets={heroSlides.map(s => ({ url: s.image, text: s.keyword }))} 
+        />
 
         <div className="max-w-[1400px] mx-auto w-full relative z-20 px-6 pt-24 pb-8 h-screen flex flex-col justify-end items-end">
           <div className="flex flex-col items-end justify-end w-full pb-8 lg:pb-12 gap-6 lg:gap-8">
@@ -109,21 +117,32 @@ export function LandingPage({ onLogin, onShowPrivacy, onShowTerms, onShowCookies
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
-                className="md:bg-white/5 md:backdrop-blur-md p-0 md:p-6 lg:p-8 md:rounded-[2rem] md:border border-white/20 md:shadow-2xl shadow-black/20 w-fit"
+                className="md:bg-white/5 md:backdrop-blur-xl p-0 md:p-8 lg:p-10 md:rounded-[2.5rem] md:border border-white/20 md:shadow-2xl shadow-black/40 w-fit group"
               >
-                <div className="min-h-[80px] sm:min-h-[130px] lg:min-h-[150px] flex items-center justify-start">
+                <div className="min-h-[100px] sm:min-h-[140px] lg:min-h-[180px] flex items-center justify-start">
                   <AnimatePresence mode="wait">
-                    <motion.h1 
-                      key={currentHeadline}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
+                    <motion.div
+                      key={currentIndex}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
                       transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                      className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tighter text-white leading-[0.95] drop-shadow-2xl"
                     >
-                      {headlines[currentHeadline].main} <br className="hidden sm:block" />
-                      <span className="text-blue-600 italic drop-shadow-2xl">{headlines[currentHeadline].sub}</span>
-                    </motion.h1>
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-2 mb-2">
+                           <div className="w-8 h-[2px] bg-blue-600" />
+                           <span className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-400">
+                             {heroSlides[currentIndex].keyword}
+                           </span>
+                        </div>
+                        <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tighter text-white leading-[0.9] drop-shadow-2xl">
+                          {heroSlides[currentIndex].main} <br className="hidden sm:block" />
+                          <span className="text-blue-600 block mt-2 drop-shadow-2xl uppercase italic">
+                            {heroSlides[currentIndex].sub}
+                          </span>
+                        </h1>
+                      </div>
+                    </motion.div>
                   </AnimatePresence>
                 </div>
               </motion.div>

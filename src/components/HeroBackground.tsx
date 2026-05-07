@@ -2,49 +2,37 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 
-interface HeroBackgroundProps {
-  className?: string;
+interface BackgroundAsset {
+  url: string;
+  text: string;
 }
 
-export function HeroBackground({ className }: HeroBackgroundProps) {
+interface HeroBackgroundProps {
+  className?: string;
+  currentIndex: number;
+  assets: BackgroundAsset[];
+}
+
+export function HeroBackground({ className, currentIndex, assets }: HeroBackgroundProps) {
   const [hasError, setHasError] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  // We will populate these with the actual image URLs once the user uploads them
-  const backgroundAssets = [
-    {
-      url: "/Foto_homepage.png",
-      text: "ARTIGIANO"
-    }
-  ];
-
-  useEffect(() => {
-    if (backgroundAssets.length <= 1 || hasError) return;
-    
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % backgroundAssets.length);
-    }, 6000); // 6 seconds per image
-    
-    return () => clearInterval(interval);
-  }, [backgroundAssets.length, hasError]);
 
   return (
     <div className={cn("absolute inset-0 z-0 select-none pointer-events-none overflow-hidden h-full w-full bg-[#1D1D1F]", className)}>
-      {!hasError ? (
+      {!hasError && assets.length > 0 ? (
         <AnimatePresence mode="popLayout">
           <motion.div
             key={currentIndex}
-            initial={{ opacity: 0, scale: 1.05 }}
+            initial={{ opacity: 0, scale: 1.08 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1.5, ease: "easeInOut" }}
+            exit={{ opacity: 0, scale: 1.05 }}
+            transition={{ duration: 1.8, ease: [0.4, 0, 0.2, 1] }}
             className="absolute inset-0 w-full h-full"
           >
             <img 
-              src={backgroundAssets[currentIndex].url} 
+              src={assets[currentIndex].url} 
               alt="Background" 
-              className="w-full h-full object-cover"
-              loading={currentIndex === 0 ? "eager" : "lazy"}
+              className="w-full h-full object-cover brightness-[0.85] contrast-[1.05]"
+              loading="eager"
               onError={() => setHasError(true)}
               referrerPolicy="no-referrer"
             />
