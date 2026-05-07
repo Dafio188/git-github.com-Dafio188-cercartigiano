@@ -40,7 +40,10 @@ import { collection, query, where, onSnapshot as onSnapshotCollection } from 'fi
 
 import { BrandLogo } from './components/BrandLogo';
 
-export default function App() {
+import { Routes, Route } from 'react-router-dom';
+import { SeoLandingPage } from './components/SeoLandingPage';
+
+function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('home');
@@ -490,4 +493,13 @@ function CheckCircleIcon(props: any) {
 // Remove local Briefcase to avoid confusion with Lucide
 function BriefcaseIcon(props: any) {
   return null;
+}
+
+export default function Root() {
+  return (
+    <Routes>
+      <Route path="/servizi/:provincia/:comune/:categoria" element={<SeoLandingPage />} />
+      <Route path="*" element={<App />} />
+    </Routes>
+  );
 }
