@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 
 interface HeroBackgroundProps {
@@ -7,19 +8,48 @@ interface HeroBackgroundProps {
 
 export function HeroBackground({ className }: HeroBackgroundProps) {
   const [hasError, setHasError] = useState(false);
-  const heroUrl = `/Foto_homepage.png`;
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  // We will populate these with the actual image URLs once the user uploads them
+  const backgroundAssets = [
+    {
+      url: "/Foto_homepage.png",
+      text: "ARTIGIANO"
+    }
+  ];
+
+  useEffect(() => {
+    if (backgroundAssets.length <= 1 || hasError) return;
+    
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % backgroundAssets.length);
+    }, 6000); // 6 seconds per image
+    
+    return () => clearInterval(interval);
+  }, [backgroundAssets.length, hasError]);
 
   return (
     <div className={cn("absolute inset-0 z-0 select-none pointer-events-none overflow-hidden h-full w-full bg-[#1D1D1F]", className)}>
       {!hasError ? (
-        <img 
-          src={heroUrl} 
-          alt="Artigiano al lavoro" 
-          className="w-full h-full object-cover"
-          loading="eager"
-          onError={() => setHasError(true)}
-          referrerPolicy="no-referrer"
-        />
+        <AnimatePresence mode="popLayout">
+          <motion.div
+            key={currentIndex}
+            initial={{ opacity: 0, scale: 1.05 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.5, ease: "easeInOut" }}
+            className="absolute inset-0 w-full h-full"
+          >
+            <img 
+              src={backgroundAssets[currentIndex].url} 
+              alt="Background" 
+              className="w-full h-full object-cover"
+              loading={currentIndex === 0 ? "eager" : "lazy"}
+              onError={() => setHasError(true)}
+              referrerPolicy="no-referrer"
+            />
+          </motion.div>
+        </AnimatePresence>
       ) : (
         // Fallback: Elegant premium Mesh Gradient (Apple style)
         <div className="w-full h-full bg-[#1D1D1F] relative overflow-hidden">
