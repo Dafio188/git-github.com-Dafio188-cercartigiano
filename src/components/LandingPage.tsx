@@ -54,15 +54,15 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
     {
       main: "Tutto nel palmo",
       sub: "della Tua mano.",
-      image: "https://images.unsplash.com/photo-1512428559087-560fa5ceab42?auto=format&fit=crop&q=80&w=2000",
+      image: "/worker_bg_1.png",
       keyword: "CONTROLLO"
     }
   ];
 
   const workerBackgrounds = [
-    "/Foto_homepage.png",
-    "/Foto_homepage2.png",
-    "https://images.unsplash.com/photo-1581578731522-745d05db97c7?auto=format&fit=crop&q=80&w=2000"
+    "/worker_bg_1.png",
+    "/worker_bg_2.png",
+    "/worker_bg_3.png"
   ];
 
   useEffect(() => {
