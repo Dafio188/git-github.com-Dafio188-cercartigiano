@@ -31,12 +31,14 @@ export function GuidedJobModal({
   mappedMessage
 }: GuidedJobModalProps) {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(initialCategoryId);
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [stepHistory, setStepHistory] = useState<number[]>([0]);
+  const currentStepIndex = stepHistory[stepHistory.length - 1] || 0;
   const [answers, setAnswers] = useState<Record<string, any>>(initialAnswers);
   const [address, setAddress] = useState('');
   const [location, setLocation] = useState<{lat: number, lng: number} | null>(null);
   const [loading, setLoading] = useState(false);
   const [showPriceRange, setShowPriceRange] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
   const [success, setSuccess] = useState(false);
 
   const category = SERVICE_CATEGORIES.find(c => c.id === (selectedCategoryId || initialCategoryId));
@@ -45,7 +47,7 @@ export function GuidedJobModal({
     : DEFAULT_FLOW;
   
   // Per gli utenti già loggati, rimuoviamo lo step dei contatti per evitare sforzi inutili
-  const flow = userId ? baseFlow.filter(q => q.type !== 'contact') : baseFlow;
+  const flow = auth.currentUser ? baseFlow.filter(q => q.type !== 'contact') : baseFlow;
 
   const currentQuestion = flow[currentStepIndex];
 
@@ -82,9 +84,9 @@ export function GuidedJobModal({
       // Se abbiamo una selezione iniziale per il primo step, andiamo direttamente al secondo
       const firstStepAnswer = initialAnswers[flow[0].id];
       if (firstStepAnswer) {
-        setCurrentStepIndex(1);
+        setStepHistory([1]);
       } else {
-        setCurrentStepIndex(0);
+        setStepHistory([0]);
       }
       
       // Pre-fill user data if already logged in
@@ -109,13 +111,26 @@ export function GuidedJobModal({
 
   const handleCategorySelect = (id: string) => {
     setSelectedCategoryId(id);
-    setCurrentStepIndex(0);
+    setStepHistory([0]);
   };
 
   const handleOptionSelect = (optionId: string) => {
+    const currentQuestion = flow[currentStepIndex];
     setAnswers({ ...answers, [currentQuestion.id]: optionId });
+    
+    // Branching Logic: check if option has a nextStepId
+    const selectedOption = currentQuestion.options?.find(o => o.id === optionId);
+    
+    if (selectedOption?.nextStepId) {
+      const nextIndex = flow.findIndex(q => q.id === selectedOption.nextStepId);
+      if (nextIndex !== -1) {
+        setTimeout(() => setStepHistory([...stepHistory, nextIndex]), 300);
+        return;
+      }
+    }
+
     if (currentStepIndex < flow.length - 1) {
-      setTimeout(() => setCurrentStepIndex(currentStepIndex + 1), 300);
+      setTimeout(() => setStepHistory([...stepHistory, currentStepIndex + 1]), 300);
     }
   };
 
@@ -281,16 +296,29 @@ export function GuidedJobModal({
   };
 
   const handleNext = () => {
+    const nextStepIndex = currentStepIndex + 1;
+    const nextQuestion = flow[nextStepIndex];
+
+    // Se il prossimo step è 'contact' o siamo alla fine del flusso diagnostico, mostriamo il riepilogo prima
+    if (!showSummary && (nextStepIndex === flow.length || (nextQuestion && nextQuestion.type === 'contact'))) {
+      setShowSummary(true);
+      return;
+    }
+
     if (currentStepIndex < flow.length - 1) {
-      setCurrentStepIndex(currentStepIndex + 1);
+      setStepHistory([...stepHistory, currentStepIndex + 1]);
     } else {
       handleFinish();
     }
   };
 
   const handleBack = () => {
-    if (currentStepIndex > 0) {
-      setCurrentStepIndex(currentStepIndex - 1);
+    if (showSummary) {
+      setShowSummary(false);
+      return;
+    }
+    if (stepHistory.length > 1) {
+      setStepHistory(stepHistory.slice(0, -1));
     } else if (!initialCategoryId && selectedCategoryId) {
       setSelectedCategoryId(null);
     }
@@ -422,8 +450,12 @@ export function GuidedJobModal({
                   <ArrowLeft className="w-6 h-6 text-[#1D1D1F]" />
                 </button>
                 <div className="flex flex-col gap-1">
-                   <span className="text-[11px] font-black text-primary uppercase tracking-[0.2em] opacity-80">Passaggio {currentStepIndex + 1} di {flow.length}</span>
-                   <h4 className="text-xl font-black text-[#1D1D1F] uppercase tracking-tight leading-none">{category?.label}</h4>
+                   <span className="text-[11px] font-black text-primary uppercase tracking-[0.2em] opacity-80">
+                     {showSummary ? 'Revisione' : `Passaggio ${currentStepIndex + 1} di ${flow.length}`}
+                   </span>
+                   <h4 className="text-xl font-black text-[#1D1D1F] uppercase tracking-tight leading-none">
+                     {showSummary ? 'Riepilogo Richiesta' : category?.label}
+                   </h4>
                 </div>
               </div>
               {mappedMessage && (
@@ -488,6 +520,102 @@ export function GuidedJobModal({
                       <div className="flex items-center gap-2 px-4 py-2 bg-[#F5F5F7] rounded-full">
                          <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
                          <span className="text-[10px] font-black text-[#86868B] uppercase tracking-widest">Ti portiamo nella tua dashboard...</span>
+                      </div>
+                    </motion.div>
+                  ) : showSummary ? (
+                    <motion.div
+                      key="summary"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      className="flex-1"
+                    >
+                      <div className="mb-10">
+                        <h2 className="text-3xl md:text-4xl font-black text-[#1D1D1F] tracking-tight mb-4 leading-[1.1]">
+                          Verifichiamo i dettagli?
+                        </h2>
+                        <p className="text-lg text-[#86868B] font-medium leading-relaxed">
+                          Ecco un riepilogo delle informazioni che hai fornito. Se tutto è corretto, passeremo all'invio.
+                        </p>
+                      </div>
+
+                      <div className="space-y-3">
+                        {flow.filter(q => q.type !== 'contact' && answers[q.id]).map((q, idx) => {
+                          const answerId = answers[q.id];
+                          const selectedOption = q.options?.find(o => o.id === answerId);
+                          const Icon = selectedOption?.icon || q.icon || MessageSquare;
+                          
+                          return (
+                            <motion.div
+                              key={q.id}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: idx * 0.05 }}
+                              className="group p-5 bg-[#FBFBFD] border border-[#F2F2F7] rounded-3xl hover:border-primary/30 transition-all flex items-center justify-between"
+                            >
+                              <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm border border-[#F2F2F7] text-[#1D1D1F]">
+                                  <Icon className="w-5 h-5" />
+                                </div>
+                                <div>
+                                  <p className="text-[10px] font-black text-[#86868B] uppercase tracking-widest">{q.title || "Domanda"}</p>
+                                  <p className="text-sm font-bold text-[#1D1D1F]">{selectedOption?.label || answerId}</p>
+                                </div>
+                              </div>
+                              <button 
+                                onClick={() => {
+                                  const stepIndex = flow.findIndex(step => step.id === q.id);
+                                  if (stepIndex !== -1) {
+                                    setStepHistory([...stepHistory, stepIndex]);
+                                    setShowSummary(false);
+                                  }
+                                }}
+                                className="px-4 py-2 text-[10px] font-black text-primary uppercase tracking-widest hover:bg-primary/5 rounded-full transition-colors"
+                              >
+                                Modifica
+                              </button>
+                            </motion.div>
+                          );
+                        })}
+
+                        {address && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="p-5 bg-[#FBFBFD] border border-[#F2F2F7] rounded-3xl flex items-center justify-between"
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm border border-[#F2F2F7] text-[#1D1D1F]">
+                                <MapPin className="w-5 h-5" />
+                              </div>
+                              <div>
+                                <p className="text-[10px] font-black text-[#86868B] uppercase tracking-widest">Posizione</p>
+                                <p className="text-sm font-bold text-[#1D1D1F] truncate max-w-[200px]">{address}</p>
+                              </div>
+                            </div>
+                            <button 
+                              onClick={() => {
+                                const stepIndex = flow.findIndex(step => step.type === 'address');
+                                if (stepIndex !== -1) {
+                                  setStepHistory([...stepHistory, stepIndex]);
+                                  setShowSummary(false);
+                                }
+                              }}
+                              className="px-4 py-2 text-[10px] font-black text-primary uppercase tracking-widest hover:bg-primary/5 rounded-full"
+                            >
+                              Modifica
+                            </button>
+                          </motion.div>
+                        )}
+                      </div>
+
+                      <div className="mt-10 p-6 bg-blue-50 rounded-[2rem] border border-blue-100 flex items-center gap-4">
+                        <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm shrink-0">
+                          <Check className="w-6 h-6 text-blue-600" />
+                        </div>
+                        <p className="text-sm text-blue-900 font-bold leading-tight">
+                          Tutto corretto? Clicca sul tasto sotto per procedere all'ultimo passaggio.
+                        </p>
                       </div>
                     </motion.div>
                   ) : (
@@ -725,12 +853,27 @@ export function GuidedJobModal({
                     )}
 
                     <Button
-                      onClick={handleNext}
+                      onClick={() => {
+                        if (showSummary) {
+                          // Se siamo nel riepilogo e non ci sono step contact (user loggato), finish
+                          // Altrimenti vai al prossimo step (che sarà contact)
+                          if (currentStepIndex < flow.length - 1) {
+                            setStepHistory([...stepHistory, currentStepIndex + 1]);
+                            setShowSummary(false);
+                          } else {
+                            handleFinish();
+                          }
+                        } else {
+                          handleNext();
+                        }
+                      }}
                       disabled={
                         loading ||
-                        (currentQuestion.type === 'text' && !answers[currentQuestion.id]) ||
-                        (currentQuestion.type === 'address' && !address) ||
-                        (currentQuestion.type === 'contact' && !auth.currentUser && (!answers.userName || !answers.userEmail || !answers.userPassword || answers.userPassword.length < 6))
+                        (!showSummary && (
+                          (currentQuestion.type === 'text' && !answers[currentQuestion.id]) ||
+                          (currentQuestion.type === 'address' && !address) ||
+                          (currentQuestion.type === 'contact' && !auth.currentUser && (!answers.userName || !answers.userEmail || !answers.userPassword || answers.userPassword.length < 6))
+                        ))
                       }
                       className="w-full max-w-xl h-16 rounded-2xl bg-[#1D1D1F] hover:bg-black text-white font-black text-lg shadow-xl shadow-black/10 active:scale-95 transition-all flex items-center justify-center gap-3 border-none"
                     >
@@ -738,7 +881,9 @@ export function GuidedJobModal({
                         <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       ) : (
                         <>
-                          {currentStepIndex === flow.length - 1 ? 'INVIA RICHIESTA ORA' : 'CONTINUA'}
+                          {showSummary 
+                            ? (currentStepIndex === flow.length - 1 ? 'CONFERMA E INVIA' : 'CONFERMA E PROSEGUI')
+                            : (currentStepIndex === flow.length - 1 ? 'INVIA RICHIESTA ORA' : 'CONTINUA')}
                           <ArrowRight className="w-6 h-6" />
                         </>
                       )}

@@ -6,12 +6,15 @@ export interface QuestionOption {
   description?: string;
   icon?: React.ComponentType<LucideProps>;
   priceRange?: { min: number; max: number };
+  nextStepId?: string; // Support for branching logic
 }
 
 export interface CategoryQuestion {
   id: string;
   type: 'choice' | 'text' | 'address' | 'contact';
   question: string;
+  title?: string; // Short title for summary
+  icon?: React.ComponentType<LucideProps>; // Question level icon
   description?: string;
   tip?: string;
   placeholder?: string;
@@ -27,13 +30,13 @@ export const CATEGORY_FLOWS: Record<string, CategoryQuestion[]> = {
       question: 'Di quale tipo di servizio elettrico hai bisogno?',
       description: 'Seleziona la specializzazione principale per ricevere preventivi mirati.',
       options: [
-        { id: 'renovation', label: 'Rifacimento Impianto Elettrico', description: 'Sostituzione completa o messa a norma.', icon: Hammer, priceRange: { min: 1500, max: 6000 } },
-        { id: 'repair', label: 'Riparazione Guasto / Corto Circuito', description: 'Ricerca e risoluzione malfunzionamenti.', icon: AlertTriangle, priceRange: { min: 80, max: 250 } },
-        { id: 'lighting_outlets', label: 'Punti Luce, Prese e Interruttori', description: 'Installazione, sostituzione o spostamento.', icon: Lightbulb, priceRange: { min: 50, max: 400 } },
-        { id: 'intercom_security', label: 'Citofono, Videocitofono e Allarme', description: 'Installazione o riparazione sistemi.', icon: Smartphone, priceRange: { min: 150, max: 1200 } },
-        { id: 'antennas_sat', label: 'Antenne e Impianti Satellitari', description: 'Installazione o puntamento antenna/parabola.', icon: Zap, priceRange: { min: 90, max: 350 } },
-        { id: 'photovoltaic', label: 'Impianti Fotovoltaici', description: 'Pannelli solari e risparmio energetico.', icon: Waves, priceRange: { min: 3000, max: 15000 } },
-        { id: 'certification', label: 'Certificazione Conformità (Di.Co.)', description: 'Controllo e rilascio documenti legali.', icon: Shield, priceRange: { min: 150, max: 450 } }
+        { id: 'renovation', label: 'Rifacimento Impianto Elettrico', description: 'Sostituzione completa o messa a norma.', icon: Hammer, priceRange: { min: 1500, max: 6000 }, nextStepId: 'property_size' },
+        { id: 'repair', label: 'Riparazione Guasto / Corto Circuito', description: 'Ricerca e risoluzione malfunzionamenti.', icon: AlertTriangle, priceRange: { min: 80, max: 250 }, nextStepId: 'specific_problem' },
+        { id: 'lighting_outlets', label: 'Punti Luce, Prese e Interruttori', description: 'Installazione, sostituzione o spostamento.', icon: Lightbulb, priceRange: { min: 50, max: 400 }, nextStepId: 'involved_equipment' },
+        { id: 'intercom_security', label: 'Citofono, Videocitofono e Allarme', description: 'Installazione o riparazione sistemi.', icon: Smartphone, priceRange: { min: 150, max: 1200 }, nextStepId: 'involved_equipment' },
+        { id: 'antennas_sat', label: 'Antenne e Impianti Satellitari', description: 'Installazione o puntamento antenna/parabola.', icon: Zap, priceRange: { min: 90, max: 350 }, nextStepId: 'involved_equipment' },
+        { id: 'photovoltaic', label: 'Impianti Fotovoltaici', description: 'Pannelli solari e risparmio energetico.', icon: Waves, priceRange: { min: 3000, max: 15000 }, nextStepId: 'property_size' },
+        { id: 'certification', label: 'Certificazione Conformità (Di.Co.)', description: 'Controllo e rilascio documenti legali.', icon: Shield, priceRange: { min: 150, max: 450 }, nextStepId: 'property_size' }
       ]
     },
     {

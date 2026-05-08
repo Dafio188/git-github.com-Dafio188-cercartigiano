@@ -83,32 +83,30 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
   const handleStartSearch = async () => {
     console.log("handleStartSearch triggered with query:", searchQuery);
     if (!searchQuery) {
-      console.log("No query, defaulting to electrical");
-      onSelectCategory('electrical'); // Default fallback
+      onSelectCategory('electrical');
       return;
     }
     
-    const { findCategoryFromQuery } = await import('../lib/keywordMapping');
-    const mappingResult = findCategoryFromQuery(searchQuery);
-    
-    console.log("Mapping Result:", mappingResult);
-    
-    if (mappingResult) {
-      const initialAnswers: Record<string, any> = {};
-      let mappedMessage: string | undefined;
+    // Mostriamo un feedback visivo se necessario o procediamo direttamente
+    try {
+      const { analyzeSearchQuery } = await import('../services/geminiRouter');
+      const result = await analyzeSearchQuery(searchQuery);
       
-      if (mappingResult.subServiceId) {
-        // Special mapping for first question in many flows
-        initialAnswers['service_category'] = mappingResult.subServiceId;
-        initialAnswers['plumbing_type'] = mappingResult.subServiceId;
-        
-        // Find the original term to confirm to user
-        mappedMessage = `Ottimo! Abbiamo trovato uno specialista in: ${searchQuery}`;
+      console.log("AI Analysis Result:", result);
+      
+      // Passiamo i dati estratti dall'AI alla funzione di selezione categoria
+      // Includiamo le risposte iniziali pre-compilate dall'AI
+      onSelectCategory(result.categoryId, result.initialAnswers, result.mappedMessage);
+    } catch (error) {
+      console.error("AI Analysis failed, using keyword fallback", error);
+      // Fallback a keyword mapping se AI fallisce
+      const { findCategoryFromQuery } = await import('../lib/keywordMapping');
+      const mappingResult = findCategoryFromQuery(searchQuery);
+      if (mappingResult) {
+        onSelectCategory(mappingResult.categoryId, { service_category: mappingResult.subServiceId }, `Ottimo! Abbiamo trovato uno specialista in: ${searchQuery}`);
+      } else {
+        onSelectCategory('electrical');
       }
-      
-      onSelectCategory(mappingResult.categoryId, initialAnswers, mappedMessage);
-    } else {
-      onSelectCategory('electrical'); // electrical as ultimate fallback
     }
   };
 
@@ -201,13 +199,13 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5, duration: 0.8 }}
-                  className="mt-8 bg-white/10 backdrop-blur-2xl rounded-[2rem] p-2 border border-white/20 shadow-2xl flex flex-col md:flex-row gap-2 w-full max-w-2xl"
+                  className="mt-8 bg-white/10 backdrop-blur-2xl rounded-[2rem] p-2 border border-white/20 shadow-2xl flex flex-col md:flex-row gap-2 w-full max-w-2xl relative"
                 >
                   <div className="flex-1 relative z-30">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-400" />
                     <input 
                       type="text"
-                      placeholder="Di quale artigiano hai bisogno?"
+                      placeholder="Qual è il problema da risolvere?"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onKeyDown={(e) => {
@@ -229,6 +227,14 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
                     INIZIA ORA
                     <ArrowRight className="w-5 h-5" />
                   </button>
+
+                  {/* AI Status Badge */}
+                  <div className="absolute -bottom-10 left-0 right-0 flex justify-center md:justify-start">
+                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 backdrop-blur-md border border-white/10">
+                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                      <span className="text-[9px] font-black text-white/60 uppercase tracking-[0.2em]">Analisi AI Attiva: Descrivi il tuo problema</span>
+                    </div>
+                  </div>
                 </motion.div>
               </motion.div>
             </div>
