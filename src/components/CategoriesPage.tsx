@@ -9,7 +9,7 @@ import { cn } from '../lib/utils';
 
 interface CategoriesPageProps {
   onBack: () => void;
-  onSelectCategory?: (categoryId: string) => void;
+  onSelectCategory?: (categoryId: string, initialAnswers?: Record<string, any>, mappedMessage?: string) => void;
 }
 
 export function CategoriesPage({ onBack, onSelectCategory }: CategoriesPageProps) {

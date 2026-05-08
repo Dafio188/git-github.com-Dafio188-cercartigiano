@@ -22,7 +22,7 @@ import { HeroBackground } from './HeroBackground';
 
 interface LandingPageProps {
   onLogin: () => void;
-  onSelectCategory: (id: string) => void;
+  onSelectCategory: (id: string, initialAnswers?: Record<string, any>, mappedMessage?: string) => void;
   onShowPrivacy?: () => void;
   onShowTerms?: () => void;
   onShowCookies?: () => void;
@@ -80,7 +80,7 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
     };
   }, [heroSlides.length, workerBackgrounds.length]);
 
-  const handleStartSearch = () => {
+  const handleStartSearch = async () => {
     console.log("handleStartSearch triggered with query:", searchQuery);
     if (!searchQuery) {
       console.log("No query, defaulting to electrical");
@@ -88,21 +88,28 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
       return;
     }
     
-    const query = searchQuery.toLowerCase();
-    let detectedCategory = 'electrical'; // Fallback
+    const { findCategoryFromQuery } = await import('../lib/keywordMapping');
+    const mappingResult = findCategoryFromQuery(searchQuery);
     
-    if (query.includes('elettri') || query.includes('luce') || query.includes('corrente')) {
-      detectedCategory = 'electrical';
-    } else if (query.includes('idrau') || query.includes('acqua') || query.includes('bagno') || query.includes('tubi')) {
-      detectedCategory = 'plumbing';
-    } else if (query.includes('pittore') || query.includes('vernice') || query.includes('muro')) {
-      detectedCategory = 'painting';
-    } else if (query.includes('sgomber') || query.includes('trasloc')) {
-      detectedCategory = 'cleaning'; 
+    console.log("Mapping Result:", mappingResult);
+    
+    if (mappingResult) {
+      const initialAnswers: Record<string, any> = {};
+      let mappedMessage: string | undefined;
+      
+      if (mappingResult.subServiceId) {
+        // Special mapping for first question in many flows
+        initialAnswers['service_category'] = mappingResult.subServiceId;
+        initialAnswers['plumbing_type'] = mappingResult.subServiceId;
+        
+        // Find the original term to confirm to user
+        mappedMessage = `Ottimo! Abbiamo trovato uno specialista in: ${searchQuery}`;
+      }
+      
+      onSelectCategory(mappingResult.categoryId, initialAnswers, mappedMessage);
+    } else {
+      onSelectCategory('electrical'); // electrical as ultimate fallback
     }
-    
-    console.log("Detected category:", detectedCategory);
-    onSelectCategory(detectedCategory);
   };
 
   const tickerItems = [

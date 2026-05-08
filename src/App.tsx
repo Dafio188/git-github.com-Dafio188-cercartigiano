@@ -59,6 +59,8 @@ function App() {
   const [pendingJobDraft, setPendingJobDraft] = useState<any | null>(null);
   const [pendingWorkerRegistration, setPendingWorkerRegistration] = useState(false);
   const [showGuidedJobModal, setShowGuidedJobModal] = useState(false);
+  const [guidedJobInitialAnswers, setGuidedJobInitialAnswers] = useState<Record<string, any>>({});
+  const [guidedJobMappedMessage, setGuidedJobMappedMessage] = useState<string | undefined>();
   const [showGuidedWorkerModal, setShowGuidedWorkerModal] = useState(false);
 
   useEffect(() => {
@@ -108,9 +110,11 @@ function App() {
     }
   };
 
-  const handleSelectCategory = (categoryId: string) => {
-    console.log("App handleSelectCategory called with:", categoryId);
+  const handleSelectCategory = (categoryId: string, initialAnswers: Record<string, any> = {}, mappedMessage?: string) => {
+    console.log("App handleSelectCategory called with:", categoryId, initialAnswers);
     setPendingCategoryId(categoryId);
+    setGuidedJobInitialAnswers(initialAnswers);
+    setGuidedJobMappedMessage(mappedMessage);
     setShowGuidedJobModal(true);
     setShowCategories(false);
     if (user && user.role === 'client') {
@@ -333,9 +337,15 @@ function App() {
         
         <GuidedJobModal
           isOpen={showGuidedJobModal}
-          onClose={() => setShowGuidedJobModal(false)}
+          onClose={() => {
+            setShowGuidedJobModal(false);
+            setGuidedJobInitialAnswers({});
+            setGuidedJobMappedMessage(undefined);
+          }}
           categoryId={pendingCategoryId}
           onComplete={handleGuidedJobComplete}
+          initialAnswers={guidedJobInitialAnswers}
+          mappedMessage={guidedJobMappedMessage}
         />
         <GuidedWorkerModal
           isOpen={showGuidedWorkerModal}
@@ -571,9 +581,15 @@ function App() {
 
         <GuidedJobModal
           isOpen={showGuidedJobModal}
-          onClose={() => setShowGuidedJobModal(false)}
+          onClose={() => {
+            setShowGuidedJobModal(false);
+            setGuidedJobInitialAnswers({});
+            setGuidedJobMappedMessage(undefined);
+          }}
           categoryId={pendingCategoryId}
           onComplete={handleGuidedJobComplete}
+          initialAnswers={guidedJobInitialAnswers}
+          mappedMessage={guidedJobMappedMessage}
         />
 
         <GuidedWorkerModal

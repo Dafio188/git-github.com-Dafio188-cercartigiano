@@ -17,12 +17,22 @@ interface GuidedJobModalProps {
   categoryId: string | null;
   userId?: string;
   onComplete: (jobData: any) => void;
+  initialAnswers?: Record<string, any>;
+  mappedMessage?: string;
 }
 
-export function GuidedJobModal({ isOpen, onClose, categoryId: initialCategoryId, userId, onComplete }: GuidedJobModalProps) {
+export function GuidedJobModal({ 
+  isOpen, 
+  onClose, 
+  categoryId: initialCategoryId, 
+  userId, 
+  onComplete,
+  initialAnswers = {},
+  mappedMessage
+}: GuidedJobModalProps) {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(initialCategoryId);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, any>>({});
+  const [answers, setAnswers] = useState<Record<string, any>>(initialAnswers);
   const [address, setAddress] = useState('');
   const [location, setLocation] = useState<{lat: number, lng: number} | null>(null);
   const [loading, setLoading] = useState(false);
@@ -69,19 +79,25 @@ export function GuidedJobModal({ isOpen, onClose, categoryId: initialCategoryId,
   useEffect(() => {
     if (isOpen) {
       setSelectedCategoryId(initialCategoryId);
-      setCurrentStepIndex(0);
+      // Se abbiamo una selezione iniziale per il primo step, andiamo direttamente al secondo
+      const firstStepAnswer = initialAnswers[flow[0].id];
+      if (firstStepAnswer) {
+        setCurrentStepIndex(1);
+      } else {
+        setCurrentStepIndex(0);
+      }
       
       // Pre-fill user data if already logged in
       const currentUser = auth.currentUser;
+      const baseAnswers = { ...initialAnswers };
+
       if (currentUser) {
-        setAnswers({
-          userName: currentUser.displayName?.split(' ')[0] || '',
-          userSurname: currentUser.displayName?.split(' ').slice(1).join(' ') || '',
-          userEmail: currentUser.email || '',
-        });
-      } else {
-        setAnswers({});
+        baseAnswers.userName = baseAnswers.userName || currentUser.displayName?.split(' ')[0] || '';
+        baseAnswers.userSurname = baseAnswers.userSurname || currentUser.displayName?.split(' ').slice(1).join(' ') || '';
+        baseAnswers.userEmail = baseAnswers.userEmail || currentUser.email || '';
       }
+      
+      setAnswers(baseAnswers);
       
       setAddress('');
       setLocation(null);
@@ -89,7 +105,7 @@ export function GuidedJobModal({ isOpen, onClose, categoryId: initialCategoryId,
       // Small delay to show price range after opening
       setTimeout(() => setShowPriceRange(true), 500);
     }
-  }, [isOpen, initialCategoryId]);
+  }, [isOpen, initialCategoryId, initialAnswers, flow]);
 
   const handleCategorySelect = (id: string) => {
     setSelectedCategoryId(id);
@@ -410,6 +426,16 @@ export function GuidedJobModal({ isOpen, onClose, categoryId: initialCategoryId,
                    <h4 className="text-xl font-black text-[#1D1D1F] uppercase tracking-tight leading-none">{category?.label}</h4>
                 </div>
               </div>
+              {mappedMessage && (
+                <motion.div 
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="hidden lg:flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-100 rounded-full"
+                >
+                   <Sparkles className="w-3 h-3 text-blue-600" />
+                   <span className="text-[9px] font-black text-blue-700 uppercase tracking-widest">{mappedMessage}</span>
+                </motion.div>
+              )}
               <button onClick={onClose} className="p-3 -mr-2 rounded-full hover:bg-[#F5F5F7] transition-all active:scale-95">
                 <X className="w-6 h-6 text-[#86868B]" />
               </button>
