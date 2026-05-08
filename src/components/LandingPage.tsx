@@ -165,7 +165,7 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
-                className="md:bg-white/5 md:backdrop-blur-xl p-0 md:p-8 lg:p-10 md:rounded-[2.5rem] md:border border-white/20 md:shadow-2xl shadow-black/40 w-fit group"
+                className="md:bg-white/90 md:backdrop-blur-2xl p-0 md:p-8 lg:p-10 md:rounded-[2.5rem] md:border border-white/40 md:shadow-2xl shadow-black/10 w-fit group"
               >
                 <div className="min-h-[100px] sm:min-h-[140px] lg:min-h-[180px] flex items-center justify-start">
                   <AnimatePresence mode="wait">
@@ -179,13 +179,13 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
                       <div className="flex flex-col">
                         <div className="flex items-center gap-2 mb-2">
                            <div className="w-8 h-[2px] bg-blue-600" />
-                           <span className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-400">
+                           <span className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-600">
                              {heroSlides[currentIndex].keyword}
                            </span>
                         </div>
-                        <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tighter text-white leading-[0.9] drop-shadow-2xl">
+                        <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tighter text-[#1D1D1F] leading-[0.9]">
                           {heroSlides[currentIndex].main} <br className="hidden sm:block" />
-                          <span className="text-blue-600 block mt-2 drop-shadow-2xl uppercase italic">
+                          <span className="text-blue-600 block mt-2 uppercase italic">
                             {heroSlides[currentIndex].sub}
                           </span>
                         </h1>
@@ -199,10 +199,10 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5, duration: 0.8 }}
-                  className="mt-8 bg-white/10 backdrop-blur-2xl rounded-[2rem] p-2 border border-white/20 shadow-2xl flex flex-col md:flex-row gap-2 w-full max-w-2xl relative"
+                  className="mt-8 bg-black/5 backdrop-blur-2xl rounded-[2rem] p-2 border border-black/10 shadow-xl flex flex-col md:flex-row gap-2 w-full max-w-2xl relative"
                 >
                   <div className="flex-1 relative z-30">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-400" />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-600" />
                     <input 
                       type="text"
                       placeholder="Qual è il problema da risolvere?"
@@ -213,7 +213,7 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
                            handleStartSearch();
                         }
                       }}
-                      className="w-full h-14 bg-transparent pl-12 pr-4 text-white placeholder:text-white/40 focus:outline-none font-medium"
+                      className="w-full h-14 bg-transparent pl-12 pr-4 text-[#1D1D1F] placeholder:text-[#86868B] focus:outline-none font-bold"
                     />
                   </div>
                   <button 
@@ -222,7 +222,7 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
                       e.stopPropagation();
                       handleStartSearch();
                     }}
-                    className="h-14 px-8 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-2xl transition-all shadow-lg shadow-blue-600/20 active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap z-30 relative"
+                    className="h-14 px-8 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl transition-all shadow-lg shadow-blue-600/20 active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap z-30 relative"
                   >
                     INIZIA ORA
                     <ArrowRight className="w-5 h-5" />
@@ -230,9 +230,9 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
 
                   {/* AI Status Badge */}
                   <div className="absolute -bottom-10 left-0 right-0 flex justify-center md:justify-start">
-                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 backdrop-blur-md border border-white/10">
-                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                      <span className="text-[9px] font-black text-white/60 uppercase tracking-[0.2em]">Analisi AI Attiva: Descrivi il tuo problema</span>
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100 shadow-sm">
+                      <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                      <span className="text-[9px] font-black text-blue-800 uppercase tracking-[0.2em]">Analisi AI Attiva: Descrivi il tuo problema</span>
                     </div>
                   </div>
                 </motion.div>
@@ -266,7 +266,7 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
                 La tua attività, <br />
                 <span className="text-blue-600 italic">nel palmo della tua mano.</span>
               </h2>
-              <p className="text-xl text-[#86868B] font-medium leading-relaxed max-w-xl">
+              <p className="text-xl text-[#1D1D1F] font-bold leading-relaxed max-w-xl">
                 Non siamo solo un sito web. Siamo il compagno di lavoro che porti sempre con te. 
                 Monitora preventivi, ricevi notifiche istantanee e chiudi affari ovunque ti trovi.
               </p>
@@ -415,7 +415,7 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
                 <span className="text-blue-500 italic">in un'impresa di successo.</span>
               </h2>
               
-              <p className="text-xl text-[#86868B] font-medium mb-10 leading-relaxed">
+              <p className="text-xl text-[#1D1D1F] font-bold mb-10 leading-relaxed bg-white/60 backdrop-blur-md p-6 rounded-3xl border border-white/20 shadow-xl">
                 CercArtigiano non è solo per grandi aziende. Supportiamo privati e professionisti per <strong>prestazioni occasionali</strong>. Unisciti a migliaia di esperti e inizia a ricevere richieste qualificate nella tua zona immediatamente.
               </p>
 
@@ -453,20 +453,20 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
                  { icon: Zap, title: "KM zero", desc: "Ti avvisiamo per lavori realmente vicini a te." },
                  { icon: Star, title: "Rating Premium", desc: "Costruisci il tuo futuro professionale." }
                ].map((item, i) => (
-                 <motion.div 
-                   key={i}
-                   initial={{ opacity: 0, y: 20 }}
-                   whileInView={{ opacity: 1, y: 0 }}
-                   viewport={{ once: true }}
-                   transition={{ delay: i * 0.1 }}
-                   className="p-8 rounded-[2.5rem] bg-white/[0.01] backdrop-blur-[2px] border border-white/5 hover:bg-white/10 transition-all group/card shadow-2xl shadow-black/5"
-                 >
-                   <div className="w-12 h-12 bg-blue-600/10 rounded-2xl flex items-center justify-center mb-6 border border-blue-500/20">
-                     {item.icon ? <item.icon className="w-6 h-6 text-blue-500" /> : <Shield className="w-6 h-6 text-blue-500" />}
-                   </div>
-                   <h4 className="text-white font-black text-xl mb-3 group-hover/card:text-blue-400 transition-colors uppercase tracking-tight">{item.title}</h4>
-                   <p className="text-sm text-[#86868B] font-bold leading-relaxed">{item.desc}</p>
-                 </motion.div>
+                  <motion.div 
+                    key={i}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.1 }}
+                    className="p-8 rounded-[2.5rem] bg-white/60 backdrop-blur-xl border border-white/20 hover:bg-white transition-all group/card shadow-2xl shadow-black/10"
+                  >
+                    <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-600/20">
+                      {item.icon ? <item.icon className="w-6 h-6 text-white" /> : <Shield className="w-6 h-6 text-white" />}
+                    </div>
+                    <h4 className="text-[#1D1D1F] font-black text-xl mb-3 group-hover/card:text-blue-600 transition-colors uppercase tracking-tight">{item.title}</h4>
+                    <p className="text-sm text-[#1D1D1F] font-bold leading-relaxed">{item.desc}</p>
+                  </motion.div>
                ))}
             </div>
           </div>
@@ -740,7 +740,7 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
             ].map((faq, i) => (
               <div key={i} className="bg-white p-8 rounded-[2rem] border border-[#D2D2D7]/30 shadow-sm hover:shadow-xl transition-all">
                 <h3 className="text-lg font-black text-[#1D1D1F] mb-4">{faq.q}</h3>
-                <p className="text-sm text-[#86868B] font-bold leading-relaxed">{faq.a}</p>
+                <p className="text-sm text-[#1D1D1F] font-bold leading-relaxed">{faq.a}</p>
               </div>
             ))}
           </div>

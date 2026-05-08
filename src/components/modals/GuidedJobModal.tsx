@@ -441,36 +441,60 @@ export function GuidedJobModal({
           {/* Main Content Pane */}
           <div className="flex-1 flex flex-col min-h-0">
             {/* Top Header */}
-            <div className="bg-white border-b border-[#F2F2F7] md:border-none z-10 p-6 md:px-12 md:pt-20 md:pb-12 flex items-center justify-between">
-              <div className="flex items-center gap-5">
-                <button 
-                  onClick={handleBack} 
-                  className={`p-3 -ml-2 rounded-full hover:bg-[#F5F5F7] transition-all active:scale-95 ${currentStepIndex === 0 && !selectedCategoryId ? 'invisible' : ''}`}
-                >
-                  <ArrowLeft className="w-6 h-6 text-[#1D1D1F]" />
-                </button>
-                <div className="flex flex-col gap-1">
-                   <span className="text-[11px] font-black text-primary uppercase tracking-[0.2em] opacity-80">
-                     {showSummary ? 'Revisione' : `Passaggio ${currentStepIndex + 1} di ${flow.length}`}
-                   </span>
-                   <h4 className="text-xl font-black text-[#1D1D1F] uppercase tracking-tight leading-none">
-                     {showSummary ? 'Riepilogo Richiesta' : category?.label}
-                   </h4>
+            <div className="bg-white border-b border-[#F2F2F7] md:border-none z-10 p-6 md:px-12 md:pt-16 md:pb-8 flex flex-col gap-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-5">
+                  <button 
+                    onClick={handleBack} 
+                    className={`p-3 -ml-2 rounded-full hover:bg-[#F5F5F7] transition-all active:scale-95 ${currentStepIndex === 0 && !selectedCategoryId ? 'invisible' : ''}`}
+                  >
+                    <ArrowLeft className="w-6 h-6 text-[#1D1D1F]" />
+                  </button>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[11px] font-black text-primary uppercase tracking-[0.2em] opacity-80">
+                      {showSummary ? 'Revisione' : `${progressPercent}% completato`}
+                    </span>
+                    <h4 className="text-xl font-black text-[#1D1D1F] uppercase tracking-tight leading-none">
+                      {showSummary ? 'Riepilogo Richiesta' : category?.label}
+                    </h4>
+                  </div>
                 </div>
+                <button onClick={onClose} className="p-3 -mr-2 rounded-full hover:bg-[#F5F5F7] transition-all active:scale-95">
+                  <X className="w-6 h-6 text-[#86868B]" />
+                </button>
               </div>
-              {mappedMessage && (
-                <motion.div 
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="hidden lg:flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-100 rounded-full"
-                >
-                   <Sparkles className="w-3 h-3 text-blue-600" />
-                   <span className="text-[9px] font-black text-blue-700 uppercase tracking-widest">{mappedMessage}</span>
-                </motion.div>
+
+              {/* Progress & Price Bar */}
+              {!showSummary && !success && (
+                <div className="flex flex-col gap-3">
+                  <div className="w-full h-1.5 bg-[#F2F2F7] rounded-full overflow-hidden">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${progressPercent}%` }}
+                      className="h-full bg-primary rounded-full"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] font-bold text-[#86868B] uppercase tracking-widest">Fascia di prezzo:</span>
+                      <motion.span 
+                        key={`${activePriceRange.min}-${activePriceRange.max}`}
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-[11px] font-black text-[#1D1D1F] uppercase tracking-widest"
+                      >
+                        {activePriceRange.min} € - {activePriceRange.max} €
+                      </motion.span>
+                    </div>
+                    {mappedMessage && (
+                      <div className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 border border-blue-100 rounded-full">
+                        <Sparkles className="w-2.5 h-2.5 text-blue-600" />
+                        <span className="text-[9px] font-black text-blue-700 uppercase tracking-widest">{mappedMessage}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
-              <button onClick={onClose} className="p-3 -mr-2 rounded-full hover:bg-[#F5F5F7] transition-all active:scale-95">
-                <X className="w-6 h-6 text-[#86868B]" />
-              </button>
             </div>
 
             {/* Mobile Progress Bar */}

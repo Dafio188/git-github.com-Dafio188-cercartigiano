@@ -35,6 +35,7 @@ type OnboardingStep =
   | 'type' 
   | 'personal' 
   | 'categories' 
+  | 'skills'
   | 'location' 
   | 'fiscal' 
   | 'photo' 
@@ -52,6 +53,7 @@ export function WorkerOnboardingFlow({ user, onComplete, onCancel }: WorkerOnboa
   const [email, setEmail] = useState(user.email || '');
   const [phone, setPhone] = useState(user.phone || '');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [address, setAddress] = useState(user.address || '');
   const [location, setLocation] = useState<{lat: number, lng: number} | null>(user.location || null);
   const [citta, setCitta] = useState(user.citta || '');
@@ -69,7 +71,7 @@ export function WorkerOnboardingFlow({ user, onComplete, onCancel }: WorkerOnboa
   const [photoURL, setPhotoURL] = useState<string | null>(null);
 
   const steps: OnboardingStep[] = [
-    'welcome', 'type', 'personal', 'categories', 'location', 'fiscal', 'photo', 'summary', 'success'
+    'welcome', 'type', 'personal', 'categories', 'skills', 'location', 'fiscal', 'photo', 'summary', 'success'
   ];
   
   const currentStepIndex = steps.indexOf(currentStep);
@@ -92,6 +94,12 @@ export function WorkerOnboardingFlow({ user, onComplete, onCancel }: WorkerOnboa
   const toggleCategory = (id: string) => {
     setSelectedCategories(prev => 
       prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSkill = (id: string) => {
+    setSelectedSkills(prev => 
+      prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]
     );
   };
 
@@ -135,10 +143,11 @@ export function WorkerOnboardingFlow({ user, onComplete, onCancel }: WorkerOnboa
 
       // Create Worker Profile
       const profileRef = doc(db, 'workerProfiles', user.id);
-      const profileData: UserProfile = {
+      const profileData: any = {
         userId: user.id,
         bio: bio || `Professionista specializzato in ${selectedCategories.map(id => SERVICE_CATEGORIES.find(c => c.id === id)?.label).join(', ')}`,
         categories: selectedCategories,
+        skills: selectedSkills,
         hourlyRate: 35, // Default hourly rate
         radiusKm: 30,
         citta,
@@ -176,7 +185,7 @@ export function WorkerOnboardingFlow({ user, onComplete, onCancel }: WorkerOnboa
             animate={{ opacity: 1, scale: 1 }}
             className="flex flex-col items-center text-center py-8"
           >
-            <div className="w-32 h-32 bg-blue-600 rounded-[2.5rem] flex items-center justify-center mb-8 shadow-2xl shadow-blue-600/20 rotate-6 group-hover:rotate-0 transition-transform">
+            <div className="w-32 h-32 bg-blue-600 rounded-[2.5rem] flex items-center justify-center mb-8 shadow-2xl shadow-blue-600/20 rotate-6 transition-transform">
               <Briefcase className="w-16 h-16 text-white" />
             </div>
             <h2 className="text-4xl font-black text-[#1D1D1F] tracking-tight mb-4">Benvenuto in CercArtigiano!</h2>
@@ -203,9 +212,8 @@ export function WorkerOnboardingFlow({ user, onComplete, onCancel }: WorkerOnboa
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[
                 { id: 'freelancer', label: 'Libero Professionista', icon: UserIcon, desc: 'Lavoro autonomo con Partita IVA' },
-                { id: 'company', label: 'Azienda / Ditta', icon: Building2, desc: 'Società, Ditta individuale o Cooperativa' },
-                { id: 'individual', label: 'Privato occasionale', icon: UserIcon, desc: 'Lavori occasionali (senza P.IVA)', hide: true }
-              ].filter(i => !i.hide).map((item) => (
+                { id: 'company', label: 'Azienda / Ditta', icon: Building2, desc: 'Società, Ditta individuale o Cooperativa' }
+              ].map((item) => (
                 <button
                   key={item.id}
                   onClick={() => {
@@ -263,15 +271,15 @@ export function WorkerOnboardingFlow({ user, onComplete, onCancel }: WorkerOnboa
                 <Sparkles className="w-5 h-5 text-blue-600" />
               </div>
               <p className="text-sm text-blue-900 font-medium leading-relaxed">
-                <strong>Suggerimento Pro:</strong> Un profilo con nome e cognome reali riceve il 45% in più di contatti rispetto ai nomi d'arte.
+                <strong>Suggerimento:</strong> Un profilo con nome e cognome reali riceve molti più contatti.
               </p>
             </div>
             <Button 
               onClick={handleNext}
               disabled={!nome || !cognome}
-              className="w-full h-16 rounded-2xl bg-[#1D1D1F] text-white font-black text-lg shadow-xl shadow-black/10 active:scale-95 transition-all"
+              className="w-full h-16 rounded-2xl bg-[#1D1D1F] text-white font-black text-lg active:scale-95 transition-all mt-4"
             >
-              PROCEDI ALLA SE SELEZIONE CATEGORIE
+              PROCEDI ALLA SELEZIONE SETTORE
             </Button>
           </div>
         );
@@ -280,8 +288,8 @@ export function WorkerOnboardingFlow({ user, onComplete, onCancel }: WorkerOnboa
         return (
           <div className="space-y-6 py-4">
             <div className="text-center">
-              <h2 className="text-3xl font-black text-[#1D1D1F] tracking-tight">Cosa sai fare meglio?</h2>
-              <p className="text-[#86868B] font-medium mt-2">Scegli le specializzazioni per le quali vuoi essere contattato.</p>
+              <h2 className="text-3xl font-black text-[#1D1D1F] tracking-tight">Settore Principale</h2>
+              <p className="text-[#86868B] font-medium mt-2">Scegli le macro-categorie in cui operi.</p>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {SERVICE_CATEGORIES.map(cat => (
@@ -299,27 +307,96 @@ export function WorkerOnboardingFlow({ user, onComplete, onCancel }: WorkerOnboa
                   }`}>
                     <cat.icon className="w-6 h-6" />
                   </div>
-                  <span className="text-[10px] font-black text-[#1D1D1F] text-center uppercase tracking-widest">{cat.label}</span>
-                  {selectedCategories.includes(cat.id) && (
-                    <div className="mt-2 bg-blue-600 text-white rounded-full p-1 animate-in zoom-in">
-                      <Check className="w-3 h-3" />
-                    </div>
-                  )}
+                  <span className="text-[10px] font-black text-[#1D1D1F] text-center uppercase tracking-widest leading-tight">{cat.label}</span>
                 </button>
               ))}
-            </div>
-             <div className="p-4 bg-[#F5F5F7] rounded-2xl flex items-center gap-3">
-              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shrink-0">
-                <CheckCircle2 className="w-4 h-4 text-green-600" />
-              </div>
-              <p className="text-[10px] text-[#86868B] font-bold uppercase tracking-widest">Procedura di Caratterizzazione Professionale</p>
             </div>
             <Button 
               onClick={handleNext}
               disabled={selectedCategories.length === 0}
-              className="w-full h-16 rounded-2xl bg-[#1D1D1F] text-white font-black text-lg shadow-xl shadow-black/10 active:scale-95 transition-all"
+              className="w-full h-16 rounded-2xl bg-[#1D1D1F] text-white font-black text-lg shadow-xl shadow-black/10 active:scale-95 transition-all mt-4"
             >
-              CONFIGURA ZONA OPERATIVA ({selectedCategories.length})
+              PROCEDI ALLE COMPETENZE SPECIFICHE
+            </Button>
+          </div>
+        );
+
+      case 'skills':
+        // Generate skills based on selected categories
+        const availableSkills = selectedCategories.flatMap(catId => {
+          if (catId === 'electrical') {
+            return [
+              { id: 'electro_renovation', label: 'Rifacimento Impianti' },
+              { id: 'electro_repair', label: 'Riparazioni d\'emergenza' },
+              { id: 'electro_antennas', label: 'Antennista TV/SAT' },
+              { id: 'electro_security', label: 'Allarmi e Sicurezza' },
+              { id: 'electro_domotics', label: 'Domotica Smart Home' },
+              { id: 'electro_certification', label: 'Certificazioni Di.Co.' },
+              { id: 'electro_lighting', label: 'Illuminotecnica' }
+            ];
+          }
+          if (catId === 'plumbing') {
+             return [
+              { id: 'plumb_renovation', label: 'Rifacimento Bagni/Cucine' },
+              { id: 'plumb_repair', label: 'Riparazione Perdite' },
+              { id: 'plumb_boiler', label: 'Caldaie e Climatizzazione' },
+              { id: 'plumb_drain', label: 'Disostruzione Scarichi' }
+            ];
+          }
+          if (catId === 'construction') {
+             return [
+              { id: 'build_tiles', label: 'Posa Pavimenti e Piastrelle' },
+              { id: 'build_plaster', label: 'Cartongesso e Pittura' },
+              { id: 'build_masonry', label: 'Opere Murarie' },
+              { id: 'build_roof', label: 'Tetti e Impermeabilizzazioni' }
+            ];
+          }
+          return [];
+        });
+
+        // Se non ci sono skill specifiche per le categorie selezionate, saltiamo questo step
+        if (availableSkills.length === 0) {
+          handleNext();
+          return null;
+        }
+
+        return (
+          <div className="space-y-6 py-4">
+            <div className="text-center">
+              <h2 className="text-3xl font-black text-[#1D1D1F] tracking-tight">Cosa sai fare esattamente?</h2>
+              <p className="text-[#86868B] font-medium mt-2">Seleziona le tue competenze specifiche per ricevere solo preventivi mirati.</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[40vh] overflow-y-auto px-2">
+              {availableSkills.map(skill => (
+                <button
+                  key={skill.id}
+                  onClick={() => toggleSkill(skill.id)}
+                  className={`flex items-center justify-between p-5 rounded-[1.5rem] border-2 transition-all ${
+                    selectedSkills.includes(skill.id)
+                      ? 'border-blue-600 bg-blue-50/50 shadow-inner'
+                      : 'border-[#F2F2F7] bg-[#FBFBFD] hover:border-blue-600/20'
+                  }`}
+                >
+                  <span className="text-sm font-bold text-[#1D1D1F]">{skill.label}</span>
+                  <div className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all ${
+                    selectedSkills.includes(skill.id) ? 'bg-blue-600 text-white' : 'bg-white border-2 border-[#D2D2D7]'
+                  }`}>
+                    {selectedSkills.includes(skill.id) && <Check className="w-3 h-3" />}
+                  </div>
+                </button>
+              ))}
+            </div>
+            <div className="p-5 bg-blue-50 rounded-2xl border border-blue-100 flex gap-4">
+              <Shield className="w-6 h-6 text-blue-600 shrink-0" />
+              <p className="text-xs text-blue-900 font-bold leading-tight">
+                La precisione qui è fondamentale: riceverai solo richieste che matchano al 100% le tue selezioni.
+              </p>
+            </div>
+            <Button 
+              onClick={handleNext}
+              className="w-full h-16 rounded-2xl bg-[#1D1D1F] text-white font-black text-lg shadow-xl shadow-black/10 active:scale-95 transition-all mt-4"
+            >
+              PROSSIMO: RAGGIO D'AZIONE
             </Button>
           </div>
         );

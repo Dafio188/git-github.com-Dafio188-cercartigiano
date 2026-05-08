@@ -455,39 +455,70 @@ export function ProfileView({ user }: ProfileViewProps) {
                  
                  <div className="space-y-6">
                     <div className="space-y-4">
-                       <Label className="text-[10px] font-black uppercase tracking-widest text-[#86868B]">Le Tue Categorie di Intervento</Label>
-                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                         {SERVICE_CATEGORIES.map((cat) => {
-                           const isSelected = editProfile.categories.includes(cat.id);
-                           const Icon = cat.icon;
-                           return (
-                             <button
-                               key={cat.id}
-                               type="button"
-                               onClick={() => {
-                                 if (isSelected) {
-                                   setEditProfile({
-                                     ...editProfile,
-                                     categories: editProfile.categories.filter(c => c !== cat.id)
-                                   });
-                                 } else {
-                                   setEditProfile({
-                                     ...editProfile,
-                                     categories: [...editProfile.categories, cat.id]
-                                   });
-                                 }
-                               }}
-                               className={cn(
-                                 "flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all gap-2",
-                                 isSelected 
-                                   ? "bg-blue-50 border-blue-600 text-blue-700 shadow-lg shadow-blue-500/10" 
-                                   : "bg-[#F5F5F7] border-transparent text-[#86868B] hover:bg-white hover:border-[#D2D2D7]"
-                               )}
-                             >
-                               <Icon className={cn("w-5 h-5", isSelected ? "text-blue-600" : "text-[#86868B]")} />
-                               <span className="text-[10px] font-black uppercase tracking-tight">{cat.label}</span>
-                             </button>
-                           );
+                       <Label className="text-[10px] font-black uppercase tracking-widest text-[#86868B]">Specifiche di Intervento</Label>
+                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-2 pb-2">
+                         {editProfile.categories.flatMap(catId => {
+                           const categorySkills = {
+                             electrical: [
+                               { id: 'electro_renovation', label: 'Rifacimento Impianti' },
+                               { id: 'electro_repair', label: 'Riparazioni d\'emergenza' },
+                               { id: 'electro_antennas', label: 'Antennista TV/SAT' },
+                               { id: 'electro_security', label: 'Allarmi e Sicurezza' },
+                               { id: 'electro_domotics', label: 'Domotica Smart Home' },
+                               { id: 'electro_certification', label: 'Certificazioni Di.Co.' },
+                               { id: 'electro_lighting', label: 'Illuminotecnica' }
+                             ],
+                             plumbing: [
+                               { id: 'plumb_renovation', label: 'Rifacimento Bagni/Cucine' },
+                               { id: 'plumb_repair', label: 'Riparazione Perdite' },
+                               { id: 'plumb_boiler', label: 'Caldaie e Climatizzazione' },
+                               { id: 'plumb_drain', label: 'Disostruzione Scarichi' }
+                             ],
+                             construction: [
+                               { id: 'build_tiles', label: 'Posa Pavimenti e Piastrelle' },
+                               { id: 'build_plaster', label: 'Cartongesso e Pittura' },
+                               { id: 'build_masonry', label: 'Opere Murarie' },
+                               { id: 'build_roof', label: 'Tetti e Impermeabilizzazioni' }
+                             ]
+                           }[catId as keyof typeof categorySkills] || [];
+
+                           return categorySkills.map(skill => {
+                             const isSkillSelected = (editProfile as any).skills?.includes(skill.id);
+                             return (
+                               <button
+                                 key={skill.id}
+                                 type="button"
+                                 onClick={() => {
+                                   const currentSkills = (editProfile as any).skills || [];
+                                   if (isSkillSelected) {
+                                     setEditProfile({
+                                       ...editProfile,
+                                       skills: currentSkills.filter((s: string) => s !== skill.id)
+                                     } as any);
+                                   } else {
+                                     setEditProfile({
+                                       ...editProfile,
+                                       skills: [...currentSkills, skill.id]
+                                     } as any);
+                                   }
+                                 }}
+                                 className={cn(
+                                   "flex items-center justify-between p-4 rounded-xl border-2 transition-all",
+                                   isSkillSelected 
+                                     ? "bg-blue-50 border-blue-600 text-blue-700 shadow-sm" 
+                                     : "bg-[#F5F5F7] border-transparent text-[#86868B] hover:bg-white hover:border-[#D2D2D7]"
+                                 )}
+                               >
+                                 <span className="text-[11px] font-bold">{skill.label}</span>
+                                 <div className={cn(
+                                   "w-5 h-5 rounded-md flex items-center justify-center transition-all",
+                                   isSkillSelected ? "bg-blue-600 text-white" : "bg-white border border-[#D2D2D7]"
+                                 )}>
+                                   {isSkillSelected && <Plus className="w-3 h-3 rotate-45" />}
+                                 </div>
+                               </button>
+                             );
+                           });
                          })}
                        </div>
                     </div>

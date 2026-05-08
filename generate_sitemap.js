@@ -31,21 +31,22 @@ let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 `;
 
 // Aggiungiamo le rotte dinamiche SEO
+const urls = [];
 for (const com of comuni) {
   const provinciaUrl = com.provincia.toLowerCase();
-  // Trasforma "Bari" in "bari", "Trinitapoli" in "trinitapoli", "San Giovanni Rotondo" in "san-giovanni-rotondo"
   const comuneUrl = com.comune.toLowerCase().replace(/\s+/g, '-');
 
   for (const cat of categorie) {
-    sitemap += `  <url>
+    urls.push(`  <url>
     <loc>${baseUrl}/servizi/${provinciaUrl}/${comuneUrl}/${cat}</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
-  </url>\n`;
+  </url>`);
   }
 }
 
+sitemap += urls.join('\n') + '\n';
 sitemap += `</urlset>`;
 
-fs.writeFileSync("public/sitemap.xml", sitemap);
-console.log(`Generata sitemap con base = ${baseUrl}/servizi/...`);
+fs.writeFileSync("dist/sitemap.xml", sitemap);
+console.log(`Generata sitemap in dist/sitemap.xml con base = ${baseUrl}/servizi/...`);

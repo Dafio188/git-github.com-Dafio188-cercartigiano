@@ -27,66 +27,62 @@ export const CATEGORY_FLOWS: Record<string, CategoryQuestion[]> = {
     {
       id: 'service_category',
       type: 'choice',
-      question: 'Di quale tipo di servizio elettrico hai bisogno?',
+      question: 'Di che tipo di servizio elettrico hai bisogno?',
       description: 'Seleziona la specializzazione principale per ricevere preventivi mirati.',
+      title: 'Servizio',
       options: [
-        { id: 'renovation', label: 'Rifacimento Impianto Elettrico', description: 'Sostituzione completa o messa a norma.', icon: Hammer, priceRange: { min: 1500, max: 6000 }, nextStepId: 'property_size' },
-        { id: 'repair', label: 'Riparazione Guasto / Corto Circuito', description: 'Ricerca e risoluzione malfunzionamenti.', icon: AlertTriangle, priceRange: { min: 80, max: 250 }, nextStepId: 'specific_problem' },
-        { id: 'lighting_outlets', label: 'Punti Luce, Prese e Interruttori', description: 'Installazione, sostituzione o spostamento.', icon: Lightbulb, priceRange: { min: 50, max: 400 }, nextStepId: 'involved_equipment' },
-        { id: 'intercom_security', label: 'Citofono, Videocitofono e Allarme', description: 'Installazione o riparazione sistemi.', icon: Smartphone, priceRange: { min: 150, max: 1200 }, nextStepId: 'involved_equipment' },
-        { id: 'antennas_sat', label: 'Antenne e Impianti Satellitari', description: 'Installazione o puntamento antenna/parabola.', icon: Zap, priceRange: { min: 90, max: 350 }, nextStepId: 'involved_equipment' },
-        { id: 'photovoltaic', label: 'Impianti Fotovoltaici', description: 'Pannelli solari e risparmio energetico.', icon: Waves, priceRange: { min: 3000, max: 15000 }, nextStepId: 'property_size' },
-        { id: 'certification', label: 'Certificazione Conformità (Di.Co.)', description: 'Controllo e rilascio documenti legali.', icon: Shield, priceRange: { min: 150, max: 450 }, nextStepId: 'property_size' }
+        { id: 'renovation', label: 'Rifacimento impianto elettrico', description: 'Installazione completa o messa a norma.', icon: Hammer, priceRange: { min: 850, max: 3500 }, nextStepId: 'property_size' },
+        { id: 'install_partial', label: 'Installazione impianto elettrico', description: 'Nuova installazione parziale.', icon: Zap, priceRange: { min: 500, max: 2000 }, nextStepId: 'property_size' },
+        { id: 'repair', label: 'Riparazione impianto elettrico', description: 'Ricerca guasto o riparazione rapida.', icon: AlertTriangle, priceRange: { min: 70, max: 250 }, nextStepId: 'specific_problem' },
+        { id: 'certification', label: 'Certificazione impianto elettrico', description: 'Rilascio Di.Co. o verifica tecnica.', icon: Shield, priceRange: { min: 150, max: 400 }, nextStepId: 'property_size' },
+        { id: 'photovoltaic', label: 'Impianto fotovoltaico', description: 'Energia solare e pannelli.', icon: Waves, priceRange: { min: 3000, max: 12000 }, nextStepId: 'property_size' },
+        { id: 'antennas', label: 'Antenne', description: 'Antenna TV o Satellitare.', icon: Zap, priceRange: { min: 80, max: 400 }, nextStepId: 'involved_equipment' },
+        { id: 'intercom_alarm', label: 'Citofono e/o impianto d\'allarme', description: 'Sicurezza e comunicazione.', icon: Smartphone, priceRange: { min: 150, max: 1200 }, nextStepId: 'involved_equipment' },
+        { id: 'ac_ventilation', label: 'Condizionatore e/o ventilatore', description: 'Climatizzazione.', icon: Thermometer, priceRange: { min: 250, max: 900 }, nextStepId: 'involved_equipment' },
+        { id: 'other', label: 'Altro', description: 'Interventi non elencati.', icon: PenTool }
       ]
     },
     {
       id: 'property_size',
       type: 'choice',
-      question: 'Quanto è grande l\'abitazione?',
+      title: 'Dimensione',
+      question: 'Quanto è grande l\'abitazione (metri quadri)?',
       description: 'I metri quadri aiutano a stimare la quantità di materiali necessari.',
       options: [
-        { id: 'small', label: 'Meno di 50 mq', icon: Home, priceRange: { min: 1500, max: 2500 } },
-        { id: 'medium', label: '50 - 100 mq', icon: Home, priceRange: { min: 2500, max: 4500 } },
-        { id: 'large', label: '100 - 200 mq', icon: Home, priceRange: { min: 4500, max: 8000 } },
-        { id: 'extra', label: 'Oltre 200 mq', icon: Home, priceRange: { min: 8000, max: 15000 } }
-      ]
-    },
-    {
-      id: 'rooms_count',
-      type: 'choice',
-      question: 'In quante stanze bisogna intervenire?',
-      options: [
-        { id: '1-2', label: '1 - 2 stanze', icon: Home },
-        { id: '2-4', label: '2 - 4 stanze', icon: Home },
-        { id: '5-7', label: '5 - 7 stanze', icon: Home },
-        { id: '7+', label: 'Oltre 7 stanze', icon: Home }
-      ]
-    },
-    {
-      id: 'involved_equipment',
-      type: 'choice',
-      question: 'Quali apparecchiature sono coinvolte?',
-      options: [
-        { id: 'full', label: 'Tutto l\'impianto generale', icon: Zap },
-        { id: 'outlets', label: 'Prese e interruttori', icon: Power },
-        { id: 'lighting', label: 'Punti luce e lampadari', icon: Lightbulb },
-        { id: 'intercom', label: 'Citofono o Impianto d\'allarme', icon: Shield },
-        { id: 'antennas', label: 'Antenna TV o Satellitare', icon: Zap },
-        { id: 'ac', label: 'Condizionatore o Ventilatore', icon: Thermometer },
-        { id: 'other', label: 'Altro', icon: PenTool }
+        { id: 'small', label: 'Meno di 50 mq', icon: Home, priceRange: { min: 850, max: 1800 } },
+        { id: 'medium', label: '50 - 100 mq', icon: Home, priceRange: { min: 1800, max: 3500 } },
+        { id: 'large', label: '100 - 200 mq', icon: Home, priceRange: { min: 3500, max: 6500 } },
+        { id: 'extra', label: 'Oltre 200 mq', icon: Home, priceRange: { min: 6500, max: 12000 } }
       ]
     },
     {
       id: 'specific_problem',
       type: 'choice',
-      question: 'Che tipo di problema riscontri?',
+      title: 'Problema',
+      question: 'Quale problema presenta l\'impianto elettrico?',
       options: [
-        { id: 'old', label: 'L\'impianto è vecchio / non a norma', icon: Shield },
-        { id: 'power_loss', label: 'L\'impianto perde potenza', icon: Zap },
-        { id: 'not_working', label: 'L\'impianto non funziona', icon: AlertTriangle },
-        { id: 'noisy', label: 'L\'impianto è rumoroso', icon: Waves },
+        { id: 'old', label: 'L\'impianto elettrico è vecchio', icon: Shield },
+        { id: 'power_loss', label: 'L\'impianto elettrico perde potenza', icon: Zap },
+        { id: 'not_working', label: 'L\'impianto elettrico non funziona', icon: AlertTriangle },
+        { id: 'noisy', label: 'L\'impianto elettrico è rumoroso', icon: Waves },
         { id: 'overheating', label: 'Surriscaldamento impianto', icon: Thermometer },
-        { id: 'breaker', label: 'Interruttore generale salta spesso', icon: AlertTriangle }
+        { id: 'breaker', label: 'Interruttore generale salta', icon: AlertTriangle },
+        { id: 'other', label: 'Altro', icon: PenTool }
+      ]
+    },
+    {
+      id: 'involved_equipment',
+      type: 'choice',
+      title: 'Componenti',
+      question: 'Quali apparecchiature sono coinvolte?',
+      options: [
+        { id: 'full', label: 'Tutto l\'impianto elettrico generale', icon: Zap, priceRange: { min: 850, max: 4200 } },
+        { id: 'outlets', label: 'Prese e interruttori', icon: Power, priceRange: { min: 50, max: 400 } },
+        { id: 'antenna', label: 'Antenna televisiva e/o satellitare', icon: Zap, priceRange: { min: 80, max: 350 } },
+        { id: 'alarm', label: 'Citofono e/o impianto d\'allarme', icon: Smartphone, priceRange: { min: 200, max: 1500 } },
+        { id: 'ac', label: 'Condizionatore e/o ventilatore', icon: Thermometer, priceRange: { min: 200, max: 800 } },
+        { id: 'thermostat', label: 'Termostato', icon: Thermometer, priceRange: { min: 60, max: 200 } },
+        { id: 'other', label: 'Altro', icon: PenTool }
       ]
     },
     {
