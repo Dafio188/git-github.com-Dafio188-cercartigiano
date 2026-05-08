@@ -226,31 +226,6 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
               </motion.div>
             </div>
 
-            <div className="w-full lg:w-auto flex justify-start md:justify-end shrink-0">
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
-                className="flex flex-col sm:flex-row items-center sm:items-start gap-4 w-full sm:w-auto justify-start md:justify-end"
-              >
-                <Button 
-                  size="lg" 
-                  onClick={onLogin}
-                  className="w-full sm:w-auto h-16 px-12 rounded-3xl bg-[#FF7A30] hover:bg-[#FF6A10] text-white text-xl font-bold shadow-2xl shadow-[#FF7A30]/30 transition-all hover:scale-105 active:scale-95 group border-none"
-                >
-                  Inizia ora
-                  <ArrowRight className="ml-2 w-6 h-6 group-hover:translate-x-1 transition-transform" />
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="lg"
-                  onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
-                  className="w-full sm:w-auto h-16 px-12 rounded-3xl border-2 border-[#1D1D1F] text-[#1D1D1F] text-xl font-bold hover:bg-[#1D1D1F] hover:text-white transition-all shadow-xl bg-white/90 backdrop-blur-md"
-                >
-                  Scopri di più
-                </Button>
-              </motion.div>
-            </div>
           </div>
         </div>
       </section>

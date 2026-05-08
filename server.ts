@@ -179,12 +179,14 @@ async function startServer() {
 
   // Log endpoint for client errors
   app.post('/api/log', (req, res) => {
+    const errorData = req.body;
+    // Log stringified to avoid multiple lines in some environments
+    console.warn('[Client Log]', JSON.stringify(errorData));
     try {
-      fs.appendFileSync('client_errors.log', JSON.stringify(req.body) + '\n');
+      fs.appendFileSync('client_errors.log', JSON.stringify(errorData) + '\n');
     } catch (e) {
-      console.warn("Could not write to client_errors.log");
+      // Ignore write errors
     }
-    console.error('[CLIENT ERROR LOG]', req.body);
     res.send({ok: true});
   });
 

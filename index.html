@@ -39,26 +39,31 @@
     <div id="debug-check" style="position:fixed;bottom:0;right:0;font-size:10px;color:rgba(29,29,31,0.05);pointer-events:none;">v1.0.2</div>
     <script>
       window.addEventListener('error', function(e) {
-        console.error('Runtime Error:', e.message);
+        // Ignore benign Vite WebSocket errors and other known non-critical errors
+        if (e.message && (e.message.includes('WebSocket') || e.message.includes('cross-origin'))) return;
+        
         fetch('/api/log', { 
           method: 'POST', 
           headers: {'Content-Type': 'application/json'}, 
           body: JSON.stringify({ 
+            type: 'runtime',
             error: e.message, 
-            src: e.filename, 
-            l: e.lineno, 
-            c: e.colno,
             stack: e.error ? e.error.stack : null
           }) 
         }).catch(() => {});
       });
       window.addEventListener('unhandledrejection', function(e) {
-        console.error('Unhandled Rejection:', e.reason);
+        // Ignore benign Vite WebSocket errors and empty rejections
+        const reasonStr = e.reason ? (e.reason.message || e.reason.toString()) : '';
+        if (reasonStr.includes('WebSocket') || reasonStr.includes('cross-origin')) return;
+        if (!e.reason) return;
+
         fetch('/api/log', { 
           method: 'POST', 
           headers: {'Content-Type': 'application/json'}, 
           body: JSON.stringify({ 
-            error: e.reason ? e.reason.toString() : 'Unhandled Rejection',
+            type: 'unhandled_rejection',
+            error: reasonStr,
             stack: e.reason ? e.reason.stack : null
           }) 
         }).catch(() => {});
