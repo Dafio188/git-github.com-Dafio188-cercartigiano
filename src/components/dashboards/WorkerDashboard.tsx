@@ -53,6 +53,7 @@ export function WorkerDashboard({ user, activeTab }: WorkerDashboardProps) {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [jobForProposal, setJobForProposal] = useState<Job | null>(null);
   const [workerProfile, setWorkerProfile] = useState<UserProfile | null>(null);
+  const [conversations, setConversations] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [activeSubTab, setActiveSubTab] = useState(activeTab || 'home');
@@ -113,10 +114,25 @@ export function WorkerDashboard({ user, activeTab }: WorkerDashboardProps) {
       handleFirestoreError(error, OperationType.LIST, 'jobs');
     });
 
+    // Conversations listener
+    const qConv = query(
+      collection(db, 'conversations'),
+      where('participants', 'array-contains', user.id),
+      orderBy('lastUpdate', 'desc')
+    );
+
+    const unsubConv = onSnapshot(qConv, (snapshot) => {
+      const convs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setConversations(convs);
+    }, (error) => {
+      console.warn("Worker conversations listener error:", error);
+    });
+
     return () => {
       unsubProfile();
       unsubAvailable();
       unsubActive();
+      unsubConv();
     };
   }, [user.id, activeTab]);
 
@@ -217,6 +233,18 @@ export function WorkerDashboard({ user, activeTab }: WorkerDashboardProps) {
     { label: 'Lavori Completati', value: activeJobs.filter(j => j.status === 'completed').length, icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-50' },
   ];
 
+  const totalUnreadMessages = [...availableJobs, ...activeJobs].reduce((acc, job) => {
+    return acc + (job.unreadMessagesCount?.[user.id] || 0);
+  }, 0);
+
+  const jobsWithMessages = [...availableJobs, ...activeJobs]
+    .filter(job => (job.unreadMessagesCount?.[user.id] || 0) > 0)
+    .sort((a, b) => {
+      const unreadA = a.unreadMessagesCount?.[user.id] || 0;
+      const unreadB = b.unreadMessagesCount?.[user.id] || 0;
+      return unreadB - unreadA;
+    });
+
   if (loading) return null;
 
   if (user.status === 'pending') {
@@ -245,6 +273,7 @@ export function WorkerDashboard({ user, activeTab }: WorkerDashboardProps) {
                 {activeSubTab === 'history' && 'Storico Interventi'}
                 {activeSubTab === 'jobs' && 'Trova Lavoro'}
                 {activeSubTab === 'projects' && 'Lavori Attivi'}
+                {activeSubTab === 'messages' && 'I Tuoi Messaggi'}
                 {activeSubTab === 'profile' && 'Il Tuo Portfolio'}
               </h1>
               <p className="text-lg lg:text-xl text-[#86868B] font-bold mb-8">
@@ -252,14 +281,16 @@ export function WorkerDashboard({ user, activeTab }: WorkerDashboardProps) {
                 {activeSubTab === 'history' && 'Visualizza lo storico dei tuoi interventi completati.'}
                 {activeSubTab === 'jobs' && 'Esplora tutte le richieste disponibili sul territorio.'}
                 {activeSubTab === 'projects' && 'Gestisci gli ordini in corso e comunica con i clienti.'}
+                {activeSubTab === 'messages' && 'Rimani in contatto con i clienti e rispondi alle richieste di informazioni.'}
                 {activeSubTab === 'profile' && 'Carica foto dei tuoi lavori passati per ottenere la tua prima valutazione.'}
               </p>
               
               <div className="flex flex-wrap gap-2">
                 {[
                   { id: 'home', label: 'Dashboard', icon: Target },
-                  { id: 'jobs', label: 'Trova Lavoro', icon: Search },
-                  { id: 'projects', label: 'In Corso', icon: CheckCircle2 },
+                  { id: 'jobs', label: 'Trova Lavoro', icon: Search, badge: availableJobs.reduce((acc, job) => acc + (job.unreadMessagesCount?.[user.id] || 0), 0) },
+                  { id: 'projects', label: 'In Corso', icon: CheckCircle2, badge: activeJobs.reduce((acc, job) => acc + (job.unreadMessagesCount?.[user.id] || 0), 0) },
+                  { id: 'messages', label: 'Messaggi', icon: MessageSquare, badge: totalUnreadMessages },
                   { id: 'history', label: 'Storico', icon: Briefcase },
                   { id: 'profile', label: 'Portfolio', icon: Briefcase },
                 ].map(tab => (
@@ -268,12 +299,17 @@ export function WorkerDashboard({ user, activeTab }: WorkerDashboardProps) {
                     onClick={() => setActiveSubTab(tab.id)}
                     variant={activeSubTab === tab.id ? 'default' : 'ghost'}
                     className={cn(
-                      "rounded-full h-11 px-6 font-black text-sm",
+                      "rounded-full h-11 px-6 font-black text-sm relative",
                       activeSubTab === tab.id ? "bg-[#1D1D1F] text-white" : "text-[#86868B] hover:bg-[#F5F5F7]"
                     )}
                   >
                     <tab.icon className="w-4 h-4 mr-2" />
                     {tab.label}
+                    {(tab as any).badge > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white ring-2 ring-red-500/20">
+                        {(tab as any).badge}
+                      </span>
+                    )}
                   </Button>
                 ))}
               </div>
@@ -356,6 +392,34 @@ export function WorkerDashboard({ user, activeTab }: WorkerDashboardProps) {
            >
               {/* Active Work Panel */}
               <div className="lg:col-span-2 space-y-6">
+                {/* Nuovi Messaggi Alert */}
+                {jobsWithMessages.length > 0 && (
+                  <div className="bg-blue-600 p-6 rounded-[2.5rem] text-white shadow-xl shadow-blue-500/20 relative overflow-hidden">
+                    <div className="relative z-10 flex flex-col md:flex-row items-center gap-6">
+                      <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center shrink-0">
+                        <MessageSquare className="w-8 h-8 text-white" />
+                      </div>
+                      <div className="flex-1 text-center md:text-left">
+                        <h3 className="text-xl font-black mb-1">Hai {totalUnreadMessages} nuovi messaggi</h3>
+                        <p className="text-blue-100/80 font-bold text-sm">I clienti ti hanno risposto. Rispondi subito per non perdere l'opportunità.</p>
+                      </div>
+                      <div className="flex flex-col gap-2 w-full md:w-auto">
+                        {jobsWithMessages.slice(0, 2).map(job => (
+                          <Button 
+                            key={job.id}
+                            onClick={() => handleStartChat(job)}
+                            variant="secondary"
+                            className="bg-white text-blue-600 hover:bg-white/90 rounded-full h-10 px-6 font-black text-[10px] uppercase tracking-widest"
+                          >
+                            Chat: {job.title.substring(0, 15)}...
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+                  </div>
+                )}
+
                 {/* Lavoro Occasionale Banner */}
                 <div className="bg-[#FBFBFD] border border-blue-200 p-6 rounded-[2rem] flex flex-col sm:flex-row gap-6 items-start sm:items-center relative overflow-hidden">
                   <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center shrink-0 relative z-10">
@@ -596,6 +660,75 @@ export function WorkerDashboard({ user, activeTab }: WorkerDashboardProps) {
               </div>
             </motion.div>
          )}
+
+         {activeSubTab === 'messages' && (
+            <motion.div
+              key="messages"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-6"
+            >
+              <div className="grid grid-cols-1 gap-4">
+                {conversations.length > 0 ? (
+                  conversations.map(conv => {
+                    const job = [...availableJobs, ...activeJobs].find(j => j.id === conv.jobId);
+                    const unread = job?.unreadMessagesCount?.[user.id] || 0;
+                    
+                    return (
+                      <Card 
+                        key={conv.id} 
+                        className={cn(
+                          "rounded-[2rem] border-[#D2D2D7]/30 hover:shadow-xl transition-all cursor-pointer group",
+                          unread > 0 ? "bg-blue-50/30 border-blue-200" : "bg-white"
+                        )}
+                        onClick={() => {
+                          if (job) handleStartChat(job);
+                          else alert("Dettagli lavoro non trovati.");
+                        }}
+                      >
+                        <CardContent className="p-6 flex items-center gap-6">
+                           <div className={cn(
+                             "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0",
+                             unread > 0 ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-500"
+                           )}>
+                             <MessageSquare className="w-6 h-6" />
+                           </div>
+                           <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between mb-1">
+                                <h3 className="font-black text-[#1D1D1F] truncate group-hover:text-blue-600 transition-colors">
+                                  {conv.jobTitle || 'Chat Lavoro'}
+                                </h3>
+                                <span className="text-[10px] font-bold text-[#86868B]">
+                                  {conv.lastUpdate?.seconds ? new Date(conv.lastUpdate.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Adesso'}
+                                </span>
+                              </div>
+                              <p className="text-sm font-medium text-[#86868B] line-clamp-1 italic">
+                                {conv.lastMessage || 'Inizia la conversazione...'}
+                              </p>
+                           </div>
+                           {unread > 0 && (
+                             <div className="bg-blue-600 text-white text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/20">
+                               {unread}
+                             </div>
+                           )}
+                           <ChevronRight className="w-5 h-5 text-[#D2D2D7] group-hover:text-blue-600 transition-colors" />
+                        </CardContent>
+                      </Card>
+                    );
+                  })
+                ) : (
+                  <div className="py-20 flex flex-col items-center justify-center text-center space-y-4 opacity-50 bg-white rounded-[2.5rem] border border-dashed border-[#D2D2D7]">
+                    <MessageSquare className="w-12 h-12 text-[#86868B]" />
+                    <div>
+                      <h3 className="text-lg font-black text-[#1D1D1F]">Nessun messaggio</h3>
+                      <p className="text-sm font-bold text-[#86868B]">Le tue conversazioni con i clienti appariranno qui.</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
 
          {activeSubTab === 'history' && (
             <motion.div

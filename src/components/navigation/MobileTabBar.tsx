@@ -25,9 +25,10 @@ interface Props {
   onTabChange: (id: string | any) => void;
   user: User | null;
   onLoginRequest: () => void;
+  unreadCount?: number;
 }
 
-export function MobileTabBar({ activeTab, onTabChange, user, onLoginRequest }: Props) {
+export function MobileTabBar({ activeTab, onTabChange, user, onLoginRequest, unreadCount = 0 }: Props) {
   // Navigation for non-logged users
   const guestTabs: TabItem[] = [
     { id: 'landing-home', icon: Home, label: 'Home' },
@@ -66,6 +67,7 @@ export function MobileTabBar({ activeTab, onTabChange, user, onLoginRequest }: P
     <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-md h-18 bg-white/70 backdrop-blur-2xl border border-white/40 rounded-[2.5rem] flex items-center justify-around px-4 shadow-[0_20px_50px_rgba(0,0,0,0.15)] z-[100] preserve-3d">
       {tabs.map((tab) => {
         const isActive = activeTab === tab.id || (tab.id === 'landing-home' && activeTab === 'home');
+        const showBadge = unreadCount > 0 && tab.id === 'home';
         
         return (
           <button
@@ -85,11 +87,15 @@ export function MobileTabBar({ activeTab, onTabChange, user, onLoginRequest }: P
               animate={isActive ? { scale: 1.2, y: -4 } : { scale: 1, y: 0 }}
               transition={{ type: "spring", stiffness: 400, damping: 25 }}
               className={cn(
-                "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
+                "w-10 h-10 rounded-xl flex items-center justify-center transition-colors relative",
                 isActive ? "text-blue-600" : "text-[#86868B] group-hover:text-[#1D1D1F]"
               )}
             >
               <tab.icon className={cn("w-5 h-5", isActive ? "stroke-[2.5px]" : "stroke-[1.8px]")} />
+              
+              {showBadge && (
+                <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-[#FF3B30] rounded-full border-2 border-white animate-pulse" />
+              )}
             </motion.div>
             
             <span className={cn(

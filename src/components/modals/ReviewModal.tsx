@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent } from '../ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '../ui/dialog';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { Button } from '../ui/button';
 import { Star, CheckCircle2, Shield, Heart, Sparkles, Send, User as UserIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -109,6 +110,9 @@ export function ReviewModal({ isOpen, onClose, job, clientId }: ReviewModalProps
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl p-0 overflow-hidden bg-[#FBFBFD] border-none rounded-[3rem] shadow-2xl">
+        <VisuallyHidden>
+          <DialogTitle>Recensione Lavoro: {job.title}</DialogTitle>
+        </VisuallyHidden>
         <div className="p-8 lg:p-12">
           <AnimatePresence mode="wait">
             {success ? (

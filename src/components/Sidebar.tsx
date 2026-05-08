@@ -24,9 +24,10 @@ interface SidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   role: 'client' | 'worker' | 'admin';
+  unreadCount?: number;
 }
 
-export function Sidebar({ activeTab, setActiveTab, role }: SidebarProps) {
+export function Sidebar({ activeTab, setActiveTab, role, unreadCount = 0 }: SidebarProps) {
   const menuItems = [
     { id: 'home', icon: Home, label: 'Inizio', roles: ['client', 'worker', 'admin'] },
     { id: 'search', icon: Search, label: 'Esplora Esperti', roles: ['client'] },
@@ -61,28 +62,38 @@ export function Sidebar({ activeTab, setActiveTab, role }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1">
+      <nav className="flex-1 space-y-1 overflow-y-auto pr-2">
         {menuItems.map((item) => (
           <button
             key={item.id}
             onClick={() => setActiveTab(item.id)}
             className={cn(
-              "w-full flex items-center justify-between px-3 py-3 rounded-xl transition-all group",
+              "w-full flex items-center justify-between px-3 py-3 rounded-xl transition-all group relative",
               activeTab === item.id 
                 ? "bg-white text-[#1D1D1F] shadow-sm ring-1 ring-[#D2D2D7]/20" 
                 : "text-[#86868B] hover:text-[#1D1D1F] hover:bg-white/50"
             )}
           >
             <div className="flex items-center gap-3">
-              <item.icon className={cn(
-                "w-5 h-5 transition-transform",
-                activeTab === item.id ? "text-blue-600 scale-110" : "group-hover:scale-110"
-              )} />
+              <div className="relative">
+                <item.icon className={cn(
+                  "w-5 h-5 transition-transform",
+                  activeTab === item.id ? "text-blue-600 scale-110" : "group-hover:scale-110"
+                )} />
+                {unreadCount > 0 && item.id === 'home' && (
+                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#FF3B30] rounded-full border-2 border-[#F5F5F7] animate-pulse" />
+                )}
+              </div>
               <span className={cn(
                 "text-sm font-bold",
                 activeTab === item.id ? "text-[#1D1D1F]" : "text-[#86868B]"
               )}>{item.label}</span>
             </div>
+            {unreadCount > 0 && item.id === 'home' && (
+              <span className="bg-[#FF3B30] text-white text-[9px] font-black px-1.5 py-0.5 rounded-full ring-2 ring-white">
+                {unreadCount}
+              </span>
+            )}
             {activeTab === item.id && (
               <ChevronRight className="w-4 h-4 text-blue-600/30" />
             )}

@@ -215,6 +215,14 @@ function App() {
           const isDefaultAdmin = firebaseUser.email === 'fio.davide@gmail.com' || firebaseUser.email === 'admin@cercartigiano.it';
           if (docSnap.exists()) {
             const data = docSnap.data() as User;
+            if (data.status === 'suspended') {
+              setUser(null);
+              setShowAuth(false);
+              // Sign out if suspended
+              auth.signOut();
+              alert("Il tuo account è stato sospeso dall'amministratore per violazione delle regole. Contatta l'assistenza.");
+              return;
+            }
             if (isDefaultAdmin && data.role !== 'admin') {
               try {
                 await updateDoc(userRef, { role: 'admin' });
@@ -448,7 +456,12 @@ function App() {
     <div className="h-screen w-full flex flex-col lg:flex-row bg-background text-foreground overflow-hidden font-sans">
       {/* Sidebar - Hidden on mobile */}
       <div className="hidden lg:block">
-        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} role={effectiveRole as any} />
+        <Sidebar 
+          activeTab={activeTab} 
+          setActiveTab={setActiveTab} 
+          role={effectiveRole as any} 
+          unreadCount={unreadCount}
+        />
       </div>
       
       <main className="flex-1 flex flex-col overflow-hidden relative">
@@ -605,6 +618,7 @@ function App() {
             onTabChange={setActiveTab}
             user={user}
             onLoginRequest={() => setShowAuth(true)}
+            unreadCount={unreadCount}
           />
         </div>
       </main>
