@@ -6,7 +6,11 @@ import { APIProvider } from '@vis.gl/react-google-maps';
 
 // Access environment variables safely
 // @ts-ignore - process.env is handled by vite define
-const GM_KEY = process.env.GOOGLE_MAPS_PLATFORM_KEY || import.meta.env.VITE_GOOGLE_MAPS_PLATFORM_KEY || '';
+const GM_KEY = 
+  process.env.GOOGLE_MAPS_PLATFORM_KEY || 
+  import.meta.env.VITE_GOOGLE_MAPS_PLATFORM_KEY || 
+  import.meta.env.VITE_GOOGLE_MAPS_API_KEY || 
+  '';
 
 function Main() {
   const displayMapsWarning = !GM_KEY;
