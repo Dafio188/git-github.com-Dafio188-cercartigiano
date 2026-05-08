@@ -59,6 +59,24 @@ export function JobDetailsSharedModal({ isOpen, onClose, job, user, onOpenPropos
                  </p>
                </div>
 
+               {job.photos && job.photos.length > 0 && (
+                 <div>
+                   <h4 className="text-xs font-black uppercase tracking-widest text-[#86868B] mb-2">Foto Allegate ({job.photos.length})</h4>
+                   <div className="flex gap-3 overflow-x-auto pb-4 pt-1 snap-x no-scrollbar">
+                     {job.photos.map((url, i) => (
+                       <div key={i} className="relative aspect-square h-40 shrink-0 rounded-2xl overflow-hidden border border-[#D2D2D7]/30 bg-[#F5F5F7] snap-start">
+                         <img 
+                           src={url} 
+                           alt={`Lavoro ${i + 1}`} 
+                           className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-500" 
+                           onClick={() => window.open(url, '_blank')}
+                         />
+                       </div>
+                     ))}
+                   </div>
+                 </div>
+               )}
+
                <div className="bg-[#F5F5F7] p-6 rounded-3xl mt-6 border border-[#D2D2D7]/30">
                  <h4 className="text-xs font-black uppercase tracking-widest text-[#86868B] mb-2">Budget Indicativo Cliente</h4>
                  <div className="text-3xl font-black text-[#1D1D1F]">€{job.budgetMin} - €{job.budgetMax}</div>

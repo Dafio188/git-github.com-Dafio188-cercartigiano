@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { db } from '../../firebase';
-import { collection, query, where, onSnapshot, orderBy, doc, getDoc, updateDoc, setDoc, serverTimestamp, increment, limit } from 'firebase/firestore';
+import { db, storage } from '../../firebase';
+import { collection, query, where, onSnapshot, orderBy, doc, getDoc, updateDoc, setDoc, serverTimestamp, increment, limit, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Job, User, UserProfile } from '../../types';
 import { cn } from '../../lib/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
@@ -24,7 +25,10 @@ import {
   Bell,
   ArrowRight,
   CreditCard,
-  Shield
+  Shield,
+  Camera,
+  Trash2,
+  Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { JobProposalModal } from '../modals/JobProposalModal';
@@ -163,6 +167,47 @@ export function WorkerDashboard({ user, activeTab }: WorkerDashboardProps) {
     } catch (error) {
       console.error("Error starting chat:", error);
       alert("Errore nel caricamento della chat.");
+    }
+  };
+
+  const [uploading, setUploading] = useState(false);
+
+  const handlePortfolioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const storageRef = ref(storage, `portfolios/${user.id}/${Date.now()}_${file.name}`);
+      const snapshot = await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      
+      const profileRef = doc(db, 'workerProfiles', user.id);
+      await updateDoc(profileRef, {
+        portfolio: arrayUnion(downloadURL),
+        updatedAt: serverTimestamp()
+      });
+      
+      alert("Foto aggiunta al portfolio!");
+    } catch (error) {
+      console.error("Error uploading portfolio photo:", error);
+      alert("Errore durante il caricamento.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removePortfolioPhoto = async (url: string) => {
+    if (!confirm('Rimuovere questa foto dal portfolio?')) return;
+    
+    try {
+      const profileRef = doc(db, 'workerProfiles', user.id);
+      await updateDoc(profileRef, {
+        portfolio: arrayRemove(url),
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error("Error removing photo:", error);
     }
   };
 
@@ -627,19 +672,51 @@ export function WorkerDashboard({ user, activeTab }: WorkerDashboardProps) {
                 <div className="space-y-6">
                   <div className="p-6 bg-[#FBFBFD] border border-blue-100 rounded-3xl">
                      <p className="text-sm font-bold text-[#1D1D1F] leading-relaxed">
-                       Per gli artigiani che non vogliono partire da 0 recensioni, è possibile inviare alla piattaforma delle prove documentali (foto, pdf, link) dei lavori passati. Il nostro team valuterà il materiale e assegnerà un rating iniziale garantito ("Stellette di garanzia").
+                       Per gli artigiani che non vogliono partire da 0 recensioni, è possibile caricare prove documentali (foto, attestati) dei lavori passati. Il nostro team assegnerà delle "Stellette di garanzia" iniziali.
                      </p>
                   </div>
 
                   <div className="space-y-4">
-                    <label className="text-xs font-black uppercase tracking-widest text-[#86868B]">Carica Immagini (In sviluppo)</label>
-                    <div className="w-full h-32 border-2 border-dashed border-[#D2D2D7] rounded-3xl flex flex-col items-center justify-center opacity-50 bg-[#F5F5F7] cursor-not-allowed">
-                       <Briefcase className="w-8 h-8 text-[#86868B] mb-2" />
-                       <span className="text-xs font-black text-[#1D1D1F]">Trascina le foto dei tuoi lavori qui</span>
+                    <label className="text-xs font-black uppercase tracking-widest text-[#86868B]">Il Tuo Portfolio ({workerProfile?.portfolio?.length || 0} Foto)</label>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      {workerProfile?.portfolio?.map((url, i) => (
+                        <div key={i} className="relative aspect-video rounded-2xl overflow-hidden group border border-[#D2D2D7]/30 bg-[#F5F5F7]">
+                          <img src={url} className="w-full h-full object-cover" alt="Portfolio" />
+                          <button 
+                            onClick={() => removePortfolioPhoto(url)}
+                            className="absolute top-2 right-2 p-1.5 bg-white/90 backdrop-blur-sm rounded-full text-red-500 shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                      
+                      <label className="aspect-video rounded-2xl border-2 border-dashed border-[#D2D2D7] hover:border-blue-500 hover:bg-blue-50 transition-all flex flex-col items-center justify-center gap-2 cursor-pointer group">
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          className="hidden" 
+                          onChange={handlePortfolioUpload}
+                          disabled={uploading}
+                        />
+                        {uploading ? (
+                          <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
+                        ) : (
+                          <>
+                            <Camera className="w-5 h-5 text-[#86868B] group-hover:text-blue-600 transition-colors" />
+                            <span className="text-[10px] font-black text-[#86868B] uppercase tracking-widest group-hover:text-blue-600 transition-colors">Aggiungi Foto</span>
+                          </>
+                        )}
+                      </label>
                     </div>
                   </div>
 
-                  <Button className="w-full h-14 rounded-2xl bg-[#1D1D1F] hover:bg-black text-white font-black text-lg" disabled>
+                  <Button 
+                    className="w-full h-14 rounded-2xl bg-[#1D1D1F] hover:bg-black text-white font-black text-lg shadow-xl shadow-black/10"
+                    onClick={() => alert("Richiesta inviata! Un operatore verificherà il tuo portfolio entro 24-48 ore.")}
+                    disabled={!workerProfile?.portfolio || workerProfile.portfolio.length === 0}
+                  >
                      Richiedi Valutazione Iniziale
                   </Button>
                 </div>

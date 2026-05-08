@@ -135,27 +135,43 @@ export function ProfileView({ user }: ProfileViewProps) {
       const unsub = onSnapshot(profileRef, (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data() as UserProfile;
-          setEditProfile({
-            ...data,
-            badges: data.badges || [],
-            credits: data.credits || 0,
-            score: data.score || 5,
-            privacySettings: {
-              showEmail: data.privacySettings?.showEmail ?? false,
-              showPhone: data.privacySettings?.showPhone ?? false,
-              showAddress: data.privacySettings?.showAddress ?? false,
-              showFullName: data.privacySettings?.showFullName ?? false,
-            }
+          
+          // Use functional updates and check for changes to prevent loops
+          setEditProfile(prev => {
+            const hasChanged = JSON.stringify(prev) !== JSON.stringify({ ...data, id: user.id, userId: user.id });
+            if (!hasChanged) return prev;
+            return {
+              ...data,
+              badges: data.badges || [],
+              credits: data.credits || 0,
+              score: data.score || 5,
+              privacySettings: {
+                showEmail: data.privacySettings?.showEmail ?? false,
+                showPhone: data.privacySettings?.showPhone ?? false,
+                showAddress: data.privacySettings?.showAddress ?? false,
+                showFullName: data.privacySettings?.showFullName ?? false,
+              }
+            };
           });
-          setEditUser(prev => ({
-            ...prev,
-            cap: data.cap || prev.cap,
-            citta: data.citta || prev.citta,
-            provincia: data.provincia || prev.provincia,
-            regione: data.regione || prev.regione,
-            address: data.address || prev.address,
-            civico: data.civico || prev.civico
-          }));
+
+          setEditUser(prev => {
+            const updates = {
+              cap: data.cap || prev.cap,
+              citta: data.citta || prev.citta,
+              provincia: data.provincia || prev.provincia,
+              regione: data.regione || prev.regione,
+              address: data.address || prev.address,
+              civico: data.civico || prev.civico
+            };
+            
+            const hasChanged = Object.entries(updates).some(([key, val]) => prev[key as keyof User] !== val);
+            if (!hasChanged) return prev;
+            
+            return {
+              ...prev,
+              ...updates
+            };
+          });
         }
       }, (error) => {
         handleFirestoreError(error, OperationType.GET, `workerProfiles/${user.id}`);

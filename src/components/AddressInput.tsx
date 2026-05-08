@@ -18,6 +18,11 @@ export function AddressInput({ value, onChange, placeholder, className }: Addres
   const placesLib = useMapsLibrary('places');
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const [isParsing, setIsParsing] = useState(false);
+  const onChangeRef = useRef(onChange);
+
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
 
   const handleAiParse = async () => {
     if (!value || value.length < 5) return;
@@ -26,7 +31,7 @@ export function AddressInput({ value, onChange, placeholder, className }: Addres
       const result = await parseAddressWithAI(value);
       if (result && result.formattedAddress) {
         // If we have lat/lng from AI, use them, otherwise let parent handle
-        onChange(result.formattedAddress, result.lat, result.lng, result);
+        onChangeRef.current(result.formattedAddress, result.lat, result.lng, result);
       }
     } catch (error) {
       console.error("AI Address Parse error:", error);
@@ -81,14 +86,14 @@ export function AddressInput({ value, onChange, placeholder, className }: Addres
         });
 
         // Ensure we pass the precise details back to parent
-        onChange(place.formatted_address || '', lat, lng, details);
+        onChangeRef.current(place.formatted_address || '', lat, lng, details);
       }
     });
 
     return () => {
       if (listener) listener.remove();
     };
-  }, [placesLib, onChange]);
+  }, [placesLib]);
 
   return (
     <div className="relative w-full group">

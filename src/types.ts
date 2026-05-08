@@ -78,7 +78,7 @@ export interface UserProfile {
   termsAcceptedAt?: string;
   credits: number;
   privacySettings?: UserPrivacySettings;
-  portfolioImages?: string[]; // Per artigiani senza storico che vogliono mostrare lavori
+  portfolio?: string[]; // Per artigiani senza storico che vogliono mostrare lavori
 }
 
 export interface JobQuestion {

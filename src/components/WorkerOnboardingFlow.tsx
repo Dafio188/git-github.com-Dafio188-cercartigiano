@@ -61,6 +61,19 @@ export function WorkerOnboardingFlow({ user, onComplete, onCancel }: WorkerOnboa
   const [cap, setCap] = useState(user.cap || '');
   const [regione, setRegione] = useState('');
   
+  const { CATEGORY_SERVICES } = require('../constants');
+
+  const availableSkills = React.useMemo(() => {
+    return selectedCategories.flatMap(catId => {
+      const services = CATEGORY_SERVICES[catId] || [];
+      return services.map((label: string) => ({
+        id: `${catId}_${label.toLowerCase().replace(/\s+/g, '_')}`,
+        label,
+        category: catId
+      }));
+    });
+  }, [selectedCategories]);
+
   // Fiscal State
   const [partitaIva, setPartitaIva] = useState('');
   const [codiceFiscale, setCodiceFiscale] = useState('');
@@ -175,6 +188,12 @@ export function WorkerOnboardingFlow({ user, onComplete, onCancel }: WorkerOnboa
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (currentStep === 'skills' && availableSkills.length === 0) {
+      handleNext();
+    }
+  }, [currentStep, availableSkills]);
 
   const renderStep = () => {
     switch (currentStep) {
@@ -322,24 +341,6 @@ export function WorkerOnboardingFlow({ user, onComplete, onCancel }: WorkerOnboa
         );
 
       case 'skills':
-        // Generate skills based on selected categories dynamically from constants
-        const { CATEGORY_SERVICES } = require('../constants');
-        
-        const availableSkills = selectedCategories.flatMap(catId => {
-          const services = CATEGORY_SERVICES[catId] || [];
-          return services.map((label: string) => ({
-            id: `${catId}_${label.toLowerCase().replace(/\s+/g, '_')}`,
-            label,
-            category: catId
-          }));
-        });
-
-        // Se non ci sono skill specifiche per le categorie selezionate, saltiamo questo step
-        if (availableSkills.length === 0) {
-          handleNext();
-          return null;
-        }
-
         return (
           <div className="space-y-6 py-4">
             <div className="text-center">

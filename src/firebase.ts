@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
 
 // API Key safety check to prevent React from fully crashing on invalid key format
 const validateApiKey = (key: string | undefined): string => {
@@ -28,5 +29,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const auth = getAuth(app);
+export const storage = getStorage(app);
 
 console.log("CercArtigiano Firebase Active - Project ID:", firebaseConfig.projectId);

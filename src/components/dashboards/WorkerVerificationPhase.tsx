@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { db } from '../../firebase';
+import { db, storage } from '../../firebase';
 import { doc, getDoc, setDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { User } from '../../types';
 import { Button } from '../ui/button';
-import { Shield, Upload, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Shield, Upload, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 
 interface WorkerVerificationPhaseProps {
   user: User;
@@ -15,7 +16,8 @@ export function WorkerVerificationPhase({ user }: WorkerVerificationPhaseProps) 
   const [formData, setFormData] = useState({
     documentType: 'id_card', 
     description: '',
-    documentBase64: ''
+    documentUrl: '',
+    file: null as File | null
   });
 
   useEffect(() => {
@@ -39,63 +41,41 @@ export function WorkerVerificationPhase({ user }: WorkerVerificationPhaseProps) 
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 2 * 1024 * 1024) {
-      alert("Il file non deve superare i 2MB. Cerca di comprimere l'immagine.");
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Il file non deve superare i 5MB.");
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
-        const maxDim = 800; // smaller to ensure it stays << 1MB
-        if (width > maxDim || height > maxDim) {
-          if (width > height) {
-             height = Math.round((height * maxDim) / width);
-             width = maxDim;
-          } else {
-             width = Math.round((width * maxDim) / height);
-             height = maxDim;
-          }
-        }
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(img, 0, 0, width, height);
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
-        setFormData({ ...formData, documentBase64: dataUrl });
-      };
-      
-      if (file.type.startsWith('image/')) {
-         img.src = event.target?.result as string;
-      } else {
-         alert("Per favore, carica solo immagini (JPG, PNG).");
-      }
-    };
-    reader.readAsDataURL(file);
+    if (!file.type.startsWith('image/')) {
+      alert("Per favore, carica solo immagini (JPG, PNG).");
+      return;
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+    setFormData({ ...formData, file, documentUrl: previewUrl });
   };
 
   const handleSubmit = async () => {
-    if (!formData.documentBase64) {
+    if (!formData.file) {
       alert("Per favore, carica l'immagine di un documento di identità, attestato, o portfolio.");
       return;
     }
     setLoading(true);
     try {
+      const storageRef = ref(storage, `verifications/${user.id}/${Date.now()}_${formData.file.name}`);
+      const snapshot = await uploadBytes(storageRef, formData.file);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+
       await setDoc(doc(db, 'verifications', user.id), {
         userId: user.id,
         userName: user.nome,
         userEmail: user.email,
         documentType: formData.documentType,
         description: formData.description,
-        documentBase64: formData.documentBase64,
+        documentUrl: downloadURL,
         status: 'submitted',
         submittedAt: serverTimestamp(),
       });
-      // Force UI to show 'submitted' local state
       setStatus('submitted');
     } catch (e) {
       console.error(e);
@@ -185,10 +165,10 @@ export function WorkerVerificationPhase({ user }: WorkerVerificationPhaseProps) 
              <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase text-[#86868B] tracking-widest pl-2">Carica Immagine *</label>
                 <div className="relative border-2 border-dashed border-[#D2D2D7] rounded-[2rem] p-8 flex flex-col items-center justify-center bg-[#F5F5F7]/30 hover:bg-[#F5F5F7] transition-all overflow-hidden duration-300 min-h-[200px]">
-                   {formData.documentBase64 ? (
+                   {formData.documentUrl ? (
                       <div className="space-y-4 w-full flex flex-col items-center">
-                         <img src={formData.documentBase64} alt="Preview" className="max-h-48 object-contain rounded-xl shadow-md border border-[#D2D2D7]/30" />
-                         <Button variant="outline" size="sm" onClick={() => setFormData({...formData, documentBase64: ''})} className="rounded-full font-black text-[#1D1D1F] h-10 px-6 hover:bg-white">
+                         <img src={formData.documentUrl} alt="Preview" className="max-h-48 object-contain rounded-xl shadow-md border border-[#D2D2D7]/30" />
+                         <Button variant="outline" size="sm" onClick={() => setFormData({...formData, file: null, documentUrl: ''})} className="rounded-full font-black text-[#1D1D1F] h-10 px-6 hover:bg-white">
                            Cambia Immagine
                          </Button>
                       </div>
@@ -199,7 +179,7 @@ export function WorkerVerificationPhase({ user }: WorkerVerificationPhaseProps) 
                         </div>
                         <span className="text-base font-black text-[#1D1D1F]">Clicca per caricare</span>
                         <span className="text-xs font-bold text-[#86868B] mt-2 mb-2 px-6 text-center">Assicurati che il documento sia ben leggibile e interamente all'interno dell'immagine.</span>
-                        <span className="text-[10px] font-black tracking-widest uppercase text-[#86868B] bg-[#E8E8ED] px-3 py-1 rounded-full">JPG / PNG (Max 2MB)</span>
+                        <span className="text-[10px] font-black tracking-widest uppercase text-[#86868B] bg-[#E8E8ED] px-3 py-1 rounded-full">JPG / PNG (Max 5MB)</span>
                         <input 
                            type="file" 
                            accept="image/*" 
@@ -213,10 +193,15 @@ export function WorkerVerificationPhase({ user }: WorkerVerificationPhaseProps) 
 
              <Button 
                onClick={handleSubmit}
-               disabled={loading || !formData.documentBase64}
+               disabled={loading || !formData.file}
                className="w-full h-16 bg-[#1D1D1F] hover:bg-black text-white rounded-[1.25rem] font-black shadow-xl shadow-black/10 transition-all text-lg tracking-tight disabled:bg-[#D2D2D7]"
              >
-               {loading ? 'Caricamento in corso...' : 'Invia per Revisione'}
+               {loading ? (
+                 <div className="flex items-center gap-3">
+                   <Loader2 className="w-6 h-6 animate-spin" />
+                   Caricamento...
+                 </div>
+               ) : 'Invia per Revisione'}
              </Button>
 
              <div className="flex items-start gap-4 bg-red-50 p-5 rounded-2xl border border-red-100">

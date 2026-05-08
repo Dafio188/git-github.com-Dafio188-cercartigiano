@@ -49,99 +49,96 @@ export type ServiceCategory = typeof SERVICE_CATEGORIES[number];
 
 export const CATEGORY_SERVICES: Record<string, string[]> = {
   electrical: [
-    "Condizionatori e Climatizzatori",
-    "Cancello Automatico",
-    "Ventilatore da Soffitto",
-    "Installazione Telecamere",
-    "Sostituzione Citofono",
-    "Antennista Elettricista",
-    "Pronto Intervento Elettricista",
-    "Dichiarazione di Rispondenza",
-    "Dichiarazione di Conformità",
-    "Installazione Lampadari",
-    "Installazione Colonnine Elettriche",
-    "Automazione Industriale",
-    "Fotovoltaico",
-    "Manutenzione Elettrica",
-    "Allarme Casa",
-    "Illuminotecnica",
-    "Installazione Wallbox",
-    "Riparazioni Domestiche",
-    "Elettrotecnico"
+    "Condizionatori e Climatizzatori", "Cancello Automatico", "Ventilatore da Soffitto",
+    "Installazione Telecamere", "Sostituzione Citofono", "Antennista Elettricista",
+    "Pronto Intervento Elettricista", "Dichiarazione di Rispondenza", "Dichiarazione di Conformità",
+    "Installazione Lampadari", "Installazione Colonnine Elettriche", "Automazione Industriale",
+    "Fotovoltaico", "Manutenzione Elettrica", "Allarme Casa", "Illuminotecnica",
+    "Installazione Wallbox", "Riparazioni Domestiche", "Elettrotecnico", "Domotica (Smart Home)"
   ],
   plumbing: [
-    "Riparazione Perdite",
-    "Installazione Caldaia",
-    "Rifacimento Bagno",
-    "Sostituzione Rubinetteria",
-    "Disotturazione Scarichi",
-    "Installazione Condizionatori",
-    "Pronto Intervento Idraulico"
+    "Riparazione Perdite", "Installazione Caldaia", "Rifacimento Bagno",
+    "Sostituzione Rubinetteria", "Disotturazione Scarichi", "Installazione Condizionatori",
+    "Pronto Intervento Idraulico", "Sostituzione Sanitari", "Impianto Irrigazione",
+    "Trattamento Acque/Addolcitori", "Riparazione Autoclave", "Installazione Scaldabagno"
   ],
   cleaning: [
-    "Pulizia Ordinaria",
-    "Pulizia Profonda (Post Ristrutturazione)",
-    "Lavaggio Divani e Tappeti",
-    "Pulizia Vetrate",
-    "Stiratura",
-    "Pulizia Uffici"
+    "Pulizia Ordinaria", "Pulizia Profonda (Post Ristrutturazione)", "Lavaggio Divani e Tappeti",
+    "Pulizia Vetrate Professionali", "Stiratura a Domicilio", "Pulizia Uffici e Negozi",
+    "Sanificazione e Igienizzazione", "Trattamento Pavimenti (Marmo/Parquet)",
+    "Pulizia B&B e Affitti Brevi", "Sgombero e Pulizia Cantine"
   ],
   construction: [
-    "Cartongesso",
-    "Posa Pavimenti",
-    "Muratura",
-    "Tinteggiatura",
-    "Ristrutturazione Completa",
-    "Isolamento Termico"
+    "Cartongesso e Controsoffitti", "Posa Pavimenti e Rivestimenti", "Muratura e Intonaco",
+    "Tinteggiatura e Pittura", "Ristrutturazione Chiavi in Mano", "Isolamento Termico (Cappotto)",
+    "Posa Parquet", "Rifacimento Tetto", "Impermeabilizzazione Terrazzi", "Opere in Cemento Armato"
   ],
   painting: [
-    "Pittura Interni",
-    "Pittura Esterni",
-    "Trattamento Antimuffa",
-    "Rimozione Carta da Parati",
-    "Verniciatura Infissi"
+    "Pittura Interni", "Pittura Esterni", "Trattamento Antimuffa e Umidità",
+    "Rimozione Carta da Parati", "Verniciatura Infissi e Persiane", "Spatolato Venisiano",
+    "Decorazioni Pareti", "Pittura Termoisolante"
   ],
   gardening: [
-    "Taglio Prato",
-    "Potatura Alberi",
-    "Installazione Irrigazione",
-    "Progettazione Giardini",
-    "Pulizia Foglie"
+    "Taglio Prato e Bordure", "Potatura Alberi e Siepi", "Installazione Impianto Irrigazione",
+    "Progettazione e Realizzazione Giardini", "Manutenzione Periodica Prato",
+    "Abbattimento Alberi Alto Fusto", "Trattamenti Fitosanitari", "Creazione Aiuole e Camminamenti"
   ],
   handyman: [
-    "Montaggio Mobili",
-    "Appensione Quadri/Mensole",
-    "Piccole Riparazioni",
-    "Sostituzione Serrature",
-    "Riparazione Tapparelle"
+    "Montaggio Mobili (IKEA/Mondo Convenienza)", "Appensione Quadri/Specchi/Mensole",
+    "Riparazione Tapparelle e Persiane", "Sostituzione Serrature", "Piccole Riparazioni Elettriche/Idrauliche",
+    "Sostituzione Corde Tapparelle", "Regolazione Cerniere Porte e Ante", "Siliconatura Vasche/Docce"
   ],
   moving: [
-    "Trasloco Abitazione",
-    "Trasloco Ufficio",
-    "Piccoli Traslochi",
-    "Smontaggio e Rimontaggio Mobili",
-    "Imballaggio"
+    "Trasloco Casa Completo", "Trasloco Ufficio", "Piccoli Traslochi (Scatole/Singoli Mobili)",
+    "Smontaggio e Rimontaggio Mobili", "Imballaggio Professionale", "Noleggio Piattaforma Aerea",
+    "Trasporto Oggetti Fragili/Pianoforti", "Sgombero Case e Aziende"
   ],
   mechanic: [
-    "Tagliando Auto",
-    "Sostituzione Freni",
-    "Diagnosi Computerizzata",
-    "Riparazione Motore",
-    "Cambio Gomme"
+    "Tagliando Completo", "Sostituzione Freni e Pastiglie", "Diagnosi Elettronica",
+    "Riparazione Motore e Cambio", "Cambio Gomme e Equilibratura", "Ricarica Aria Condizionata",
+    "Riparazione Cristalli", "Elettrauto e Diagnosi"
   ],
-  beauty: [
-    "Taglio e Piega",
-    "Colore Capelli",
-    "Manicure e Pedicure",
-    "Trattamenti Viso",
-    "Trucco Professionale"
+  elderly_care: [
+    "Compagnia e Veglia", "Aiuto Igiene Personale", "Preparazione e Somministrazione Pasti",
+    "Accompagnamento Visite Mediche", "Acquisto Spesa e Commissioni", "Assistenza Notturna",
+    "Aiuto nella Deambulazione", "Supporto Gestione Terapie Farmacologiche"
+  ],
+  babysitting: [
+    "Babysitting Occasionale", "Aiuto Compiti", "Accompagnamento Attività Extra",
+    "Animazione Feste", "Puericultrice (Neonati)", "Presa a Scuola/Asilo"
   ],
   pet_sitting: [
-    "Dog Walking",
-    "Pensione Cani",
-    "Pensione Gatti",
-    "Toelettatura",
-    "Addestramento"
+    "Dog Walking (Passeggiate)", "Pensione per Cani a Domicilio", "Pensione per Gatti",
+    "Toelettatura", "Addestramento Base", "Somministrazione Farmaci Animali"
+  ],
+  beauty: [
+    "Taglio e Piega", "Colore e Schiariture", "Manicure e Pedicure (Smalto Semipermanente)",
+    "Trattamenti Viso e Corpo", "Trucco Sposa/Eventi", "Massaggi Rilassanti",
+    "Epilazione (Cera/Laser)", "Laminazione Ciglia/Sopracciglia"
+  ],
+  carpentry: [
+    "Riparazione Mobili in Legno", "Creazione Arredi su Misura", "Restauro Antichità",
+    "Posa Battiscopa e Parquet", "Riparazione Porte e Infissi", "Costruzione Strutture Esterno (Gazebo)"
+  ],
+  psychology: [
+    "Consulenza Individuale", "Terapia di Coppia", "Sostegno Genitoriale",
+    "Psicoterapia Infantile", "Gestione Ansia e Stress", "Coaching e Motivazione"
+  ],
+  lawyer: [
+    "Diritto Civile", "Diritto Penale", "Diritto del Lavoro",
+    "Pratiche di Divorzio/Famiglia", "Infortunistica Stradale", "Recupero Crediti"
+  ],
+  architect: [
+    "Progettazione Architettonica", "Interior Design", "Pratiche Edilizie (CILA/SCIA)",
+    "Direzione Lavori", "Rilievi e Planimetrie", "Consulenza Arredamento"
+  ],
+  accountant: [
+    "Dichiarazione dei Redditi (730/Unico)", "Apertura Partita IVA", "Contabilità Aziendale",
+    "Consulenza Fiscale", "Pianificazione Successoria", "Gestione Buste Paga"
+  ],
+  physiotherapy: [
+    "Riabilitazione Motoria", "Massoterapia", "Terapia Posturale",
+    "Fisioterapia Sportiva", "Linfodrenaggio", "Osteopatia"
   ]
 };
 

@@ -16,6 +16,10 @@ import {
 import { Button } from './ui/button';
 import { motion, AnimatePresence } from 'motion/react';
 import { BillingSettings } from './BillingSettings';
+import { ProfileSettings } from './ProfileSettings';
+import { SecuritySettings } from './SecuritySettings';
+import { NotificationSettings } from './NotificationSettings';
+import { DataPrivacySettings } from './DataPrivacySettings';
 
 export function SettingsView() {
   const [activeSubView, setActiveSubView] = useState<string | null>(null);
@@ -53,6 +57,22 @@ export function SettingsView() {
 
   if (activeSubView === 'billing') {
     return <BillingSettings onBack={() => setActiveSubView(null)} />;
+  }
+
+  if (activeSubView === 'profile') {
+    return <ProfileSettings onBack={() => setActiveSubView(null)} />;
+  }
+
+  if (activeSubView === 'security') {
+    return <SecuritySettings onBack={() => setActiveSubView(null)} />;
+  }
+
+  if (activeSubView === 'push' || activeSubView === 'email') {
+    return <NotificationSettings onBack={() => setActiveSubView(null)} />;
+  }
+
+  if (activeSubView === 'data' || activeSubView === 'privacy') {
+    return <DataPrivacySettings onBack={() => setActiveSubView(null)} />;
   }
 
   return (

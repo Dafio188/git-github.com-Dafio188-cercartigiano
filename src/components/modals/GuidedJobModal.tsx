@@ -7,9 +7,11 @@ import { AddressInput } from '../AddressInput';
 import { SERVICE_CATEGORIES } from '../../constants';
 import { CATEGORY_FLOWS, DEFAULT_FLOW, CategoryQuestion } from '../../services/questionService';
 import { evaluateJobComplexity } from '../../services/aiService';
-import { auth, db } from '../../firebase';
+import { auth, db, storage } from '../../firebase';
 import { collection, addDoc, serverTimestamp, setDoc, doc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { Camera, Image as ImageIcon, Trash2, Loader2, Upload } from 'lucide-react';
 
 interface GuidedJobModalProps {
   isOpen: boolean;
@@ -132,6 +134,37 @@ export function GuidedJobModal({
     if (currentStepIndex < flow.length - 1) {
       setTimeout(() => setStepHistory([...stepHistory, currentStepIndex + 1]), 300);
     }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setLoading(true);
+    try {
+      const storageRef = ref(storage, `job_photos/${auth.currentUser?.uid || 'anonymous'}/${Date.now()}_${file.name}`);
+      const snapshot = await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      
+      const currentPhotos = answers[currentQuestion.id] || [];
+      setAnswers({
+        ...answers,
+        [currentQuestion.id]: [...currentPhotos, downloadURL]
+      });
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      alert("Errore durante il caricamento dell'immagine.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const removePhoto = (urlToRemove: string) => {
+    const currentPhotos = answers[currentQuestion.id] || [];
+    setAnswers({
+      ...answers,
+      [currentQuestion.id]: currentPhotos.filter((url: string) => url !== urlToRemove)
+    });
   };
 
   const handleGoogleLogin = async () => {
@@ -721,6 +754,59 @@ export function GuidedJobModal({
                               </p>
                             </div>
                           )}
+                        </div>
+                      )}
+
+                      {currentQuestion.type === 'photo' && (
+                        <div className="space-y-6">
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            {(answers[currentQuestion.id] || []).map((url: string, i: number) => (
+                              <div key={i} className="relative aspect-square rounded-[2rem] overflow-hidden group border-2 border-[#F2F2F7] bg-[#FBFBFD]">
+                                <img src={url} className="w-full h-full object-cover" alt={`Upload ${i}`} />
+                                <button 
+                                  onClick={() => removePhoto(url)}
+                                  className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm rounded-full text-red-500 shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            ))}
+                            <label className="aspect-square rounded-[2rem] border-2 border-dashed border-[#D2D2D7] hover:border-primary/50 hover:bg-primary/5 transition-all flex flex-col items-center justify-center gap-3 cursor-pointer group">
+                              <input 
+                                type="file" 
+                                accept="image/*" 
+                                className="hidden" 
+                                onChange={handleFileUpload}
+                                disabled={loading}
+                              />
+                              {loading ? (
+                                <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                              ) : (
+                                <>
+                                  <div className="w-12 h-12 bg-[#F5F5F7] rounded-2xl flex items-center justify-center text-[#1D1D1F] group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
+                                    <Camera className="w-6 h-6" />
+                                  </div>
+                                  <span className="text-[10px] font-black text-[#86868B] uppercase tracking-widest group-hover:text-primary transition-colors">Aggiungi Foto</span>
+                                </>
+                              )}
+                            </label>
+                          </div>
+                          
+                          <div className="p-6 bg-[#FBFBFD] border border-[#F2F2F7] rounded-[2rem] flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <ImageIcon className="w-5 h-5 text-[#86868B]" />
+                              <span className="text-sm text-[#86868B] font-medium">
+                                {(answers[currentQuestion.id] || []).length} foto caricate
+                              </span>
+                            </div>
+                            <Button 
+                              variant="ghost" 
+                              onClick={handleNext}
+                              className="text-[10px] font-black text-primary uppercase tracking-widest"
+                            >
+                              Salta passaggio
+                            </Button>
+                          </div>
                         </div>
                       )}
 
