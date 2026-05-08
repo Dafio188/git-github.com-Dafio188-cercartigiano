@@ -52,6 +52,7 @@ export interface UserProfile {
   isVerified?: boolean;
   uid?: string; // fallback for some components
   categories: string[];
+  skills?: string[];
   hourlyRate: number;
   radiusKm: number;
   address?: string;

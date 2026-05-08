@@ -322,36 +322,16 @@ export function WorkerOnboardingFlow({ user, onComplete, onCancel }: WorkerOnboa
         );
 
       case 'skills':
-        // Generate skills based on selected categories
+        // Generate skills based on selected categories dynamically from constants
+        const { CATEGORY_SERVICES } = require('../constants');
+        
         const availableSkills = selectedCategories.flatMap(catId => {
-          if (catId === 'electrical') {
-            return [
-              { id: 'electro_renovation', label: 'Rifacimento Impianti' },
-              { id: 'electro_repair', label: 'Riparazioni d\'emergenza' },
-              { id: 'electro_antennas', label: 'Antennista TV/SAT' },
-              { id: 'electro_security', label: 'Allarmi e Sicurezza' },
-              { id: 'electro_domotics', label: 'Domotica Smart Home' },
-              { id: 'electro_certification', label: 'Certificazioni Di.Co.' },
-              { id: 'electro_lighting', label: 'Illuminotecnica' }
-            ];
-          }
-          if (catId === 'plumbing') {
-             return [
-              { id: 'plumb_renovation', label: 'Rifacimento Bagni/Cucine' },
-              { id: 'plumb_repair', label: 'Riparazione Perdite' },
-              { id: 'plumb_boiler', label: 'Caldaie e Climatizzazione' },
-              { id: 'plumb_drain', label: 'Disostruzione Scarichi' }
-            ];
-          }
-          if (catId === 'construction') {
-             return [
-              { id: 'build_tiles', label: 'Posa Pavimenti e Piastrelle' },
-              { id: 'build_plaster', label: 'Cartongesso e Pittura' },
-              { id: 'build_masonry', label: 'Opere Murarie' },
-              { id: 'build_roof', label: 'Tetti e Impermeabilizzazioni' }
-            ];
-          }
-          return [];
+          const services = CATEGORY_SERVICES[catId] || [];
+          return services.map((label: string) => ({
+            id: `${catId}_${label.toLowerCase().replace(/\s+/g, '_')}`,
+            label,
+            category: catId
+          }));
         });
 
         // Se non ci sono skill specifiche per le categorie selezionate, saltiamo questo step
@@ -363,22 +343,27 @@ export function WorkerOnboardingFlow({ user, onComplete, onCancel }: WorkerOnboa
         return (
           <div className="space-y-6 py-4">
             <div className="text-center">
-              <h2 className="text-3xl font-black text-[#1D1D1F] tracking-tight">Cosa sai fare esattamente?</h2>
-              <p className="text-[#86868B] font-medium mt-2">Seleziona le tue competenze specifiche per ricevere solo preventivi mirati.</p>
+              <h2 className="text-3xl font-black text-[#1D1D1F] tracking-tight">Competenze Granulari</h2>
+              <p className="text-[#86868B] font-medium mt-2">Dichiara le tue specializzazioni per ricevere solo richieste compatibili.</p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[40vh] overflow-y-auto px-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[40vh] overflow-y-auto px-2 custom-scrollbar">
               {availableSkills.map(skill => (
                 <button
                   key={skill.id}
                   onClick={() => toggleSkill(skill.id)}
-                  className={`flex items-center justify-between p-5 rounded-[1.5rem] border-2 transition-all ${
+                  className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all text-left ${
                     selectedSkills.includes(skill.id)
                       ? 'border-blue-600 bg-blue-50/50 shadow-inner'
                       : 'border-[#F2F2F7] bg-[#FBFBFD] hover:border-blue-600/20'
                   }`}
                 >
-                  <span className="text-sm font-bold text-[#1D1D1F]">{skill.label}</span>
-                  <div className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all ${
+                  <div className="flex flex-col">
+                    <span className="text-[14px] font-bold text-[#1D1D1F]">{skill.label}</span>
+                    <span className="text-[9px] font-black text-blue-600 uppercase tracking-tighter">
+                      {SERVICE_CATEGORIES.find(c => c.id === skill.category)?.label}
+                    </span>
+                  </div>
+                  <div className={`w-5 h-5 rounded-lg flex items-center justify-center transition-all shrink-0 ${
                     selectedSkills.includes(skill.id) ? 'bg-blue-600 text-white' : 'bg-white border-2 border-[#D2D2D7]'
                   }`}>
                     {selectedSkills.includes(skill.id) && <Check className="w-3 h-3" />}
@@ -386,17 +371,24 @@ export function WorkerOnboardingFlow({ user, onComplete, onCancel }: WorkerOnboa
                 </button>
               ))}
             </div>
-            <div className="p-5 bg-blue-50 rounded-2xl border border-blue-100 flex gap-4">
-              <Shield className="w-6 h-6 text-blue-600 shrink-0" />
-              <p className="text-xs text-blue-900 font-bold leading-tight">
-                La precisione qui è fondamentale: riceverai solo richieste che matchano al 100% le tue selezioni.
-              </p>
+            
+            {/* Sezione Certificazioni */}
+            <div className="p-5 bg-white rounded-2xl border border-[#F2F2F7] space-y-3">
+              <div className="flex items-center gap-2">
+                <Shield className="w-5 h-5 text-blue-600" />
+                <span className="text-xs font-black uppercase tracking-widest text-[#1D1D1F]">Abilitazioni e Certificati</span>
+              </div>
+              <p className="text-[11px] text-[#86868B] font-medium">Possiedi certificazioni abilitanti per questo settore? (Es: Di.Co., Patentino F-Gas, etc.)</p>
+              <div className="flex gap-2">
+                 <button className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-black uppercase tracking-tight">Dichiaro di essere in regola</button>
+              </div>
             </div>
+
             <Button 
               onClick={handleNext}
               className="w-full h-16 rounded-2xl bg-[#1D1D1F] text-white font-black text-lg shadow-xl shadow-black/10 active:scale-95 transition-all mt-4"
             >
-              PROSSIMO: RAGGIO D'AZIONE
+              PROSSIMO: LOGISTICA
             </Button>
           </div>
         );

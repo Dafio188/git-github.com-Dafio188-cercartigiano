@@ -56,9 +56,19 @@ export function ProfessionalSearchView({ currentUser }: any) {
   }, []);
 
   const filteredProfessionals = professionals.filter(p => {
-    const matchesSearch = p.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         p.bio?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !selectedCategory || p.category === selectedCategory;
+    const searchLower = searchTerm.toLowerCase();
+    
+    // Check skills labels for search match
+    const skillLabels = (p.skills || []).map(sId => {
+      const label = sId.split('_').slice(1).join(' ').replace(/_/g, ' ');
+      return label.toLowerCase();
+    });
+
+    const matchesSearch = p.displayName?.toLowerCase().includes(searchLower) || 
+                         p.bio?.toLowerCase().includes(searchLower) ||
+                         skillLabels.some(l => l.includes(searchLower));
+
+    const matchesCategory = !selectedCategory || (p.categories || []).includes(selectedCategory) || p.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -66,14 +76,16 @@ export function ProfessionalSearchView({ currentUser }: any) {
     <div className="space-y-8 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="space-y-4">
         <h2 className="text-3xl font-black tracking-tight text-[#1D1D1F]">Trova il professionista perfetto</h2>
-        <p className="text-[#86868B] font-medium">Scegli tra i migliori artigiani certificati della tua zona.</p>
+        <p className="text-[#86868B] font-medium leading-relaxed">
+          Cerca tra i migliori artigiani d'Italia. Filtra per specializzazione specifica come <strong>fotovoltaico</strong>, <strong>domotica</strong> o <strong>rifacimento bagno</strong>.
+        </p>
       </div>
 
       <div className="flex flex-col md:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#86868B]" />
           <Input 
-            placeholder="Cerca per nome, specializzazione o parola chiave..." 
+            placeholder="Cerca 'climatizzatori', 'allarme', 'piastrelle'..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-12 h-14 bg-white border-[#D2D2D7]/50 rounded-2xl shadow-sm text-lg focus-visible:ring-primary/20"
@@ -113,10 +125,10 @@ export function ProfessionalSearchView({ currentUser }: any) {
           onClick={() => setSelectedCategory(null)}
           className={cn(
             "rounded-full h-10 whitespace-nowrap px-6 font-bold",
-            selectedCategory === null ? "bg-[#1D1D1F] text-white" : "border-[#D2D2D7]/50 text-[#1D1D1F]"
+            selectedCategory === null ? "bg-blue-600 text-white" : "border-[#D2D2D7]/50 text-[#1D1D1F] hover:bg-[#F5F5F7]"
           )}
         >
-          Tutti
+          Tutti i settori
         </Button>
         {SERVICE_CATEGORIES.map((cat) => (
           <Button
@@ -124,10 +136,11 @@ export function ProfessionalSearchView({ currentUser }: any) {
             variant={selectedCategory === cat.id ? "default" : "outline"}
             onClick={() => setSelectedCategory(cat.id)}
             className={cn(
-              "rounded-full h-10 whitespace-nowrap px-6 font-bold",
-              selectedCategory === cat.id ? "bg-[#1D1D1F] text-white" : "border-[#D2D2D7]/50 text-[#1D1D1F]"
+              "rounded-full h-10 whitespace-nowrap px-6 font-bold flex items-center gap-2",
+              selectedCategory === cat.id ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20" : "border-[#D2D2D7]/50 text-[#1D1D1F] hover:bg-[#F5F5F7]"
             )}
           >
+            <cat.icon className="w-4 h-4" />
             {cat.label}
           </Button>
         ))}
@@ -159,59 +172,91 @@ export function ProfessionalSearchView({ currentUser }: any) {
             transition={{ duration: 0.3 }}
           >
             {viewMode === 'grid' ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {filteredProfessionals.map((prof) => (
                   <motion.div
                     key={prof.uid || prof.id}
-                    whileHover={{ y: -5 }}
-                    transition={{ type: "spring", stiffness: 300 }}
+                    whileHover={{ y: -8 }}
+                    className="h-full"
                   >
-                    <Card className="rounded-[2rem] border-none shadow-xl shadow-black/5 overflow-hidden bg-white group cursor-pointer">
-                      <CardContent className="p-0">
-                        <div className="relative h-48 bg-gradient-to-br from-blue-500 to-indigo-600">
-                          {prof.photoURL && (
+                    <Card className="rounded-[2.5rem] border-none shadow-2xl shadow-black/[0.03] overflow-hidden bg-white group cursor-pointer h-full flex flex-col">
+                      <CardContent className="p-0 flex flex-col h-full">
+                        <div className="relative h-56 overflow-hidden">
+                          {prof.photoURL ? (
                             <img 
                               src={prof.photoURL} 
                               alt={prof.displayName} 
-                              className="w-full h-full object-cover mix-blend-overlay opacity-60 group-hover:scale-105 transition-transform duration-500" 
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
                             />
+                          ) : (
+                            <div className="w-full h-full bg-[#1D1D1F] flex items-center justify-center">
+                               <Hammer className="w-16 h-16 text-white/10" />
+                            </div>
                           )}
-                          <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1.5 rounded-full flex items-center gap-1.5 text-sm font-black shadow-sm">
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
+                          <div className="absolute top-4 right-4 bg-white px-3 py-1.5 rounded-full flex items-center gap-1.5 text-sm font-black shadow-lg">
                             <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
                             <span>{prof.rating || 'New'}</span>
                           </div>
                           {prof.isVerified && (
-                            <div className="absolute top-4 left-4 bg-blue-500 text-white p-1.5 rounded-full shadow-lg">
-                              <Shield className="w-4 h-4" />
+                            <div className="absolute top-4 left-4 bg-blue-500 text-white p-2 rounded-full shadow-lg">
+                              <Shield className="w-5 h-5" />
                             </div>
                           )}
+                           <div className="absolute bottom-4 left-6">
+                             <div className="flex flex-wrap gap-1">
+                               {(prof.categories || []).map(catId => (
+                                 <span key={catId} className="px-3 py-1 bg-white/20 backdrop-blur-md text-white border border-white/30 rounded-full text-[9px] font-black uppercase tracking-widest">
+                                   {SERVICE_CATEGORIES.find(c => c.id === catId)?.label}
+                                 </span>
+                               ))}
+                             </div>
+                           </div>
                         </div>
-                        <div className="p-6 space-y-4">
+
+                        <div className="p-8 flex flex-col flex-1 space-y-6">
                           <div className="flex items-start justify-between">
                             <div>
-                              <h4 className="text-xl font-black text-[#1D1D1F] tracking-tight">{prof.displayName}</h4>
-                              <p className="text-sm font-bold text-blue-600 uppercase tracking-wider mt-1">
-                                {SERVICE_CATEGORIES.find(c => c.id === prof.category)?.label || 'Artigiano'}
-                              </p>
-                            </div>
-                            <div className="p-3 bg-[#F5F5F7] rounded-2xl">
-                              <Hammer className="w-5 h-5 text-[#1D1D1F]" />
+                              <h4 className="text-2xl font-black text-[#1D1D1F] tracking-tight">{prof.displayName || prof.nome || 'Artigiano Professionista'}</h4>
+                              <div className="flex items-center gap-2 text-[#86868B] text-sm font-bold mt-1">
+                                <MapPin className="w-4 h-4 text-blue-500" />
+                                <span>{prof.citta || 'Zona non specificata'}</span>
+                              </div>
                             </div>
                           </div>
                           
-                          <p className="text-[#86868B] text-sm line-clamp-2 leading-relaxed">
-                            {prof.bio || "Nessuna biografia fornita."}
+                          <p className="text-[#86868B] text-sm line-clamp-3 leading-relaxed flex-1">
+                            {prof.bio || "Professionista specializzato pronto ad ascoltare le tue esigenze e fornire un preventivo su misura."}
                           </p>
+
+                          {prof.skills && prof.skills.length > 0 && (
+                            <div className="flex flex-wrap gap-2 py-2">
+                               {prof.skills.slice(0, 3).map((skillId, idx) => {
+                                 const label = skillId.split('_').slice(1).join(' ').replace(/_/g, ' ');
+                                 return (
+                                   <span key={idx} className="px-3 py-1.5 bg-[#F5F5F7] text-[#1D1D1F] rounded-xl text-[10px] font-black uppercase tracking-tight">
+                                     {label}
+                                   </span>
+                                 );
+                               })}
+                               {prof.skills.length > 3 && (
+                                 <span className="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-xl text-[10px] font-black">
+                                   +{prof.skills.length - 3}
+                                 </span>
+                               )}
+                            </div>
+                          )}
       
-                          <div className="flex items-center gap-2 text-[#86868B] text-sm">
-                            <MapPin className="w-4 h-4" />
-                            <span className="font-medium">{prof.location?.address || 'Provincia non specificata'}</span>
+                          <div className="pt-4 border-t border-[#F2F2F7] flex items-center justify-between">
+                             <div className="flex flex-col">
+                               <span className="text-[10px] font-black text-[#86868B] uppercase tracking-widest">Tariffa Media</span>
+                               <span className="text-lg font-black text-[#1D1D1F]">€{prof.hourlyRate || 35}<span className="text-sm font-bold text-[#86868B]">/h</span></span>
+                             </div>
+                             <Button className="h-12 px-6 rounded-2xl bg-[#1D1D1F] hover:bg-black text-white font-black group-hover:bg-blue-600 transition-all shadow-xl shadow-black/5">
+                               Contatta
+                               <ChevronRight className="ml-1 w-4 h-4" />
+                             </Button>
                           </div>
-      
-                          <Button className="w-full h-12 rounded-xl bg-[#F5F5F7] hover:bg-[#E8E8ED] text-[#1D1D1F] font-black group-hover:bg-blue-600 group-hover:text-white transition-all">
-                            Visualizza Profilo
-                            <ChevronRight className="ml-1 w-4 h-4" />
-                          </Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -223,7 +268,6 @@ export function ProfessionalSearchView({ currentUser }: any) {
                 <ArtisanMap 
                   professionals={filteredProfessionals} 
                   center={currentUser?.location}
-                  onSelectArtisan={(prof) => console.log("Selected", prof)}
                 />
               </div>
             )}
@@ -239,7 +283,7 @@ export function ProfessionalSearchView({ currentUser }: any) {
               <Search className="w-10 h-10 text-[#D2D2D7]" />
             </div>
             <h3 className="text-xl font-black text-[#1D1D1F] mb-2">Nessun professionista trovato</h3>
-            <p className="text-[#86868B]">Prova a cambiare categoria o termini di ricerca.</p>
+            <p className="text-[#86868B]">Prova a cercare termini più generici o cambia categoria.</p>
           </motion.div>
         )}
       </AnimatePresence>
