@@ -41,7 +41,7 @@ import { ScrollArea } from './components/ui/scroll-area';
 import { cn } from './lib/utils';
 import { BrandLogo } from './components/BrandLogo';
 
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useSearchParams, useLocation, useNavigate } from 'react-router-dom';
 import { SeoLandingPage } from './components/SeoLandingPage';
 
 function App() {
@@ -62,6 +62,7 @@ function App() {
   const [guidedJobInitialAnswers, setGuidedJobInitialAnswers] = useState<Record<string, any>>({});
   const [guidedJobMappedMessage, setGuidedJobMappedMessage] = useState<string | undefined>();
   const [showGuidedWorkerModal, setShowGuidedWorkerModal] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
     const savedDraft = sessionStorage.getItem('pending_job_draft');
@@ -74,6 +75,27 @@ function App() {
       }
     }
   }, []);
+
+  useEffect(() => {
+    const action = searchParams.get('action');
+    const category = searchParams.get('category');
+    const city = searchParams.get('city');
+
+    if (action === 'new_job' && category) {
+      setPendingCategoryId(category);
+      setShowGuidedJobModal(true);
+      
+      if (city) {
+        setGuidedJobInitialAnswers(prev => ({
+          ...prev, 
+          address: city 
+        }));
+      }
+      
+      // Clear URL params without reloading the page
+      setSearchParams(new URLSearchParams());
+    }
+  }, [searchParams, setSearchParams]);
 
   // Handler for mobile navigation in landing page
   const handleLandingTabChange = (tabId: string) => {
@@ -654,7 +676,7 @@ function BriefcaseIcon(props: any) {
 export default function Root() {
   return (
     <Routes>
-      <Route path="/servizi/:provincia/:comune/:categoria" element={<SeoLandingPage />} />
+      <Route path="/servizi/:regione/:provincia/:comune/:categoria" element={<SeoLandingPage />} />
       <Route path="*" element={<App />} />
     </Routes>
   );

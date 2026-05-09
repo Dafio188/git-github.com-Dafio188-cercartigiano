@@ -26,6 +26,7 @@ import { doc, runTransaction, serverTimestamp, collection, addDoc, increment, ge
 import { Job } from '../../types';
 
 import { notifyNewProposal } from '../../lib/notifications';
+import { validateMessage } from '../../lib/contentFilter';
 import { BuyCreditsModal } from './BuyCreditsModal';
 
 interface JobProposalModalProps {
@@ -90,8 +91,18 @@ export function JobProposalModal({ isOpen, onClose, job, workerId, workerTokens:
       return;
     }
 
+    const validation = validateMessage(formData.message, false);
+    if (!validation.isValid) {
+      alert(validation.errorMessage);
+      return;
+    }
+
     setLoading(true);
     try {
+      if ((job.proposalCount || 0) >= 5) {
+        throw new Error("Spiacenti, questo lavoro ha già raggiunto il limite di 5 preventivi.");
+      }
+
       // Use transaction to ensure token deduction and proposal creation are atomic
       await runTransaction(db, async (transaction) => {
         const userRef = doc(db, 'users', workerId);
@@ -119,6 +130,8 @@ export function JobProposalModal({ isOpen, onClose, job, workerId, workerTokens:
           validityDays: formData.validityDays,
           message: formData.message,
           status: 'pending',
+          tokenCostSpent: responseCost,
+          refunded: false,
           createdAt: serverTimestamp()
         });
 
@@ -148,22 +161,22 @@ export function JobProposalModal({ isOpen, onClose, job, workerId, workerTokens:
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl bg-white border-none rounded-[2.5rem] p-0 overflow-y-auto max-h-[90vh] shadow-2xl">
-        <form onSubmit={handleSubmit}>
-          <div className="p-8 lg:p-10 space-y-8">
+      <DialogContent className="max-w-2xl bg-white border-none rounded-t-[2rem] sm:rounded-[2.5rem] p-0 overflow-y-auto max-h-[95vh] sm:max-h-[90vh] shadow-2xl h-full sm:h-auto bottom-0 sm:bottom-auto translate-y-0 sm:-translate-y-1/2">
+        <form onSubmit={handleSubmit} className="flex flex-col h-full">
+          <div className="p-6 sm:p-8 lg:p-10 space-y-6 sm:space-y-8 flex-1">
             <DialogHeader>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center">
-                  <Briefcase className="w-6 h-6 text-blue-600" />
+              <div className="flex items-center gap-3 mb-2 sm:mb-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0">
+                  <Briefcase className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
                 </div>
                 <div>
-                  <DialogTitle className="text-2xl font-black tracking-tight text-[#1D1D1F]">Modulo Preventivo Standard</DialogTitle>
-                  <DialogDescription className="text-sm font-bold text-[#86868B]">Candidati per: {job.title}</DialogDescription>
+                  <DialogTitle className="text-xl sm:text-2xl font-black tracking-tight text-[#1D1D1F] line-clamp-1">Modulo Preventivo</DialogTitle>
+                  <DialogDescription className="text-xs sm:text-sm font-bold text-[#86868B] line-clamp-1">Candidati per: {job.title}</DialogDescription>
                 </div>
               </div>
             </DialogHeader>
 
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {isFull && (
                 <div className="p-4 bg-red-50 border border-red-100 rounded-2xl flex items-start gap-3">
                   <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
@@ -193,113 +206,113 @@ export function JobProposalModal({ isOpen, onClose, job, workerId, workerTokens:
                 </div>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 {!isServiceBased && (
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-[#86868B]">Costo Materiali Stimato (€)</Label>
+                  <div className="space-y-1 sm:space-y-2">
+                    <Label className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-[#86868B] pl-1">Materiali (€)</Label>
                     <Input 
                       type="number"
                       min="0"
                       value={formData.materialsCost}
                       onChange={e => setFormData({...formData, materialsCost: parseInt(e.target.value) || 0})}
-                      className="h-12 rounded-xl bg-[#F5F5F7] border-none font-black text-lg focus-visible:ring-blue-500/20"
+                      className="h-10 sm:h-12 rounded-xl bg-[#F5F5F7] border-none font-black text-base sm:text-lg focus-visible:ring-blue-500/20"
                     />
                   </div>
                 )}
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-[#86868B]">
-                    {isServiceBased ? 'Tariffa Richiesta (€)' : 'Costo Manodopera (€)'}
+                <div className="space-y-1 sm:space-y-2">
+                  <Label className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-[#86868B] pl-1">
+                    {isServiceBased ? 'Tariffa (€)' : 'Manodopera (€)'}
                   </Label>
                   <Input 
                     type="number"
                     min="0"
                     value={formData.laborCost}
                     onChange={e => setFormData({...formData, laborCost: parseInt(e.target.value) || 0})}
-                    className="h-12 rounded-xl bg-[#F5F5F7] border-none font-black text-lg focus-visible:ring-blue-500/20"
+                    className="h-10 sm:h-12 rounded-xl bg-[#F5F5F7] border-none font-black text-base sm:text-lg focus-visible:ring-blue-500/20"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-[#86868B]">
-                    {isServiceBased ? 'Durata / Frequenza (Giorni)' : 'Giorni Lavorativi Previsti'}
+                <div className="space-y-1 sm:space-y-2">
+                  <Label className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-[#86868B] pl-1">
+                    {isServiceBased ? 'Durata (Giorni)' : 'Giorni Previsti'}
                   </Label>
                   <Input 
                     type="number"
                     min="1"
                     value={formData.estimatedDays}
                     onChange={e => setFormData({...formData, estimatedDays: parseInt(e.target.value) || 1})}
-                    className="h-12 rounded-xl bg-[#F5F5F7] border-none font-black text-lg focus-visible:ring-blue-500/20"
+                    className="h-10 sm:h-12 rounded-xl bg-[#F5F5F7] border-none font-black text-base sm:text-lg focus-visible:ring-blue-500/20"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-[#86868B]">Validità Offerta (Giorni)</Label>
+                <div className="space-y-1 sm:space-y-2">
+                  <Label className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-[#86868B] pl-1">Validità (Giorni)</Label>
                   <Input 
                     type="number"
                     min="1"
                     value={formData.validityDays}
                     onChange={e => setFormData({...formData, validityDays: parseInt(e.target.value) || 15})}
-                    className="h-12 rounded-xl bg-[#F5F5F7] border-none font-black text-lg focus-visible:ring-blue-500/20"
+                    className="h-10 sm:h-12 rounded-xl bg-[#F5F5F7] border-none font-black text-base sm:text-lg focus-visible:ring-blue-500/20"
                   />
                 </div>
               </div>
 
-              <div className="p-4 bg-[#1D1D1F] text-white rounded-2xl flex items-center justify-between shadow-xl">
-                 <span className="font-black">{isServiceBased ? 'Totale Prestazione:' : 'Totale Preventivo Stimato:'}</span>
-                 <span className="text-2xl font-black text-green-400">€{totalPrice}</span>
+              <div className="p-4 bg-[#1D1D1F] text-white rounded-xl sm:rounded-2xl flex items-center justify-between shadow-xl">
+                 <span className="font-black text-xs sm:text-base">{isServiceBased ? 'Totale:' : 'Totale Stimato:'}</span>
+                 <span className="text-xl sm:text-2xl font-black text-green-400">€{totalPrice}</span>
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-[#86868B]">Messaggio al Cliente / Dettagli</Label>
+                <Label className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-[#86868B] pl-1">Messaggio al Cliente</Label>
                 <textarea 
-                  rows={4}
-                  placeholder="Descrivi dettagliatamente l'intervento, specifica se serve P.IVA..."
+                  rows={3}
+                  placeholder="Descrivi dettagliatamente l'intervento..."
                   value={formData.message}
                   onChange={e => setFormData({...formData, message: e.target.value})}
-                  className="w-full p-4 rounded-2xl bg-[#F5F5F7] border-none font-bold text-sm focus:ring-1 focus:ring-blue-500/20 outline-none"
+                  className="w-full p-4 rounded-xl sm:rounded-2xl bg-[#F5F5F7] border-none font-bold text-xs sm:text-sm focus:ring-1 focus:ring-blue-500/20 outline-none resize-none"
                 />
               </div>
 
-              <div className="text-[10px] text-[#86868B] bg-gray-50 p-3 rounded-xl border border-gray-100 flex gap-2">
-                <Shield className="w-10 h-10 shrink-0 text-gray-400" />
-                <p>
-                  <strong>Disclaimer:</strong> CercArtigiano.it opera esclusivamente come intermediario per mettere in contatto domanda e offerta. La piattaforma non è in alcun modo responsabile o garante dell'esecuzione dei lavori, della qualità degli stessi o delle transazioni economiche tra le parti. Accordi, fatturazioni (o quietanze per prestazioni occasionali) sono a cura esclusiva tra cliente e professionista. Non condividere contatti personali (telefono/email) finché il preventivo non è approvato.
+              <div className="text-[9px] sm:text-[10px] text-[#86868B] bg-gray-50 p-3 rounded-xl border border-gray-100 flex gap-2">
+                <Shield className="w-6 h-6 sm:w-10 sm:h-10 shrink-0 text-gray-400" />
+                <p className="leading-tight">
+                  <strong>Disclaimer:</strong> CercArtigiano.it opera esclusivamente come intermediario. Accordi e fatturazioni sono a cura esclusiva tra le parti. Non condividere contatti personali finché il preventivo non è approvato.
                 </p>
               </div>
 
-              <div className="p-4 bg-blue-50 rounded-2xl flex items-center justify-between border border-blue-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-sm">
-                    <Zap className="w-4 h-4 text-blue-600" />
+              <div className="p-3 sm:p-4 bg-blue-50 rounded-xl sm:rounded-2xl flex items-center justify-between border border-blue-100">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 bg-white rounded-lg flex items-center justify-center shadow-sm">
+                    <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600" />
                   </div>
                   <div>
-                    <div className="text-[10px] font-black uppercase tracking-widest text-blue-600">Costo Invio</div>
-                    <div className="text-xs font-black text-[#1D1D1F]">{responseCost} Token</div>
+                    <div className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-blue-600">Costo Invio</div>
+                    <div className="text-[10px] sm:text-xs font-black text-[#1D1D1F]">{responseCost} Token</div>
                   </div>
                 </div>
                 <div className="text-right">
-                   <div className="text-[10px] font-black uppercase tracking-widest text-[#86868B]">Saldo Residuo</div>
-                   <div className="text-xs font-black text-[#1D1D1F]">{workerTokens - responseCost < 0 ? 0 : workerTokens - responseCost}</div>
+                   <div className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-[#86868B]">Saldo Residuo</div>
+                   <div className="text-[10px] sm:text-xs font-black text-[#1D1D1F]">{workerTokens - responseCost < 0 ? 0 : workerTokens - responseCost}</div>
                 </div>
               </div>
             </div>
           </div>
 
-          <DialogFooter className="p-8 bg-[#F5F5F7]">
-            <div className="w-full flex items-center gap-4">
+          <DialogFooter className="p-6 sm:p-8 bg-[#F5F5F7] mt-auto">
+            <div className="w-full flex items-center gap-3 sm:gap-4">
               <Button 
                 type="button" 
                 variant="outline" 
                 onClick={onClose}
-                className="flex-1 h-14 rounded-2xl font-black bg-[#F5F5F7] text-[#86868B] hover:text-[#1D1D1F] hover:bg-white border-none transition-all duration-300 uppercase tracking-widest text-[10px]"
+                className="flex-1 h-12 sm:h-14 rounded-xl sm:rounded-2xl font-black bg-[#F5F5F7] text-[#86868B] hover:text-[#1D1D1F] hover:bg-white border-none transition-all duration-300 uppercase tracking-widest text-[9px] sm:text-[10px]"
               >
-                Esci / Annulla
+                Annulla
               </Button>
               <Button 
                 type="submit" 
                 disabled={loading || !canSubmit}
-                className="flex-[2] h-14 rounded-2xl bg-[#1D1D1F] hover:bg-black text-white font-black text-lg shadow-xl shadow-black/10 group"
+                className="flex-[2] h-12 sm:h-14 rounded-xl sm:rounded-2xl bg-[#1D1D1F] hover:bg-black text-white font-black text-base sm:text-lg shadow-xl shadow-black/10 group"
               >
-                {loading ? 'Invio...' : 'Invia Preventivo Vincolante'}
-                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                {loading ? 'Invio...' : 'Invia'}
+                <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </div>
           </DialogFooter>

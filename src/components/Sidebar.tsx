@@ -80,20 +80,12 @@ export function Sidebar({ activeTab, setActiveTab, role, unreadCount = 0 }: Side
                   "w-5 h-5 transition-transform",
                   activeTab === item.id ? "text-blue-600 scale-110" : "group-hover:scale-110"
                 )} />
-                {unreadCount > 0 && item.id === 'home' && (
-                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#FF3B30] rounded-full border-2 border-[#F5F5F7] animate-pulse" />
-                )}
               </div>
               <span className={cn(
                 "text-sm font-bold",
                 activeTab === item.id ? "text-[#1D1D1F]" : "text-[#86868B]"
               )}>{item.label}</span>
             </div>
-            {unreadCount > 0 && item.id === 'home' && (
-              <span className="bg-[#FF3B30] text-white text-[9px] font-black px-1.5 py-0.5 rounded-full ring-2 ring-white">
-                {unreadCount}
-              </span>
-            )}
             {activeTab === item.id && (
               <ChevronRight className="w-4 h-4 text-blue-600/30" />
             )}

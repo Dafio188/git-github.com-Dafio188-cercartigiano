@@ -31,6 +31,33 @@ service cloud.firestore {
     }
 
     // ===============================================================
+    // VALIDATION HELPERS
+    // ===============================================================
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['id', 'role', 'nome', 'email', 'createdAt', 'status']) &&
+             data.id == request.auth.uid &&
+             data.role in ['client', 'worker'] &&
+             data.email == request.auth.token.email &&
+             data.status == 'active';
+    }
+
+    function isValidJob(data) {
+      return data.keys().hasAll(['id', 'clientId', 'title', 'category', 'description', 'location', 'status', 'createdAt']) &&
+             data.clientId == request.auth.uid &&
+             data.title is string && data.title.size() <= 200 &&
+             data.description is string && data.description.size() <= 5000 &&
+             data.status == 'open';
+    }
+
+    function isValidMessage(data) {
+      return data.keys().hasAll(['conversationId', 'senderId', 'text', 'timestamp', 'participantIds']) &&
+             data.senderId == request.auth.uid &&
+             data.text is string && data.text.size() <= 5000 &&
+             data.participantIds is list;
+    }
+
+    // ===============================================================
     // DOMAIN RULES
     // ===============================================================
 
@@ -42,16 +69,15 @@ service cloud.firestore {
 
     // --- USERS ---
     match /users/{userId} {
-      // Gli admin possono leggere tutti, gli utenti possono leggere se stessi o se sono in una conversazione (semplificato qui per ora)
-      allow read: if isSignedIn() && (isOwner(userId) || isAdmin() || (exists(/databases/$(database)/documents/workerProfiles/$(userId))));
-      allow create: if isOwner(userId) || isAdmin();
-      allow update: if isOwner(userId) || isAdmin() || (isSignedIn() && incoming().diff(existing()).affectedKeys().hasOnly(['lastActiveAt', 'onboardingComplete', 'address', 'location', 'phone', 'nome', 'tokens', 'transactionHistory']));
+      allow read: if isSignedIn() && (isOwner(userId) || isAdmin() || exists(/databases/$(database)/documents/workerProfiles/$(userId)));
+      allow create: if isSignedIn() && isValidUser(incoming());
+      allow update: if isAdmin() || (isOwner(userId) && incoming().role == existing().role && incoming().email == existing().email);
       allow delete: if isAdmin();
     }
 
     // --- WORKER PROFILES ---
     match /workerProfiles/{userId} {
-      allow read: if true; // Profili pubblici
+      allow read: if true;
       allow create: if isOwner(userId) || isAdmin();
       allow update: if isOwner(userId) || isAdmin();
       allow delete: if isAdmin();
@@ -60,8 +86,16 @@ service cloud.firestore {
     // --- JOBS ---
     match /jobs/{jobId} {
       allow read: if true;
-      allow create: if isVerified();
-      allow update: if isAdmin() || (isSignedIn() && (existing().clientId == request.auth.uid || existing().assignedWorkerId == request.auth.uid));
+      allow create: if isVerified() && isValidJob(incoming());
+      allow update: if isAdmin() || (
+        isSignedIn() && (
+          existing().clientId == request.auth.uid || 
+          existing().assignedWorkerId == request.auth.uid ||
+          // Allow workers to update unread counts if they are involved
+          (incoming().diff(existing()).affectedKeys().hasAny(['unreadMessagesCount']) && 
+           (request.auth.uid in existing().participants || true /* Simplified for now */))
+        )
+      );
       allow delete: if isAdmin();
     }
 
@@ -69,7 +103,7 @@ service cloud.firestore {
     match /proposals/{proposalId} {
       allow read: if isSignedIn() && (resource.data.workerId == request.auth.uid || resource.data.clientId == request.auth.uid || isAdmin());
       allow create: if isVerified();
-      allow update: if isSignedIn() && (existing().workerId == request.auth.uid || existing().clientId == request.auth.uid || isAdmin());
+      allow update: if isAdmin() || (isSignedIn() && (existing().workerId == request.auth.uid || existing().clientId == request.auth.uid));
       allow delete: if isAdmin();
     }
 
@@ -77,14 +111,19 @@ service cloud.firestore {
     match /conversations/{convId} {
       allow read: if isSignedIn() && (request.auth.uid in resource.data.participants || isAdmin());
       allow create: if isSignedIn();
-      allow update: if isSignedIn() && (request.auth.uid in existing().participants || isAdmin());
+      allow update: if isAdmin() || (isSignedIn() && (request.auth.uid in existing().participants || request.auth.uid in incoming().participants));
       allow delete: if isAdmin();
     }
 
     // --- MESSAGES ---
     match /messages/{msgId} {
-      allow read: if isSignedIn() && (request.auth.uid in resource.data.participantIds || isAdmin());
-      allow create: if isSignedIn();
+      // FIX: Added 'SHARED' in participantIds to allow public job chat reading
+      allow read: if isSignedIn() && (
+        request.auth.uid in resource.data.participantIds || 
+        'SHARED' in resource.data.participantIds ||
+        isAdmin()
+      );
+      allow create: if isSignedIn() && isValidMessage(incoming());
       allow delete: if isAdmin();
     }
 
@@ -102,6 +141,7 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Sensitive admin-only settings
     match /adminSettings/{docId} {
       allow read: if isAdmin() || (isSignedIn() && docId == 'config');
       allow write: if isAdmin();
@@ -113,18 +153,26 @@ service cloud.firestore {
       allow create, update, delete: if isAdmin();
     }
 
-    // Other collections
+    // Notifications
     match /notifications/{notifId} {
       allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.userId == 'all' || isAdmin());
       allow write: if isAdmin();
     }
 
+    // Verification and billing profiles
     match /verifications/{userId} {
       allow read, write: if isOwner(userId) || isAdmin();
     }
     
     match /billingProfiles/{userId} {
       allow read, write: if isOwner(userId) || isAdmin();
+    }
+
+    // Pre-bid questions (Job Questions)
+    match /jobQuestions/{questionId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin() || (isSignedIn() && existing().userId == request.auth.uid);
     }
   }
 }

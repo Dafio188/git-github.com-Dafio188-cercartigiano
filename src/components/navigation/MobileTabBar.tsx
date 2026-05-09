@@ -9,7 +9,8 @@ import {
   Briefcase,
   HelpCircle,
   LogIn,
-  Layers
+  Layers,
+  CheckCircle2
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { User } from '../../types';
@@ -39,16 +40,20 @@ export function MobileTabBar({ activeTab, onTabChange, user, onLoginRequest, unr
 
   // Navigation for Workers
   const workerTabs: TabItem[] = [
-    { id: 'home', icon: Home, label: 'Dashboard' },
-    { id: 'jobs', icon: Briefcase, label: 'Lavori' },
-    { id: 'profile', icon: UserIcon, label: 'Profilo' },
+    { id: 'home', icon: Home, label: 'Home' },
+    { id: 'jobs', icon: Briefcase, label: 'Trova' },
+    { id: 'projects', icon: CheckCircle2, label: 'Attivi' },
+    { id: 'profile', icon: UserIcon, label: 'Mio Profilo' },
+    { id: 'credits', icon: Zap, label: 'Piani' },
   ];
 
   // Navigation for Clients
   const clientTabs: TabItem[] = [
     { id: 'home', icon: Home, label: 'Home' },
-    { id: 'search', icon: Search, label: 'Cerca' },
-    { id: 'profile', icon: UserIcon, label: 'Profilo' },
+    { id: 'search', icon: Search, label: 'Esperti' },
+    { id: 'jobs', icon: MessageSquare, label: 'Richieste' },
+    { id: 'profile', icon: UserIcon, label: 'Mio Profilo' },
+    { id: 'credits', icon: Zap, label: 'Token' },
   ];
 
   const tabs = !user 

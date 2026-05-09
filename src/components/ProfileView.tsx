@@ -60,7 +60,8 @@ import {
   History,
   TrendingUp,
   Wallet,
-  Star
+  Star,
+  Settings
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../lib/utils';
@@ -75,6 +76,11 @@ interface ProfileViewProps {
 export function ProfileView({ user }: ProfileViewProps) {
   const [loading, setLoading] = useState(false);
   const [showBuyCredits, setShowBuyCredits] = useState(false);
+  
+  const handleSwitchToSettings = () => {
+    window.dispatchEvent(new CustomEvent('switchTab', { detail: 'settings' }));
+  };
+
   const [editUser, setEditUser] = useState<User>({
     ...user,
     nome: user.nome || '',
@@ -213,22 +219,32 @@ export function ProfileView({ user }: ProfileViewProps) {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 pb-32">
+    <div className="max-w-6xl mx-auto space-y-8 pb-32 px-2 sm:px-0">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-5">
-           <div className="w-20 h-20 bg-white rounded-3xl shadow-xl shadow-black/5 flex items-center justify-center p-1 border border-[#D2D2D7]/30">
-              <div className="w-full h-full bg-[#1D1D1F] rounded-2xl flex items-center justify-center text-white relative">
-                 <UserIcon className="w-10 h-10" />
+           <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-[1.5rem] sm:rounded-3xl shadow-xl shadow-black/5 flex items-center justify-center p-1 border border-[#D2D2D7]/30">
+              <div className="w-full h-full bg-[#1D1D1F] rounded-[1.2rem] sm:rounded-2xl flex items-center justify-center text-white relative">
+                 <UserIcon className="w-8 h-8 sm:w-10 sm:h-10" />
                  {user.onboardingComplete && (
                    <div className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-1 border-2 border-white shadow-lg">
-                      <Shield className="w-4 h-4" />
+                      <Shield className="w-3 h-3 sm:w-4 sm:h-4" />
                    </div>
                  )}
               </div>
            </div>
-           <div>
-             <h1 className="text-3xl font-black tracking-tight text-[#1D1D1F]">{editUser.nome || 'Il tuo Nome'}</h1>
-             <p className="text-[#86868B] font-bold uppercase tracking-widest text-[10px] mt-1">
+           <div className="flex-1">
+             <div className="flex items-center justify-between">
+               <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#1D1D1F]">{editUser.nome || 'Il tuo Nome'}</h1>
+               <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={handleSwitchToSettings}
+                className="lg:hidden h-10 w-10 text-[#86868B] hover:text-[#1D1D1F]"
+               >
+                 <Settings className="w-5 h-5" />
+               </Button>
+             </div>
+             <p className="text-[#86868B] font-bold uppercase tracking-widest text-[9px] sm:text-[10px] mt-1">
                {user.role === 'worker' ? 'Professionista Certificato' : 'Cliente CercArtigiano'}
              </p>
              {user.role === 'worker' && (
@@ -238,15 +254,15 @@ export function ProfileView({ user }: ProfileViewProps) {
              )}
            </div>
         </div>
-        <Button onClick={handleSave} disabled={loading} className="rounded-full bg-[#1D1D1F] hover:bg-black text-white px-8 h-12 font-bold shadow-xl shadow-[#1D1D1F]/20 flex items-center gap-2 group">
+        <Button onClick={handleSave} disabled={loading} className="w-full md:w-auto rounded-full bg-[#1D1D1F] hover:bg-black text-white px-8 h-12 font-bold shadow-xl shadow-[#1D1D1F]/20 flex items-center gap-2 group">
           {loading ? 'Salvataggio...' : <><Save className="w-4 h-4 group-hover:scale-110 transition-transform" />Salva Modifiche</>}
         </Button>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
-          <section className="bg-white rounded-[2.5rem] border border-[#D2D2D7]/30 shadow-sm overflow-hidden p-8 lg:p-10">
-            <div className="flex items-center gap-3 mb-8">
+        <div className="lg:col-span-2 space-y-6 sm:space-y-8">
+          <section className="bg-white rounded-[2rem] sm:rounded-[2.5rem] border border-[#D2D2D7]/30 shadow-sm overflow-hidden p-6 sm:p-8 lg:p-10">
+            <div className="flex items-center gap-3 mb-6 sm:mb-8">
               <UserIcon className="w-5 h-5 text-[#1D1D1F]" />
               <h2 className="text-xl font-black tracking-tight">Dati Personali</h2>
             </div>
@@ -278,7 +294,23 @@ export function ProfileView({ user }: ProfileViewProps) {
                   </div>
                   <div className="md:col-span-3 space-y-2">
                     <Label className="text-[10px] font-black uppercase tracking-widest text-[#86868B]">Civico</Label>
-                    <Input value={editUser.civico} onChange={e => setEditUser({...editUser, civico: e.target.value})} className="h-12 rounded-xl bg-[#F5F5F7] border-none font-bold" />
+                    <Input value={editUser.civico || ''} onChange={e => setEditUser({...editUser, civico: e.target.value})} className="h-12 rounded-xl bg-[#F5F5F7] border-none font-bold" />
+                  </div>
+                  <div className="md:col-span-4 space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-[#86868B]">Città</Label>
+                    <Input value={editUser.citta || ''} onChange={e => setEditUser({...editUser, citta: e.target.value})} className="h-12 rounded-xl bg-[#F5F5F7] border-none font-bold" />
+                  </div>
+                  <div className="md:col-span-4 space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-[#86868B]">Provincia/Sigla</Label>
+                    <Input value={editUser.provincia || ''} onChange={e => setEditUser({...editUser, provincia: e.target.value})} className="h-12 rounded-xl bg-[#F5F5F7] border-none font-bold" placeholder="es. MI" maxLength={2} />
+                  </div>
+                  <div className="md:col-span-4 space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-[#86868B]">CAP</Label>
+                    <Input value={editUser.cap || ''} onChange={e => setEditUser({...editUser, cap: e.target.value})} className="h-12 rounded-xl bg-[#F5F5F7] border-none font-bold" />
+                  </div>
+                  <div className="md:col-span-12 space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-[#86868B]">Regione</Label>
+                    <Input value={editUser.regione || ''} onChange={e => setEditUser({...editUser, regione: e.target.value})} className="h-12 rounded-xl bg-[#F5F5F7] border-none font-bold" />
                   </div>
                 </div>
               </div>

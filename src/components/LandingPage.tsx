@@ -11,7 +11,9 @@ import {
   Zap,
   Clock,
   MapPin,
-  Hammer
+  Hammer,
+  Smartphone,
+  Bell
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '../lib/utils';
@@ -36,26 +38,27 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
   const [currentIndex, setCurrentIndex] = useState(0);
   const [workerBackgroundIndex, setWorkerBackgroundIndex] = useState(0);
   const [howItWorksTab, setHowItWorksTab] = useState<'client' | 'worker'>('client');
+  const [faqTab, setFaqTab] = useState<'client' | 'worker'>('client');
   const [searchQuery, setSearchQuery] = useState('');
   
   const heroSlides = [
     {
-      main: "L'artigiano più vicino,",
-      sub: "scelto dal nostro algoritmo.",
+      main: "Dimmi di cosa hai bisogno,",
+      sub: "l'artigiano perfetto lo troviamo noi.",
       image: "/Foto_homepage.png",
-      keyword: "VICINANZA"
+      keyword: "SOLUZIONI"
     },
     {
-      main: "5 Preventivi reali,",
-      sub: "qualità e prezzo garantiti.",
+      main: "Ricevi 5 preventivi gratuiti,",
+      sub: "confronta e scegli il migliore.",
       image: "/Foto_homepage2.png",
-      keyword: "CONFRONTO"
+      keyword: "SCELTA"
     },
     {
-      main: "Tutto nel palmo",
-      sub: "della Tua mano.",
+      main: "Tutto l'aiuto che cerchi,",
+      sub: "nel palmo della tua mano.",
       image: "/worker_bg_1.png",
-      keyword: "CONTROLLO"
+      keyword: "SEMPLICITÀ"
     }
   ];
 
@@ -165,33 +168,23 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
-                className="md:bg-white/90 md:backdrop-blur-2xl p-0 md:p-8 lg:p-10 md:rounded-[2.5rem] md:border border-white/40 md:shadow-2xl shadow-black/10 w-fit group"
+                className="bg-white/90 backdrop-blur-2xl p-6 sm:p-8 lg:p-10 rounded-[2rem] sm:rounded-[2.5rem] border border-white/40 shadow-2xl shadow-black/10 w-fit group"
               >
                 <div className="min-h-[100px] sm:min-h-[140px] lg:min-h-[180px] flex items-center justify-start">
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={currentIndex}
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
-                      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                    >
-                      <div className="flex flex-col">
-                        <div className="flex items-center gap-2 mb-2">
-                           <div className="w-8 h-[2px] bg-blue-600" />
-                           <span className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-600">
-                             {heroSlides[currentIndex].keyword}
-                           </span>
-                        </div>
-                        <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tighter text-[#1D1D1F] leading-[0.9]">
-                          {heroSlides[currentIndex].main} <br className="hidden sm:block" />
-                          <span className="text-blue-600 block mt-2 uppercase italic">
-                            {heroSlides[currentIndex].sub}
-                          </span>
-                        </h1>
-                      </div>
-                    </motion.div>
-                  </AnimatePresence>
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-2 mb-2">
+                       <div className="w-8 h-[2px] bg-blue-600" />
+                       <span className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-600">
+                         Per il Cliente
+                       </span>
+                    </div>
+                    <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tighter text-[#1D1D1F] leading-[0.9]">
+                      Sei in cerca di un artigiano o professionista? <br className="hidden sm:block" />
+                      <span className="text-blue-600 block mt-2 uppercase italic">
+                        Sei nel posto giusto.
+                      </span>
+                    </h1>
+                  </div>
                 </div>
 
                 {/* Quick Request Box */}
@@ -248,126 +241,164 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
       <div className="h-32 bg-white" />
 
       {/* Mobile Experience Section - "Tutto nel palmo della Tua mano" */}
-      <section className="py-32 bg-[#FBFBFD] overflow-hidden relative">
-        <div className="absolute top-0 right-0 w-1/3 h-full bg-blue-50/30 blur-[120px] -z-10" />
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex flex-col lg:flex-row items-center gap-20">
+      <section className="py-24 sm:py-32 bg-[#FBFBFD] relative">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-0 right-0 w-1/3 h-full bg-blue-50/30 blur-[120px] -z-10" />
+        </div>
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-16 lg:gap-8 items-center">
+            {/* Left: Artisan Text */}
             <motion.div 
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="flex-1 space-y-8"
+              className="space-y-6 sm:space-y-8 order-2 lg:order-1"
             >
               <div className="inline-flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-full border border-blue-100 shadow-sm">
                  <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
-                 <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">L'esperienza Mobile</span>
+                 <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">Per il Professionista</span>
               </div>
-              <h2 className="text-4xl md:text-7xl font-black tracking-tighter text-[#1D1D1F] leading-[0.9]">
-                La tua attività, <br />
-                <span className="text-blue-600 italic">nel palmo della tua mano.</span>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tighter text-[#1D1D1F] leading-[1.1] sm:leading-[0.9]">
+                Trova e gestisci il tuo lavoro, <br />
+                <span className="text-blue-600 italic">tutto dal tuo palmo.</span>
               </h2>
-              <p className="text-xl text-[#1D1D1F] font-bold leading-relaxed max-w-xl">
-                Non siamo solo un sito web. Siamo il compagno di lavoro che porti sempre con te. 
-                Monitora preventivi, ricevi notifiche istantanee e chiudi affari ovunque ti trovi.
+              <p className="text-base sm:text-lg text-[#1D1D1F] font-bold leading-relaxed">
+                Monitora preventivi, ricevi notifiche istantanee per nuovi lavori e chiudi affari ovunque ti trovi.
               </p>
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4">
+              <div className="grid grid-cols-1 gap-4 pt-4">
                  {[
-                   { icon: Zap, text: "Notifiche Real-time" },
-                   { icon: Shield, text: "Pagamenti Sicuri" },
-                   { icon: MessageSquare, text: "Chat Integrata" },
-                   { icon: Clock, text: "Gestione Agenda" }
+                   { icon: Zap, text: "Notifiche Real-time per Richieste" },
+                   { icon: MessageSquare, text: "Chat Diretta e Sicura" },
+                   { icon: Clock, text: "Gestione Smart dell'Agenda" }
                  ].map((item, i) => (
                    <div key={i} className="flex items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-[#D2D2D7]/30">
-                      <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
+                      <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
                         <item.icon className="w-5 h-5 text-blue-600" />
                       </div>
-                      <span className="font-black text-[#1D1D1F] text-sm uppercase tracking-tight">{item.text}</span>
+                      <span className="font-black text-[#1D1D1F] text-sm uppercase tracking-tight leading-tight">{item.text}</span>
                    </div>
                  ))}
               </div>
             </motion.div>
             
-            {/* Phone Mockup Container */}
+            {/* Center: Phone Mockup */}
             <motion.div 
               initial={{ opacity: 0, scale: 0.9, y: 50 }}
               whileInView={{ opacity: 1, scale: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-              className="flex-1 relative flex justify-center lg:justify-end"
+              className="relative w-full flex justify-center order-1 lg:order-2"
             >
-              <div className="relative w-[320px] h-[650px] bg-[#000] rounded-[3.5rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.4)] border-[12px] border-[#1D1D1F] overflow-hidden group">
-                {/* Status Bar */}
-                <div className="absolute top-0 left-0 w-full h-8 flex justify-between items-center px-8 z-20">
-                   <span className="text-[10px] font-bold text-black/80">9:41</span>
-                   <div className="flex gap-1.5 items-center">
-                      <div className="w-4 h-2 bg-black/20 rounded-sm" />
-                      <div className="w-3 h-3 rounded-full border border-black/20" />
-                   </div>
+              <div className="relative w-full max-w-[280px] sm:max-w-[320px]">
+                <div className="relative w-full aspect-[1/2.05] bg-[#000] rounded-[2.5rem] sm:rounded-[3.5rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.4)] border-[10px] sm:border-[12px] border-[#1D1D1F] overflow-hidden group">
+                  {/* Status Bar */}
+                  <div className="absolute top-0 left-0 w-full h-6 sm:h-8 flex justify-between items-center px-4 sm:px-8 z-20">
+                     <span className="text-[9px] sm:text-[10px] font-bold text-black/80">9:41</span>
+                     <div className="flex gap-1 sm:gap-1.5 items-center">
+                        <div className="w-3 sm:w-4 h-1.5 sm:h-2 bg-black/20 rounded-sm" />
+                        <div className="w-2.5 sm:w-3 h-2.5 sm:h-3 rounded-full border border-black/20" />
+                     </div>
+                  </div>
+
+                  {/* Phone Screen Mockup Content */}
+                  <div className="absolute inset-0 bg-[#FBFBFD] pt-10 sm:pt-12 p-4 sm:p-6 flex flex-col">
+                     <div className="flex items-center justify-between mb-6 sm:mb-8">
+                        <div className="flex items-center gap-1.5 sm:gap-2">
+                          <BrandLogo className="w-6 h-6 sm:w-8 sm:h-8" />
+                          <span className="text-[10px] sm:text-xs font-black tracking-tight">CercArtigiano</span>
+                        </div>
+                        <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                          <Star className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600" />
+                        </div>
+                     </div>
+                     
+                     <div className="space-y-3 sm:space-y-4">
+                        <div className="p-3 sm:p-4 bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-[#D2D2D7]/20">
+                           <div className="flex justify-between items-center mb-2 sm:mb-3">
+                              <span className="text-[8px] sm:text-[10px] font-black uppercase text-blue-600 tracking-widest">Nuova Richiesta</span>
+                              <span className="text-[7px] sm:text-[8px] font-bold text-[#86868B]">Ora</span>
+                           </div>
+                           <h4 className="text-[10px] sm:text-xs font-black text-[#1D1D1F] mb-1">Riparazione Impianto</h4>
+                           <p className="text-[8px] sm:text-[10px] text-[#86868B] font-medium">Roma, 2km da te</p>
+                           <div className="mt-3 sm:mt-4 flex gap-1.5 sm:gap-2">
+                              <div className="h-6 sm:h-8 flex-1 bg-blue-600 rounded-lg sm:rounded-xl" />
+                              <div className="h-6 w-6 sm:h-8 sm:w-8 bg-gray-100 rounded-lg sm:rounded-xl" />
+                           </div>
+                        </div>
+
+                        <div className="p-3 sm:p-4 bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-[#D2D2D7]/20 opacity-60 scale-95 translate-y-2 sm:translate-y-4">
+                           <div className="flex justify-between items-center mb-2 sm:mb-3">
+                              <span className="text-[8px] sm:text-[10px] font-black uppercase text-green-600 tracking-widest">Servizio Completato</span>
+                           </div>
+                           <div className="h-1.5 sm:h-2 w-1/2 bg-gray-100 rounded-full mb-1" />
+                           <div className="h-1.5 sm:h-2 w-1/3 bg-gray-100 rounded-full" />
+                        </div>
+                     </div>
+
+                     <div className="mt-auto flex items-center justify-between bg-white p-2.5 sm:p-3 rounded-xl sm:rounded-2xl shadow-xl border border-[#D2D2D7]/20">
+                        {[1,2,3,4].map(i => (
+                          <div key={i} className={`w-6 h-6 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl ${i === 1 ? 'bg-blue-600' : 'bg-[#F5F5F7]'}`} />
+                        ))}
+                     </div>
+                  </div>
+                  {/* Dynamic Island Area */}
+                  <div className="absolute top-1.5 sm:top-2 left-1/2 -translate-x-1/2 w-16 sm:w-24 h-4 sm:h-6 bg-[#1D1D1F] rounded-full z-30" />
+                  
+                  {/* Reflection Glass Effect */}
+                  <div className="absolute top-0 left-0 w-full h-[200%] bg-gradient-to-b from-white/20 via-transparent to-transparent -skew-y-[45deg] pointer-events-none transition-transform duration-1000 group-hover:translate-x-full" />
                 </div>
-
-                {/* Phone Screen Mockup Content */}
-                <div className="absolute inset-0 bg-[#FBFBFD] pt-12 p-6 flex flex-col">
-                   <div className="flex items-center justify-between mb-8">
-                      <div className="flex items-center gap-2">
-                        <BrandLogo className="w-8 h-8" />
-                        <span className="text-xs font-black tracking-tight">CercArtigiano</span>
-                      </div>
-                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                        <Star className="w-4 h-4 text-blue-600" />
-                      </div>
-                   </div>
-                   
-                   <div className="space-y-4">
-                      <div className="p-4 bg-white rounded-3xl shadow-sm border border-[#D2D2D7]/20">
-                         <div className="flex justify-between items-center mb-3">
-                            <span className="text-[10px] font-black uppercase text-blue-600 tracking-widest">Nuova Richiesta</span>
-                            <span className="text-[8px] font-bold text-[#86868B]">Ora</span>
-                         </div>
-                         <h4 className="text-xs font-black text-[#1D1D1F] mb-1">Riparazione Impianto</h4>
-                         <p className="text-[10px] text-[#86868B] font-medium">Bari, 2km da te</p>
-                         <div className="mt-4 flex gap-2">
-                            <div className="h-8 flex-1 bg-blue-600 rounded-xl" />
-                            <div className="h-8 w-8 bg-gray-100 rounded-xl" />
-                         </div>
-                      </div>
-
-                      <div className="p-4 bg-white rounded-3xl shadow-sm border border-[#D2D2D7]/20 opacity-60 scale-95 translate-y-4">
-                         <div className="flex justify-between items-center mb-3">
-                            <span className="text-[10px] font-black uppercase text-green-600 tracking-widest">Pagamento Ricevuto</span>
-                         </div>
-                         <div className="h-2 w-1/2 bg-gray-100 rounded-full mb-1" />
-                         <div className="h-2 w-1/3 bg-gray-100 rounded-full" />
-                      </div>
-                   </div>
-
-                   <div className="mt-auto flex items-center justify-between bg-white p-3 rounded-2xl shadow-xl border border-[#D2D2D7]/20">
-                      {[1,2,3,4].map(i => (
-                        <div key={i} className={`w-8 h-8 rounded-xl ${i === 1 ? 'bg-blue-600' : 'bg-[#F5F5F7]'}`} />
-                      ))}
-                   </div>
-                </div>
-                {/* Dynamic Island Area */}
-                <div className="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-6 bg-[#1D1D1F] rounded-full z-30" />
                 
-                {/* Reflection Glass Effect */}
-                <div className="absolute top-0 left-0 w-full h-[200%] bg-gradient-to-b from-white/20 via-transparent to-transparent -skew-y-[45deg] pointer-events-none transition-transform duration-1000 group-hover:translate-x-full" />
+                {/* Floating Notification */}
+                <motion.div 
+                  animate={{ y: [0, -10, 0] }}
+                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                  className="absolute -right-4 sm:-right-8 top-1/3 bg-white/95 backdrop-blur-xl p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-[#D2D2D7]/30 shadow-2xl z-20 flex gap-3 items-center"
+                >
+                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                    <CheckCircle2 className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-black text-[#1D1D1F] uppercase tracking-widest leading-none mb-1">Wow!</div>
+                    <div className="text-[10px] font-medium text-[#86868B] leading-none">Hai un nuovo lavoro!</div>
+                  </div>
+                </motion.div>
               </div>
+            </motion.div>
+
+            {/* Right: Client Text */}
+            <motion.div 
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="space-y-6 sm:space-y-8 order-3 lg:order-3"
+            >
+              <div className="inline-flex items-center gap-2 bg-green-50 px-4 py-2 rounded-full border border-green-100 shadow-sm">
+                 <div className="w-2 h-2 rounded-full bg-green-600 animate-pulse" />
+                 <span className="text-[10px] font-black uppercase tracking-widest text-green-600">Per il Cliente</span>
+              </div>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tighter text-[#1D1D1F] leading-[1.1] sm:leading-[0.9]">
+                Vuoi creare una richiesta per un artigiano? <br />
+                <span className="text-green-600 italic">Ottenere aiuto è facile.</span>
+              </h2>
+              <p className="text-base sm:text-lg text-[#1D1D1F] font-bold leading-relaxed">
+                Descrivi il tuo problema in pochi secondi, carica le foto se necessario, e ricevi 5 preventivi gratuiti ovunque tu sia, e dal tuo Device.
+              </p>
               
-              {/* Floating Dashboard Element */}
-              <motion.div 
-                animate={{ y: [0, -10, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute -right-12 top-1/4 bg-white/80 backdrop-blur-xl p-4 rounded-3xl border border-white shadow-2xl z-20 hidden md:block"
-              >
-                <div className="flex items-center gap-3">
-                   <div className="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center text-white font-black">€</div>
-                   <div>
-                      <div className="text-[10px] font-black text-[#86868B] uppercase tracking-widest">Guadagno</div>
-                      <div className="text-xl font-black text-[#1D1D1F]">€ 1.240</div>
+              <div className="grid grid-cols-1 gap-4 pt-4">
+                 {[
+                   { icon: Search, text: "Descrivi il Problema" },
+                   { icon: Bell, text: "Ricevi Notifiche Immediate" },
+                   { icon: Shield, text: "Scegli il Migliore" }
+                 ].map((item, i) => (
+                   <div key={i} className="flex items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-[#D2D2D7]/30">
+                      <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center shrink-0">
+                        <item.icon className="w-5 h-5 text-green-600" />
+                      </div>
+                      <span className="font-black text-[#1D1D1F] text-sm uppercase tracking-tight leading-tight">{item.text}</span>
                    </div>
-                </div>
-              </motion.div>
+                 ))}
+              </div>
             </motion.div>
           </div>
         </div>
@@ -411,13 +442,31 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
               </motion.div>
               
               <h2 className="text-4xl md:text-6xl font-black tracking-tighter text-white mb-8 leading-[0.9]">
-                Trasforma il tuo lavoro <br />
-                <span className="text-blue-500 italic">in un'impresa di successo.</span>
+                Sei un Artigiano? <br />
+                <span className="text-blue-500 italic">Rivoluzioniamo il tuo lavoro con il Pay-per-Win.</span>
               </h2>
               
-              <p className="text-xl text-[#1D1D1F] font-bold mb-10 leading-relaxed bg-white/60 backdrop-blur-md p-6 rounded-3xl border border-white/20 shadow-xl">
-                CercArtigiano non è solo per grandi aziende. Supportiamo privati e professionisti per <strong>prestazioni occasionali</strong>. Unisciti a migliaia di esperti e inizia a ricevere richieste qualificate nella tua zona immediatamente.
-              </p>
+              <div className="bg-white/90 backdrop-blur-xl p-6 md:p-8 rounded-3xl border border-white/20 shadow-2xl mb-10 text-[#1D1D1F]">
+                <p className="text-lg md:text-xl font-bold mb-6 leading-relaxed">
+                  Basta pagare per preventivi ignorati. Presentiamo il modello <strong>Pay-per-Win</strong>: i tuoi token vengono "congelati" all'invio e <strong className="text-blue-600">addebitati SOLO SE VIENI SCELTO</strong>.
+                </p>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <CheckCircle2 className="w-6 h-6 text-green-500 shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="font-black text-sm uppercase tracking-widest">Massimo 5 Preventivi</h4>
+                      <p className="text-sm font-medium text-gray-600">Nessuna asta al ribasso. Ti confronti solo con altri 4 professionisti.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <CheckCircle2 className="w-6 h-6 text-green-500 shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="font-black text-sm uppercase tracking-widest">Rimborso Istantaneo</h4>
+                      <p className="text-sm font-medium text-gray-600">Se il cliente sceglie un altro artigiano, i tuoi token vengono restituiti all'istante.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               <div className="flex flex-col sm:flex-row items-center gap-6">
                 <Button 
@@ -479,7 +528,7 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
             <div className="max-w-2xl">
               <h2 className="text-3xl md:text-5xl font-black tracking-tight text-[#1D1D1F] mb-6">
-                I migliori talenti del territorio <span className="text-blue-600">a tua disposizione.</span>
+                Trova l'Artigiano perfetto. <br /> I migliori talenti <span className="text-blue-600">a tua disposizione.</span>
               </h2>
               <p className="text-lg text-[#86868B] font-medium">
                 Scegli tra centinaia di professionisti certificati e verificati dal nostro team. Qualità garantita al 100%.
@@ -707,43 +756,107 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
       {/* FAQ Section */}
       <section id="faq" className="py-24 bg-[#F5F5F7] relative">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center max-w-3xl mx-auto mb-16">
+          <div className="text-center max-w-3xl mx-auto mb-12">
             <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-6">Domande Frequenti</h2>
             <p className="text-xl text-[#86868B] font-medium">Abbiamo risposto ai dubbi più comuni dei nostri utenti.</p>
           </div>
-          <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
-            {[
-              {
-                q: "Cosa sono i Crediti per il professionista?",
-                a: "A differenza di altri portali, non abbiamo abbonamenti. Il professionista carica dei crediti e li utilizza solo per sbloccare i dati di contatto di un cliente realmente interessato."
-              },
-              {
-                q: "Cos'è il Triage Intelligente?",
-                a: "È il nostro sistema di assistenza alla pubblicazione. Guida il cliente step-by-step per fornire al professionista tutte le informazioni tecniche necessarie, riducendo sopralluoghi inutili."
-              },
-              {
-                q: "Il numero di telefono è sempre visibile?",
-                a: "No. Per proteggere la privacy, i contatti sono visibili solo quando il professionista utilizza i suoi crediti per sbloccare la conversazione specifica."
-              },
-              {
-                q: "Posso iscrivermi senza Partita IVA?",
-                a: "Sì! Supportiamo anche le prestazioni occasionali. Chiunque abbia competenze certificate può iscriversi e iniziare a lavorare seguendo le normative vigenti."
-              },
-              {
-                q: "Quanto costa pubblicare una richiesta?",
-                a: "Per il cliente è sempre gratuito al 100%. Nessuna commissione sul lavoro svolto né costi fissi di iscrizione."
-              },
-              {
-                q: "Come funzionano le recensioni?",
-                a: "Sono reali e garantite. Possono essere rilasciate solo dopo che il lavoro è stato ufficialmente assegnato e completato tramite la piattaforma."
-              }
-            ].map((faq, i) => (
-              <div key={i} className="bg-white p-8 rounded-[2rem] border border-[#D2D2D7]/30 shadow-sm hover:shadow-xl transition-all">
-                <h3 className="text-lg font-black text-[#1D1D1F] mb-4">{faq.q}</h3>
-                <p className="text-sm text-[#1D1D1F] font-bold leading-relaxed">{faq.a}</p>
-              </div>
-            ))}
+
+          {/* Toggle Tab for FAQ */}
+          <div className="flex justify-center mb-16">
+            <div className="bg-[#E5E5EA] p-1.5 rounded-full flex items-center gap-1">
+              <button 
+                onClick={() => setFaqTab('client')}
+                className={cn(
+                  "px-8 py-3 rounded-full text-xs font-black uppercase tracking-widest transition-all",
+                  faqTab === 'client' ? "bg-white text-[#1D1D1F] shadow-lg" : "text-[#86868B] hover:text-[#1D1D1F]"
+                )}
+              >
+                Per il Cliente
+              </button>
+              <button 
+                onClick={() => setFaqTab('worker')}
+                className={cn(
+                  "px-8 py-3 rounded-full text-xs font-black uppercase tracking-widest transition-all",
+                  faqTab === 'worker' ? "bg-white text-[#1D1D1F] shadow-lg" : "text-[#86868B] hover:text-[#1D1D1F]"
+                )}
+              >
+                Per il Professionista
+              </button>
+            </div>
           </div>
+
+          <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 relative">
+            <AnimatePresence mode="wait">
+              {faqTab === 'client' ? (
+                <motion.div
+                  key="faq-client"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.3 }}
+                  className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6"
+                >
+                  {[
+                    {
+                      q: "Quanto costa pubblicare una richiesta?",
+                      a: "Per il cliente è sempre gratuito al 100%. Nessuna commissione sul lavoro svolto né costi fissi di iscrizione."
+                    },
+                    {
+                      q: "Cos'è il Triage Intelligente?",
+                      a: "È il nostro sistema di assistenza. Guida il cliente step-by-step per fornire al professionista tutte le informazioni tecniche necessarie, riducendo sopralluoghi inutili."
+                    },
+                    {
+                      q: "Il mio numero di telefono è pubblico?",
+                      a: "Assolutamente no. Per proteggere la tua privacy, i contatti sono visibili solo al professionista di cui tu hai accettato il preventivo o la richiesta di contatto."
+                    },
+                    {
+                      q: "Come scelgo il preventivo giusto?",
+                      a: "Riceverai fino a 5 preventivi gratuiti. Potrai confrontare prezzi, recensioni dei professionisti e tempistiche per scegliere l'offerta migliore."
+                    }
+                  ].map((faq, i) => (
+                    <div key={i} className="bg-white p-8 rounded-[2rem] border border-[#D2D2D7]/30 shadow-sm hover:shadow-xl transition-all">
+                      <h3 className="text-lg font-black text-[#1D1D1F] mb-4">{faq.q}</h3>
+                      <p className="text-sm text-[#1D1D1F] font-bold leading-relaxed">{faq.a}</p>
+                    </div>
+                  ))}
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="faq-worker"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6"
+                >
+                  {[
+                    {
+                      q: "Come funziona il Pay-per-Win?",
+                      a: "Invii il preventivo congelando i token. Se il cliente sceglie te, i token vengono scalati. Se sceglie un altro, ottieni un rimborso immediato. Paghi solo se vieni scelto!"
+                    },
+                    {
+                      q: "Posso iscrivermi senza Partita IVA?",
+                      a: "Sì! Supportiamo anche le prestazioni occasionali. Chiunque abbia competenze certificate può iscriversi e iniziare a lavorare seguendo le normative vigenti."
+                    },
+                    {
+                      q: "Devo pagare abbonamenti mensili?",
+                      a: "No, nessun costo fisso. Paghi solo ed esclusivamente se il cliente accetta il tuo preventivo e riesci ad ottenere il lavoro."
+                    },
+                    {
+                      q: "Come funzionano le recensioni?",
+                      a: "Sono reali e garantite. Possono essere rilasciate dal cliente solo dopo che il preventivo è stato assegnato a te tramite la piattaforma."
+                    }
+                  ].map((faq, i) => (
+                    <div key={i} className="bg-white p-8 rounded-[2rem] border border-[#D2D2D7]/30 shadow-sm hover:shadow-xl transition-all">
+                      <h3 className="text-lg font-black text-[#1D1D1F] mb-4">{faq.q}</h3>
+                      <p className="text-sm text-[#1D1D1F] font-bold leading-relaxed">{faq.a}</p>
+                    </div>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
           <div className="mt-12 text-center">
             <p className="text-[#86868B] font-bold text-sm">
               Hai altre domande? Consulta la sezione <span className="text-blue-600 cursor-pointer hover:underline" onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })}>Contatti</span> nel footer della pagina.

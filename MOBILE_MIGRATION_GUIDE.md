@@ -456,9 +456,56 @@ In fase di migrazione verso Expo, l'AI deve mappare queste variabili nel file `.
 
 ---
 
-## 15. FINAL DIRECTIVES FOR ANTIGRAVITY
+## 15. FIRESTORE SECURITY RULES & ERROR HANDLING
+
+Il backend Firestore è protetto da un set rigoroso di Security Rules. Per supportare il debugging e l'uniformità (come implementato sul Web), l'app Expo deve catturare eventuali errori di permessi mancanti (Missing or insufficient permissions) formatandoli con uno schema ben preciso, fornendo log strutturati.
+
+**Implementazione Error Handler:**
+```typescript
+export enum OperationType { CREATE = 'create', UPDATE = 'update', DELETE = 'delete', LIST = 'list', GET = 'get', WRITE = 'write' }
+
+export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  // L'app Expo deve recuperare il context utente (auth) e serializzare l'errore
+  // includendo context auth (userId, email, providerData), operationType e path.
+  // Loggare sotto forma di JSON per facilitare la diagnostica delle regole di sicurezza.
+}
+```
+
+---
+
+## 16. RESPONSIVE DESIGN & FLOATING WIDGETS (UI CONSTRAINTS)
+
+Nella trasposizione da Web a Mobile App nativa (React Native), l'uso di posizionamenti assoluti (ad es. per i badge o i pannelli fluttuanti come il badge "Guadagno" presente nella Landing Page) va gestito usando i limiti dello schermo.
+
+- **Evitare overflow laterale:** Quando posizioni elementi con `position: 'absolute'` e right/left negativi, usa `Dimensions.get('window').width` per calcolare una posizione rientrante affinché i contenuti extra non spariscano dai limiti fisici del display dello smartphone.
+- **Z-Index Platform-specific:** Su Android l'`elevation` governa l'ombra e l'ordinamento z-index, mentre iOS usa `shadowOpacity` e `zIndex`. L'interfaccia dell'applicazione mobile dovrà essere coerente per non oscurare pulsanti di input o CTA.
+
+## 18. SICUREZZA CONTRO ESFILTRAZIONE DATI ED ESPOSIZIONE PII (ANTI-SCRAPING)
+
+Nella realizzazione dell'App Mobile, Antigravity DEVE adottare rigorose misure per prevenire scraping massivo ed esposizione involontaria di PII (Personally Identifiable Information).
+
+1. **Filtro PII Locale (`validateMessage`):** L'App Mobile deve includere l'esatta logica di validazione `contentFilter.ts` utilizzata sulla Web App. Nessun messaggio di chat (fino all'assegnazione) o descrizione di un nuovo lavoro (Job) deve contenere numeri di telefono o indirizzi email. Antigravity DEVE bloccare il submit lato client se vengono rilevati pattern email o telefonici.
+2. **Limitazione Query Massiva (Anti-Scraping):** L'App Mobile non deve eseguire query non limitate come `getDocs(collection(db, 'jobs'))`. Deve sempre richiedere dati filtrati (es. per raggio geografico) con un `limit()` o un sistema a schede/paginato. Le Security Rules di Firebase saranno indurite (`allow list: if isSignedIn();` o simili) per evitare download massivi del database, quindi le views anonime su Mobile andranno limitate.
+3. **Integrazione Firebase App Check:** Nelle prossime fasi, CercArtigiano integrerà Firebase App Check con Play Integrity (Android) e DeviceCheck (iOS). Antigravity deve inserire il codice di inizializzazione per App Check (`@react-native-firebase/app-check` o equivalente Expo supportato) per garantire che solo l'app ufficiale possa parlare con Firestore, sventando ogni tentativo di data-exfiltration via bot.
+
+## 19. REGOLE GEOGRAFICHE, DEEP LINKING E GOOGLE MAPS
+
+Il core business di CercArtigiano si basa sulla prossimità radiale e sul blind-bidding (il cliente non cerca in una lista, ma crea la richiesta a cui gli artigiani rispondono). Antigravity deve implementare questa logica su mobile:
+
+1. **Nessun Elenco Pubblico di Artigiani:** L'app mobile NON deve avere una schermata "Cerca Artigiano" che elenca liberamente i professionisti. Il flusso vitale è: il cliente crea un *Job* (Richiesta di Preventivo) -> Il sistema notifica i professionisti nel raggio d'azione -> I professionisti presentano il preventivo.
+2. **Geolocalizzazione Obbligatoria (Google Maps Platform):**
+   - Durante la registrazione del Professionista o la creazione di un *Job* da parte del Cliente, è **obbligatorio** utilizzare le API di Google Maps per l'autocompletamento dell'indirizzo.
+   - Su React Native, utilizzare librerie come `react-native-google-places-autocomplete` che estraggono correttamente Address Components (`citta`, `provincia`, `cap`). Non affidarsi mai al solo testo libero, altrimenti il routing geografico fallisce.
+   - Le query di prossimità devono supportare un raggio di ricerca (es. 5km, 10km, espandibile). L'indirizzo salvato su Firestore deve contenere la stringa formattata geocodificata.
+3. **Deep Linking (Routing da Web a App):**
+   - Oltre alle PWA, le App Native devono supportare *Universal Links* (iOS) e *App Links* (Android) agganciati al dominio `cercartigiano.com`.
+   - Quando un utente apre un URL generato dal sito Web (pSEO) come `https://cercartigiano.com/servizi/lombardia/milano/cinisello-balsamo/idraulico`, l'App Native deeplink deve catturarlo.
+   - All'apertura, il flusso Mobile Deeplink non deve causare errore: deve aprire il Form Creazione Job pre-compilando `categoria = idraulico` e `citta = cinisello balsamo` per l'utente, guidandolo direttamente nell'invio della richiesta. Se l'utente non è autenticato, presentare il login prima di salvare il form.
+
+---
+
 1. **No Simplified UX:** Ogni categoria DEVE attivare il suo specifico `WizardComponent`.
-2. **Mobile Smoothness:** Usa `Formik` e `motion/react-native` per transizioni fluide stile Apple.
+2. **Mobile Smoothness:** Usa librerie native di animazione come `react-native-reanimated` per transizioni fluide stile Apple.
 3. **Cross-Platform Sync:** Assicurati che i dati scritti da Mobile siano leggibili dal Web (nomi campi identici).
 
 

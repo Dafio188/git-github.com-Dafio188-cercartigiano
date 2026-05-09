@@ -1,52 +1,76 @@
-import fs from "fs";
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// Categorie base
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Esempio di Categorie (si possono ampliare o importare)
 const categorie = [
-  "idraulico",
-  "elettricista",
-  "muratore",
-  "imbianchino",
-  "fabbro",
-  "falegname",
-  "giardiniere",
-  "spazzacamino",
-  "piastrellista",
-  "serramentista"
+  'idraulico',
+  'elettricista',
+  'fabbro',
+  'giardiniere',
+  'muratore',
+  'termico'
 ];
 
-// Leggi comuni
-const comuniRaw = fs.readFileSync("src/pugliaComuni.json");
-const comuni = JSON.parse(comuniRaw);
+// Esempio di struttura ISTAT (da sostituire con importazione reale JSON)
+const dataIstat = {
+  "puglia": {
+    "bari": ["bari", "altamura", "monopoli", "corato"],
+    "lecce": ["lecce", "nardo", "galatina"]
+  },
+  "lombardia": {
+    "milano": ["milano", "sesto-san-giovanni", "cinisello-balsamo"]
+  }
+};
 
-const baseUrl = "https://cercartigiano.com";
+const BASE_URL = 'https://cercartigiano.com';
+const BUILD_DIR = path.join(__dirname, 'public');
 
-let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- Pagine Principali -->
-  <url>
-    <loc>${baseUrl}/</loc>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
-  </url>
-`;
+function generateSitemapIndex() {
+  const regions = Object.keys(dataIstat);
+  let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
+  
+  regions.forEach(regione => {
+    xml += `  <sitemap>\n    <loc>${BASE_URL}/sitemap-${regione}.xml</loc>\n  </sitemap>\n`;
+  });
+  
+  xml += `</sitemapindex>`;
+  
+  fs.writeFileSync(path.join(BUILD_DIR, 'sitemap.xml'), xml);
+  console.log(`Generato sitemap.xml (Index)`);
+}
 
-// Aggiungiamo le rotte dinamiche SEO
-const urls = [];
-for (const com of comuni) {
-  const provinciaUrl = com.provincia.toLowerCase();
-  const comuneUrl = com.comune.toLowerCase().replace(/\s+/g, '-');
-
-  for (const cat of categorie) {
-    urls.push(`  <url>
-    <loc>${baseUrl}/servizi/${provinciaUrl}/${comuneUrl}/${cat}</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>`);
+function generateRegionalSitemaps() {
+  for (const [regione, province] of Object.entries(dataIstat)) {
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
+    
+    for (const [provincia, comuni] of Object.entries(province)) {
+      comuni.forEach(comune => {
+        categorie.forEach(categoria => {
+          const urlPath = `/servizi/${regione}/${provincia}/${comune}/${categoria}`;
+          xml += `  <url>\n    <loc>${BASE_URL}${urlPath}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n`;
+        });
+      });
+    }
+    
+    xml += `</urlset>`;
+    const fileName = `sitemap-${regione}.xml`;
+    fs.writeFileSync(path.join(BUILD_DIR, fileName), xml);
+    console.log(`Generato ${fileName} con successo.`);
   }
 }
 
-sitemap += urls.join('\n') + '\n';
-sitemap += `</urlset>`;
+function main() {
+  if (!fs.existsSync(BUILD_DIR)){
+    fs.mkdirSync(BUILD_DIR, { recursive: true });
+  }
 
-fs.writeFileSync("dist/sitemap.xml", sitemap);
-console.log(`Generata sitemap in dist/sitemap.xml con base = ${baseUrl}/servizi/...`);
+  generateSitemapIndex();
+  generateRegionalSitemaps();
+  console.log("Generazione Sitemap Completata.");
+}
+
+main();

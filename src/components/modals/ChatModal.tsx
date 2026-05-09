@@ -21,6 +21,9 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { cn } from '../../lib/utils';
 import { notifyNewMessage } from '../../lib/notifications';
+import { handleFirestoreError, OperationType } from '../../lib/firestore-errors';
+
+import { validateMessage } from '../../lib/contentFilter';
 
 interface ChatModalProps {
   user: User;
@@ -88,8 +91,7 @@ export function ChatModal({ user, job, onClose }: ChatModalProps) {
       setMessages(msgs);
       setLoading(false);
     }, (error) => {
-      console.error("ChatModal messages onSnapshot error full:", error);
-      // We don't want to throw to the global boundary necessarily, just log it.
+      handleFirestoreError(error, OperationType.LIST, 'messages');
     });
 
     return () => unsub();
@@ -100,6 +102,15 @@ export function ChatModal({ user, job, onClose }: ChatModalProps) {
     if (!newMessage.trim() || isLocked) return;
 
     const messageText = newMessage.trim();
+    
+    // Content filtering
+    const allowContacts = job.status !== 'open';
+    const validation = validateMessage(messageText, allowContacts);
+    if (!validation.isValid) {
+      alert(validation.errorMessage);
+      return;
+    }
+
     setNewMessage('');
 
     try {

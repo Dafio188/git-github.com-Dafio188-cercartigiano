@@ -8,6 +8,7 @@ import { cn } from '../../lib/utils';
 import { db } from '../../firebase';
 import { doc, updateDoc, addDoc, collection, serverTimestamp, increment, getDoc } from 'firebase/firestore';
 import { Job } from '../../types';
+import { validateMessage } from '../../lib/contentFilter';
 
 interface ReviewModalProps {
   isOpen: boolean;
@@ -57,6 +58,12 @@ export function ReviewModal({ isOpen, onClose, job, clientId }: ReviewModalProps
 
     if (!job.assignedWorkerId) {
       setErrorMsg("Errore: Impossibile trovare l'artigiano assegnato a questo lavoro.");
+      return;
+    }
+
+    const validation = validateMessage(comment, false);
+    if (!validation.isValid) {
+      setErrorMsg(validation.errorMessage || "Messaggio non valido");
       return;
     }
 

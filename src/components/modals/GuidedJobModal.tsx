@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, ArrowRight, ArrowLeft, CheckCircle2, MapPin, Sparkles, Briefcase, Info, Shield, Star, MessageSquare, Zap, Clock, Check } from 'lucide-react';
 import { Button } from '../ui/button';
@@ -44,10 +44,37 @@ export function GuidedJobModal({
   const [success, setSuccess] = useState(false);
 
   const category = SERVICE_CATEGORIES.find(c => c.id === (selectedCategoryId || initialCategoryId));
-  const baseFlow = (selectedCategoryId || initialCategoryId) && CATEGORY_FLOWS[selectedCategoryId || initialCategoryId || ''] 
+  const rawBaseFlow = (selectedCategoryId || initialCategoryId) && CATEGORY_FLOWS[selectedCategoryId || initialCategoryId || ''] 
     ? CATEGORY_FLOWS[selectedCategoryId || initialCategoryId || ''] 
     : DEFAULT_FLOW;
   
+  const baseFlow = useMemo(() => {
+    let flowWithBudget = [...rawBaseFlow];
+    if (!flowWithBudget.find(q => q.id === 'budget_range')) {
+      const budgetStep: CategoryQuestion = {
+        id: 'budget_range',
+        type: 'choice',
+        title: 'Range di spesa',
+        question: 'Qual è il budget indicativo per questo lavoro?',
+        description: 'Questo ci aiuta a calcolare lo sforzo per gli artigiani. Pagaranno in Token solo se accetterai il loro preventivo.',
+        options: [
+          { id: 'small', label: 'Piccolo (Fino a 150€)' },
+          { id: 'medium', label: 'Medio (Da 150€ a 500€)' },
+          { id: 'large', label: 'Grande (Da 500€ a 2.000€)' },
+          { id: 'pro', label: 'Pro (Oltre 2.000€)' }
+        ]
+      };
+      
+      const targetIdx = flowWithBudget.findIndex(q => q.type === 'photo' || q.type === 'address');
+      if (targetIdx !== -1) {
+        flowWithBudget.splice(targetIdx, 0, budgetStep);
+      } else {
+        flowWithBudget.push(budgetStep);
+      }
+    }
+    return flowWithBudget;
+  }, [rawBaseFlow]);
+
   // Per gli utenti già loggati, rimuoviamo lo step dei contatti per evitare sforzi inutili
   const flow = auth.currentUser ? baseFlow.filter(q => q.type !== 'contact') : baseFlow;
 
@@ -297,12 +324,16 @@ export function GuidedJobModal({
       }
 
       if (currentUserId) {
-        const aiTokenCost = await evaluateJobComplexity(title, jobData.description);
+        const budgetAnswer = answers['budget_range'];
+        let tierTokenCost = 5;
+        if (budgetAnswer === 'medium') tierTokenCost = 8;
+        if (budgetAnswer === 'large') tierTokenCost = 15;
+        if (budgetAnswer === 'pro') tierTokenCost = 25;
 
         await addDoc(collection(db, 'jobs'), {
           ...jobData,
           clientId: currentUserId,
-          tokenCost: aiTokenCost,
+          tokenCost: tierTokenCost,
           proposalCount: 0,
           publicationPlan: 'free',
           expiresAt: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),

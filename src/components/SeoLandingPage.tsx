@@ -1,39 +1,61 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { db } from '../firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { UserProfile } from '../types';
-import { Card, CardContent } from './ui/card';
+import React, { useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
-import { MapPin, Star, Shield, ChevronRight, Home, CheckCircle2 as CheckCircleIcon } from 'lucide-react';
+import { Shield, Home, CheckCircle2 as CheckCircleIcon } from 'lucide-react';
 import { motion } from 'motion/react';
-import { handleFirestoreError, OperationType } from '../lib/firestore-errors';
 
 export function SeoLandingPage() {
-  const { provincia, comune, categoria } = useParams<{ provincia: string, comune: string, categoria: string }>();
+  const { regione, provincia, comune, categoria } = useParams<{ regione: string, provincia: string, comune: string, categoria: string }>();
+  const navigate = useNavigate();
   
-  const [professionals, setProfessionals] = useState<UserProfile[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isFallback, setIsFallback] = useState(false);
-
   const formattedCategoria = categoria ? categoria.charAt(0).toUpperCase() + categoria.slice(1).replace(/-/g, ' ') : '';
   const formattedComune = comune ? comune.charAt(0).toUpperCase() + comune.slice(1).replace(/-/g, ' ') : '';
   const formattedProvincia = provincia ? provincia.toUpperCase() : '';
+  const formattedRegione = regione ? regione.charAt(0).toUpperCase() + regione.slice(1).replace(/-/g, ' ') : '';
 
-  // Pool di frasi per generare contenuti unici
-  const introTexts = [
-    `Cerchi un ${formattedCategoria} affidabile a ${formattedComune}? Abbiamo selezionato i migliori professionisti della zona per garantirti interventi rapidi e certificati.`,
-    `A ${formattedComune}, la ricerca di un ${formattedCategoria} esperto finisce qui. Confronta i profili più votati e richiedi un appuntamento in pochi clic.`,
-    `Hai bisogno di un intervento di ${formattedCategoria} a ${formattedComune} (${formattedProvincia})? La nostra piattaforma ti connette con artigiani verificati e pronti all'azione.`
-  ];
+  // Body Copy basato sul Template
+  const bodyCopy = `Hai bisogno di un intervento rapido a ${formattedComune}? Che si tratti di un'urgenza o di un progetto programmato, CercArtigiano.com ti mette in contatto con i professionisti più qualificati della zona di ${formattedProvincia}.`;
+  
+  // JSON-LD per LLM Optimization
+  useEffect(() => {
+    // Rimuovi eventuale script precedente
+    const existingScript = document.getElementById('seo-jsonld');
+    if (existingScript) {
+      existingScript.remove();
+    }
 
-  const benefitTexts = [
-    { title: "Interventi Rapidi", desc: "Professionisti residenti vicino a te per minimizzare i tempi di attesa." },
-    { title: "Prezzi Trasparenti", desc: "Ricevi fino a 5 preventivi gratuiti e scegli quello più adatto al tuo budget." },
-    { title: "Qualità Garantita", desc: "Solo artigiani con recensioni verificate dall'amministrazione di CercArtigiano." }
-  ];
+    const jsonLdData = {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "name": `I Migliori ${formattedCategoria} a ${formattedComune}`,
+      "description": `Trova e confronta i migliori ${formattedCategoria} a ${formattedComune} (${formattedProvincia}). Preventivi gratuiti, recensioni verificate.`,
+      "areaServed": {
+        "@type": "City",
+        "name": formattedComune,
+        "containedInPlace": {
+           "@type": "AdministrativeArea",
+           "name": formattedProvincia
+        }
+      },
+      "provider": {
+        "@type": "Organization",
+        "name": "CercArtigiano"
+      }
+    };
 
-  const dynamicIntro = introTexts[formattedComune.length % introTexts.length];
+    const script = document.createElement('script');
+    script.id = 'seo-jsonld';
+    script.type = 'application/ld+json';
+    script.text = JSON.stringify(jsonLdData);
+    document.head.appendChild(script);
+
+    return () => {
+      const scriptToRemove = document.getElementById('seo-jsonld');
+      if (scriptToRemove) {
+        scriptToRemove.remove();
+      }
+    };
+  }, [formattedCategoria, formattedComune, formattedProvincia]);
 
   useEffect(() => {
     // Aggiorna Meta-Data del documento
@@ -48,56 +70,12 @@ export function SeoLandingPage() {
     metaDescription.setAttribute('content', `Trova e confronta i migliori ${formattedCategoria} a ${formattedComune} (${formattedProvincia}). Preventivi gratuiti, recensioni verificate e professionisti pronti ad intervenire.`);
   }, [formattedCategoria, formattedComune, formattedProvincia]);
 
-  useEffect(() => {
-    const fetchProfessionals = async () => {
-      if (!categoria || !comune || !provincia) return;
-      
-      setLoading(true);
-      try {
-        // Query per il comune specifico
-        const qComune = query(
-          collection(db, 'users'), 
-          where('role', '==', 'worker'),
-          where('category', '==', formattedCategoria),
-          where('citta', '==', formattedComune)
-        );
-        
-        let snapshot = await getDocs(qComune);
-        
-        if (snapshot.empty) {
-          // Fallback alla provincia
-          setIsFallback(true);
-          const qProvincia = query(
-            collection(db, 'users'), 
-            where('role', '==', 'worker'),
-            where('category', '==', formattedCategoria),
-            where('provincia', '==', formattedProvincia)
-          );
-          snapshot = await getDocs(qProvincia);
-        } else {
-          setIsFallback(false);
-        }
-        
-        const docs = snapshot.docs.map(doc => {
-          const data = doc.data();
-          return {
-            uid: doc.id,
-            ...data
-          } as unknown as UserProfile;
-        });
-        
-        setProfessionals(docs);
-      } catch (error) {
-        handleFirestoreError(error, OperationType.LIST, 'users');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProfessionals();
-  }, [formattedCategoria, formattedComune, formattedProvincia]);
-
-  const skeletonCards = Array(3).fill(0);
+  // Navigate to home and trigger job creation flow with prefilled data
+  const handleRequestQuote = () => {
+    // In un'applicazione reale potremmo passare stato tramite il router 
+    // per pre-aprire il form con la categoria e città selezionata
+    navigate(`/?action=new_job&category=${categoria}&city=${comune}`);
+  };
 
   return (
     <div className="min-h-screen bg-[#FBFBFD] pb-24">
@@ -109,118 +87,79 @@ export function SeoLandingPage() {
         </Link>
       </header>
 
-      <main className="max-w-5xl mx-auto px-6 lg:px-8 pt-12">
-        {/* Dynamic SEO H1 */}
-        <div className="mb-12">
-          <h1 className="text-4xl md:text-5xl font-black tracking-tight text-[#1D1D1F] mb-4">
-            Trova i migliori {formattedCategoria} a {formattedComune} ({formattedProvincia}) <span className="block text-blue-600 mt-2">Verificati e Recensiti</span>
-          </h1>
-          
-          {isFallback ? (
-             <p className="text-lg md:text-xl text-[#86868B] font-medium max-w-3xl">
-               Non ci sono ancora artigiani iscritti a {formattedComune}, ecco i migliori della provincia di {formattedProvincia} pronti a intervenire.
-             </p>
-          ) : (
-             <p className="text-lg md:text-xl text-[#86868B] font-medium max-w-3xl">
-               {dynamicIntro}
-             </p>
-          )}
-
-          {/* Sezione Benefici Dinamici */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-            {benefitTexts.map((benefit, i) => (
-              <div key={i} className="bg-white p-6 rounded-3xl border border-[#D2D2D7]/30">
-                <CheckCircleIcon className="w-8 h-8 text-blue-600 mb-3" />
-                <h4 className="text-lg font-black text-[#1D1D1F] mb-2">{benefit.title}</h4>
-                <p className="text-sm text-[#86868B] leading-relaxed">{benefit.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {loading ? (
-          <div className="space-y-4">
-            {skeletonCards.map((_, i) => (
-              <div key={i} className="bg-white rounded-[2rem] h-40 animate-pulse border border-[#D2D2D7]/30" />
-            ))}
-          </div>
-        ) : professionals.length > 0 ? (
-          <div className="space-y-4">
-            {professionals.map((pro, index) => (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: index * 0.1 }}
-                key={pro.uid}
-              >
-                <Card className="rounded-[2rem] border-none shadow-sm hover:shadow-xl transition-all duration-300 bg-white overflow-hidden group cursor-pointer">
-                  <CardContent className="p-6">
-                    <div className="flex gap-6 items-center">
-                      <div className="w-20 h-20 rounded-full bg-blue-50 flex items-center justify-center shrink-0 border-4 border-white shadow-xl relative overflow-hidden">
-                        {pro.photoURL ? (
-                          <img src={pro.photoURL} alt={pro.displayName} className="w-full h-full object-cover" />
-                        ) : (
-                          <span className="text-2xl font-black text-blue-600">{pro.displayName?.charAt(0).toUpperCase() || pro.nome?.charAt(0).toUpperCase() || 'P'}</span>
-                        )}
-                        {pro.isVerified && (
-                          <div className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-1 border-2 border-white shadow-lg">
-                            <Shield className="w-3 h-3 text-white" />
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex-1">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="text-xl font-black text-[#1D1D1F] flex items-center gap-2">
-                              {pro.displayName || pro.nome}
-                            </h3>
-                            <div className="flex items-center gap-3 mt-1.5">
-                              <span className="inline-flex items-center gap-1 text-sm font-bold text-[#86868B] bg-[#F5F5F7] px-3 py-1 rounded-full">
-                                <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                                {pro.rating || 'Nuovo'}
-                              </span>
-                              <span className="inline-flex items-center gap-1 text-sm font-bold text-[#86868B]">
-                                <MapPin className="w-4 h-4" />
-                                {pro.citta || formattedComune}
-                              </span>
-                            </div>
-                          </div>
-                          <Link to="/" className="hidden sm:flex h-12 w-12 rounded-full bg-[#F5F5F7] group-hover:bg-blue-600 items-center justify-center transition-colors">
-                            <ChevronRight className="w-6 h-6 text-[#86868B] group-hover:text-white transition-colors" />
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-            
-            <div className="pt-12 text-center">
-               <Link to="/">
-                 <Button className="h-14 px-8 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-black text-lg shadow-xl shadow-blue-500/20">
-                    Richiedi un Preventivo Gratis
-                 </Button>
-               </Link>
+      <main className="max-w-5xl mx-auto px-6 lg:px-8 pt-12 md:pt-20">
+        <article className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          {/* Dynamic SEO Content */}
+          <section className="mb-12 lg:mb-0">
+            <h1 className="text-4xl md:text-6xl font-black tracking-tight text-[#1D1D1F] mb-6 leading-tight">
+              Trova il miglior {formattedCategoria} a {formattedComune} ({formattedProvincia})
+            </h1>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-full font-bold text-sm mb-8">
+              <Shield className="w-4 h-4" />
+              Verificato e Recensito
             </div>
-          </div>
-        ) : (
-          <div className="bg-white rounded-[2rem] p-12 text-center border border-[#D2D2D7]/30 shadow-sm">
-             <div className="w-24 h-24 bg-blue-50 text-blue-600 flex items-center justify-center rounded-3xl mx-auto mb-6">
-                <MapPin className="w-10 h-10" />
-             </div>
-             <h3 className="text-2xl font-black text-[#1D1D1F] mb-3">Nessun {formattedCategoria} disponibile qui</h3>
-             <p className="text-lg text-[#86868B] font-medium max-w-lg mx-auto mb-8">
-               Attualmente non abbiamo {formattedCategoria} registrati nella provincia di {formattedProvincia}.
-             </p>
-             <Link to="/">
-                 <Button className="h-14 px-8 rounded-full bg-[#1D1D1F] hover:bg-black text-white font-black text-lg">
-                    Torna alla Home
-                 </Button>
-               </Link>
-          </div>
-        )}
+            
+            <div className="prose prose-lg text-[#86868B] font-medium max-w-3xl mb-12">
+              <p className="text-xl leading-relaxed">
+                {bodyCopy}
+              </p>
+              
+              <h2 className="text-2xl font-black text-[#1D1D1F] mt-10 mb-6">Perché scegliere i nostri artigiani:</h2>
+              <ul className="space-y-5">
+                <li className="flex gap-4 items-start">
+                  <CheckCircleIcon className="w-6 h-6 text-blue-600 shrink-0 mt-0.5" />
+                  <span><strong className="text-[#1D1D1F] block mb-1">Trasparenza Fiscale</strong> Ricevi fatture elettroniche certificate tramite integrazione OpenAPI/SDI.</span>
+                </li>
+                <li className="flex gap-4 items-start">
+                  <CheckCircleIcon className="w-6 h-6 text-blue-600 shrink-0 mt-0.5" />
+                  <span><strong className="text-[#1D1D1F] block mb-1">Recensioni Verificate</strong> Leggi i feedback reali dei tuoi concittadini a {formattedComune}.</span>
+                </li>
+                <li className="flex gap-4 items-start">
+                  <CheckCircleIcon className="w-6 h-6 text-blue-600 shrink-0 mt-0.5" />
+                  <span><strong className="text-[#1D1D1F] block mb-1">Prossimità e Rapidità</strong> Supporta l'economia locale scegliendo chi vive e lavora nel tuo territorio per un intervento in tempi record.</span>
+                </li>
+              </ul>
+            </div>
+          </section>
+
+          {/* Call To Action Box (Lead Generation) */}
+          <section>
+            <motion.div 
+               initial={{ opacity: 0, y: 20 }}
+               animate={{ opacity: 1, y: 0 }}
+               transition={{ duration: 0.5 }}
+               className="bg-white rounded-[2rem] p-8 md:p-12 shadow-2xl shadow-blue-900/5 border border-[#D2D2D7]/30 text-center"
+            >
+              <div className="w-20 h-20 bg-blue-50 text-blue-600 flex items-center justify-center rounded-3xl mx-auto mb-6 transform -rotate-6">
+                <img src="/logo.png" alt="Icon" className="w-10 h-10" />
+              </div>
+              <h3 className="text-3xl font-black text-[#1D1D1F] mb-4">Richiedi un Preventivo</h3>
+              <p className="text-[#86868B] font-medium mb-8">
+                Descrivi il lavoro in pochi passi e ricevi offerte dai migliori {formattedCategoria} di {formattedComune} e provincia.
+              </p>
+
+              <Button 
+                onClick={handleRequestQuote}
+                className="w-full h-16 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xl shadow-xl shadow-blue-500/20 mb-4 transition-all hover:scale-[1.02]"
+              >
+                Inizia Ora
+              </Button>
+              <p className="text-xs text-[#86868B] font-medium">
+                Il servizio è gratuito e non vincolante.
+              </p>
+            </motion.div>
+
+            <div className="mt-8 bg-blue-50/50 rounded-3xl p-6 border border-blue-100">
+              <h3 className="text-lg font-black text-[#1D1D1F] mb-2 flex items-center gap-2">
+                 <Shield className="w-5 h-5 text-blue-600" />
+                 La piattaforma N.1 in {formattedRegione}
+              </h3>
+              <p className="text-[#86868B] text-sm leading-relaxed">
+                CercArtigiano è la piattaforma leader nella connessione tra domanda e offerta di lavoro artigiano. Monitoriamo costantemente la validità delle Partite IVA per garantirti massima affidabilità.
+              </p>
+            </div>
+          </section>
+        </article>
       </main>
     </div>
   );

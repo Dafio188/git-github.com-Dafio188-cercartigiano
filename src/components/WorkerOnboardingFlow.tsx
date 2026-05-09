@@ -18,7 +18,7 @@ import {
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { AddressInput } from './AddressInput';
-import { SERVICE_CATEGORIES } from '../constants';
+import { SERVICE_CATEGORIES, CATEGORY_SERVICES } from '../constants';
 import { db } from '../firebase';
 import { doc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { User, UserProfile, BillingProfile } from '../types';
@@ -61,8 +61,6 @@ export function WorkerOnboardingFlow({ user, onComplete, onCancel }: WorkerOnboa
   const [cap, setCap] = useState(user.cap || '');
   const [regione, setRegione] = useState('');
   
-  const { CATEGORY_SERVICES } = require('../constants');
-
   const availableSkills = React.useMemo(() => {
     return selectedCategories.flatMap(catId => {
       const services = CATEGORY_SERVICES[catId] || [];

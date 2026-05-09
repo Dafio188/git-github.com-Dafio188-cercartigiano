@@ -8,6 +8,7 @@ import {
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { Button } from '../ui/button';
 import { MapPin, Clock, ArrowRight, Shield, MessageSquare } from 'lucide-react';
+import { SERVICE_CATEGORIES } from '../../constants';
 
 interface JobDetailsSharedModalProps {
   isOpen: boolean;
@@ -21,39 +22,39 @@ interface JobDetailsSharedModalProps {
 export function JobDetailsSharedModal({ isOpen, onClose, job, user, onOpenProposal, onStartChat }: JobDetailsSharedModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl bg-[#FBFBFD] border-none rounded-[3rem] p-0 overflow-hidden shadow-2xl">
+      <DialogContent className="max-w-2xl bg-[#FBFBFD] border-none rounded-t-[2.5rem] sm:rounded-[3rem] p-0 overflow-hidden shadow-2xl h-[90vh] sm:h-[85vh] sm:max-h-[800px] bottom-0 sm:bottom-auto translate-y-0 sm:-translate-y-1/2">
         <VisuallyHidden>
           <DialogTitle>Dettagli Lavoro</DialogTitle>
         </VisuallyHidden>
-        <div className="flex flex-col h-[85vh] max-h-[800px]">
+        <div className="flex flex-col h-full">
           {/* Job Details */}
-          <div className="flex-1 p-8 lg:p-10 flex flex-col items-start overflow-y-auto bg-white">
+          <div className="flex-1 p-6 sm:p-8 lg:p-10 flex flex-col items-start overflow-y-auto bg-white">
             <div className="space-y-6 w-full">
                <div className="flex items-center gap-3">
-                 <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center shrink-0">
-                   <Shield className="w-6 h-6 text-blue-600" />
+                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0">
+                   <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
                  </div>
                  <div>
-                   <h2 className="text-2xl font-black tracking-tight text-[#1D1D1F] leading-tight">{job.title}</h2>
-                   <span className="text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-2 py-0.5 rounded inline-block mt-1">
-                     {job.category}
+                   <h2 className="text-xl sm:text-2xl font-black tracking-tight text-[#1D1D1F] leading-tight line-clamp-2">{job.title}</h2>
+                   <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-2 py-0.5 rounded inline-block mt-0.5 sm:mt-1">
+                     {SERVICE_CATEGORIES.find(c => c.id === job.category)?.label || job.category}
                    </span>
                  </div>
                </div>
 
-               <div className="flex flex-wrap items-center gap-4 text-xs font-bold text-[#86868B] pb-6 border-b border-[#F5F5F7]">
-                 <div className="flex items-center gap-1">
-                   <MapPin className="w-4 h-4" />
-                   {job.location?.address}
+               <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-[11px] sm:text-xs font-bold text-[#86868B] pb-4 sm:pb-6 border-b border-[#F5F5F7]">
+                 <div className="flex items-center gap-1 shrink-0">
+                   <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                   <span className="truncate max-w-[150px] sm:max-w-none">{job.location?.address}</span>
                  </div>
-                 <div className="flex items-center gap-1">
-                   <Clock className="w-4 h-4" />
+                 <div className="flex items-center gap-1 shrink-0">
+                   <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                    Scade {new Date(job.expiresAt?.seconds * 1000 || Date.now()).toLocaleDateString()}
                  </div>
                </div>
 
                <div>
-                 <h4 className="text-xs font-black uppercase tracking-widest text-[#86868B] mb-2">Descrizione Intervento</h4>
+                 <h4 className="text-[9px] sm:text-xs font-black uppercase tracking-widest text-[#86868B] mb-2">Descrizione Intervento</h4>
                  <p className="text-sm font-bold text-[#1D1D1F] leading-relaxed whitespace-pre-wrap">
                    {job.description}
                  </p>
@@ -77,22 +78,22 @@ export function JobDetailsSharedModal({ isOpen, onClose, job, user, onOpenPropos
                  </div>
                )}
 
-               <div className="bg-[#F5F5F7] p-6 rounded-3xl mt-6 border border-[#D2D2D7]/30">
-                 <h4 className="text-xs font-black uppercase tracking-widest text-[#86868B] mb-2">Budget Indicativo Cliente</h4>
-                 <div className="text-3xl font-black text-[#1D1D1F]">€{job.budgetMin} - €{job.budgetMax}</div>
+               <div className="bg-[#F5F5F7] p-4 sm:p-6 rounded-2xl sm:rounded-3xl mt-4 sm:mt-6 border border-[#D2D2D7]/30">
+                 <h4 className="text-[9px] sm:text-xs font-black uppercase tracking-widest text-[#86868B] mb-1 sm:mb-2">Budget Indicativo Cliente</h4>
+                 <div className="text-2xl sm:text-3xl font-black text-[#1D1D1F]">€{job.budgetMin} - €{job.budgetMax}</div>
                </div>
             </div>
             
-            <div className="mt-8 w-full space-y-3 pt-6 border-t border-[#F5F5F7]">
+            <div className="mt-6 sm:mt-8 w-full space-y-3 pt-6 border-t border-[#F5F5F7]">
               <Button 
                 onClick={() => {
                   onClose();
                   onOpenProposal();
                 }}
-                className="w-full h-14 rounded-2xl bg-[#1D1D1F] hover:bg-black text-white font-black text-lg shadow-xl shadow-[#1D1D1F]/20 group"
+                className="w-full h-12 sm:h-14 rounded-xl sm:rounded-2xl bg-[#1D1D1F] hover:bg-black text-white font-black text-base sm:text-lg shadow-xl shadow-[#1D1D1F]/20 group"
               >
                 Invia Preventivo ({job.tokenCost || 1} Token)
-                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
 
               <Button 
@@ -101,10 +102,10 @@ export function JobDetailsSharedModal({ isOpen, onClose, job, user, onOpenPropos
                    onClose();
                    onStartChat(job);
                 }}
-                className="w-full h-14 rounded-2xl border-2 border-[#1D1D1F] text-[#1D1D1F] font-black group hover:bg-[#1D1D1F] hover:text-white transition-all shadow-lg shadow-black/5"
+                className="w-full h-12 sm:h-14 rounded-xl sm:rounded-2xl border-2 border-[#1D1D1F] text-[#1D1D1F] font-black group hover:bg-[#1D1D1F] hover:text-white transition-all shadow-lg shadow-black/5"
               >
                 <div className="flex items-center justify-center gap-2">
-                  <MessageSquare className="w-5 h-5" />
+                  <MessageSquare className="w-4 sm:w-5 h-4 sm:h-5" />
                   Chat Condivisa
                 </div>
               </Button>
@@ -112,12 +113,12 @@ export function JobDetailsSharedModal({ isOpen, onClose, job, user, onOpenPropos
               <Button 
                 variant="ghost"
                 onClick={onClose}
-                className="w-full h-12 rounded-2xl text-[#86868B] font-bold hover:bg-[#F5F5F7] transition-all"
+                className="w-full h-10 sm:h-12 rounded-xl sm:rounded-2xl text-[#86868B] font-bold hover:bg-[#F5F5F7] transition-all text-xs sm:text-sm"
               >
                 Chiudi senza modifiche
               </Button>
 
-              <p className="text-[10px] text-center font-bold text-[#86868B] px-4 pt-2 leading-tight">
+              <p className="text-[9px] sm:text-[10px] text-center font-bold text-[#86868B] px-2 sm:px-4 pt-2 leading-tight">
                  Le chat preliminari sono condivise con gli altri artigiani interessati. Lo scambio di contatti prima dell'accettazione del preventivo comporta la sospensione del profilo.
               </p>
             </div>

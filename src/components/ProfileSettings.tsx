@@ -129,14 +129,14 @@ export function ProfileSettings({ onBack }: ProfileSettingsProps) {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-10 pb-32">
-      <div className="flex items-center gap-4 px-2">
-        <Button variant="ghost" size="icon" onClick={onBack} className="rounded-full bg-white shadow-sm border border-[#D2D2D7]/30">
+    <div className="max-w-2xl mx-auto space-y-8 sm:space-y-10 pb-32 px-4 sm:px-0">
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" size="icon" onClick={onBack} className="rounded-full bg-white shadow-sm border border-[#D2D2D7]/30 h-10 w-10 shrink-0">
           <ArrowLeft className="w-5 h-5 text-[#1D1D1F]" />
         </Button>
         <div>
-          <h2 className="text-3xl font-black tracking-tight text-[#1D1D1F]">Informazioni Personali</h2>
-          <p className="text-sm text-[#86868B] font-bold">Aggiorna i tuoi dati di contatto e il tuo avatar.</p>
+          <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-[#1D1D1F]">Informazioni Personali</h2>
+          <p className="text-xs sm:text-sm text-[#86868B] font-bold">Aggiorna i tuoi dati di contatto e il tuo avatar.</p>
         </div>
       </div>
 
@@ -158,66 +158,66 @@ export function ProfileSettings({ onBack }: ProfileSettingsProps) {
         </div>
       </div>
 
-      <form onSubmit={handleSave} className="space-y-6 bg-white p-8 md:p-10 rounded-[3rem] border border-[#D2D2D7]/30 shadow-sm">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <form onSubmit={handleSave} className="space-y-6 bg-white p-6 sm:p-8 md:p-10 rounded-[2rem] sm:rounded-[3rem] border border-[#D2D2D7]/30 shadow-sm">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           <div className="space-y-2">
-            <Label className="text-[10px] font-black uppercase tracking-widest text-[#86868B] pl-2">Nome</Label>
+            <Label className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-[#86868B] pl-2">Nome</Label>
             <div className="relative group">
               <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#86868B] group-focus-within:text-primary transition-colors" />
               <Input 
                 value={formData.nome}
                 onChange={(e) => setFormData({...formData, nome: e.target.value})}
-                className="h-14 pl-12 rounded-[1.25rem] bg-[#FBFBFD] border-[#F2F2F7] focus:border-primary/30 focus:ring-0 transition-all font-bold"
+                className="h-12 sm:h-14 pl-12 rounded-xl sm:rounded-[1.25rem] bg-[#FBFBFD] border-[#F2F2F7] focus:border-primary/30 focus:ring-0 transition-all font-bold text-sm"
               />
             </div>
           </div>
           <div className="space-y-2">
-            <Label className="text-[10px] font-black uppercase tracking-widest text-[#86868B] pl-2">Cognome</Label>
+            <Label className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-[#86868B] pl-2">Cognome</Label>
             <div className="relative group">
               <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#86868B] group-focus-within:text-primary transition-colors" />
               <Input 
                 value={formData.cognome}
                 onChange={(e) => setFormData({...formData, cognome: e.target.value})}
-                className="h-14 pl-12 rounded-[1.25rem] bg-[#FBFBFD] border-[#F2F2F7] focus:border-primary/30 focus:ring-0 transition-all font-bold"
+                className="h-12 sm:h-14 pl-12 rounded-xl sm:rounded-[1.25rem] bg-[#FBFBFD] border-[#F2F2F7] focus:border-primary/30 focus:ring-0 transition-all font-bold text-sm"
               />
             </div>
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label className="text-[10px] font-black uppercase tracking-widest text-[#86868B] pl-2">Email (Sola Lettura)</Label>
+          <Label className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-[#86868B] pl-2">Email (Sola Lettura)</Label>
           <div className="relative group opacity-60">
             <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#86868B]" />
             <Input 
               value={formData.email}
               readOnly
-              className="h-14 pl-12 rounded-[1.25rem] bg-[#F5F5F7] border-[#F2F2F7] font-bold cursor-not-allowed"
+              className="h-12 sm:h-14 pl-12 rounded-xl sm:rounded-[1.25rem] bg-[#F5F5F7] border-[#F2F2F7] font-bold cursor-not-allowed text-sm"
             />
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label className="text-[10px] font-black uppercase tracking-widest text-[#86868B] pl-2">Numero di Telefono</Label>
+          <Label className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-[#86868B] pl-2">Numero di Telefono</Label>
           <div className="relative group">
             <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#86868B] group-focus-within:text-primary transition-colors" />
             <Input 
               value={formData.telefono}
               onChange={(e) => setFormData({...formData, telefono: e.target.value})}
               placeholder="+39 000 0000000"
-              className="h-14 pl-12 rounded-[1.25rem] bg-[#FBFBFD] border-[#F2F2F7] focus:border-primary/30 focus:ring-0 transition-all font-bold"
+              className="h-12 sm:h-14 pl-12 rounded-xl sm:rounded-[1.25rem] bg-[#FBFBFD] border-[#F2F2F7] focus:border-primary/30 focus:ring-0 transition-all font-bold text-sm"
             />
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label className="text-[10px] font-black uppercase tracking-widest text-[#86868B] pl-2">Indirizzo di Residenza / Operativo</Label>
+          <Label className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-[#86868B] pl-2">Indirizzo di Residenza</Label>
           <div className="relative group">
             <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#86868B] group-focus-within:text-primary transition-colors" />
             <Input 
               value={formData.indirizzo}
               onChange={(e) => setFormData({...formData, indirizzo: e.target.value})}
               placeholder="Via, Civico, Città (Provincia)"
-              className="h-14 pl-12 rounded-[1.25rem] bg-[#FBFBFD] border-[#F2F2F7] focus:border-primary/30 focus:ring-0 transition-all font-bold"
+              className="h-12 sm:h-14 pl-12 rounded-xl sm:rounded-[1.25rem] bg-[#FBFBFD] border-[#F2F2F7] focus:border-primary/30 focus:ring-0 transition-all font-bold text-sm"
             />
           </div>
         </div>
@@ -225,7 +225,7 @@ export function ProfileSettings({ onBack }: ProfileSettingsProps) {
         <Button 
           type="submit" 
           disabled={saving}
-          className="w-full h-16 rounded-[1.25rem] bg-[#1D1D1F] hover:bg-black text-white font-black text-lg transition-all shadow-xl shadow-black/10 disabled:bg-[#D2D2D7]"
+          className="w-full h-14 sm:h-16 rounded-xl sm:rounded-[1.25rem] bg-[#1D1D1F] hover:bg-black text-white font-black text-base sm:text-lg transition-all shadow-xl shadow-black/10 disabled:bg-[#D2D2D7]"
         >
           {saving ? (
             <div className="flex items-center gap-2">

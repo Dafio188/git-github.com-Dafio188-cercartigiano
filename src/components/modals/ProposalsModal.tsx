@@ -69,14 +69,27 @@ export function ProposalsModal({ isOpen, onClose, job, user }: ProposalsModalPro
     if (!confirm("Accettando questa proposta ti impegni formalmente con l'artigiano secondo le condizioni, ma ricordati che e' un contratto privato con lui. Il pagamento NON avviene sulla piattaforma. Vuoi procedere?")) return;
     setActing(proposal.id);
     try {
+      const { writeBatch } = await import('firebase/firestore');
+      const batch = writeBatch(db);
+
       // 1. Update proposal status
-      await updateDoc(doc(db, 'proposals', proposal.id), {
+      batch.update(doc(db, 'proposals', proposal.id), {
         status: 'accepted',
         updatedAt: serverTimestamp()
       });
 
+      // Reject all other pending proposals for this job
+      proposals.forEach(p => {
+        if (p.id !== proposal.id && p.status === 'pending') {
+          batch.update(doc(db, 'proposals', p.id), {
+            status: 'rejected',
+            updatedAt: serverTimestamp()
+          });
+        }
+      });
+
       // 2. Update job status and assign worker
-      await updateDoc(doc(db, 'jobs', job.id), {
+      batch.update(doc(db, 'jobs', job.id), {
         status: 'in_progress',
         assignedWorkerId: proposal.workerId,
         assignedPrice: proposal.price || (proposal.materialsCost + proposal.laborCost),
@@ -85,8 +98,7 @@ export function ProposalsModal({ isOpen, onClose, job, user }: ProposalsModalPro
 
       // 3. Setup conversation doc
       const conversationId = job.id;
-      
-      await setDoc(doc(db, 'conversations', conversationId), {
+      batch.set(doc(db, 'conversations', conversationId), {
         id: conversationId,
         jobId: job.id,
         jobTitle: job.title,
@@ -94,6 +106,8 @@ export function ProposalsModal({ isOpen, onClose, job, user }: ProposalsModalPro
         lastMessage: 'Hai accettato la proposta. Potete ora scambiarvi i dettagli dell\'intervento.',
         updatedAt: serverTimestamp()
       }, { merge: true });
+
+      await batch.commit();
 
       onClose();
       alert("Proposta accettata! Ora puoi messaggiare in modo esclusivo con l'artigiano.");

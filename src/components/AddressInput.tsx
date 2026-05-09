@@ -1,9 +1,8 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Input } from './ui/input';
-import { MapPin, Sparkles, Loader2 } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import { useMapsLibrary } from '@vis.gl/react-google-maps';
 import { cn } from '../lib/utils';
-import { parseAddressWithAI } from '../services/aiService';
 import { motion } from 'motion/react';
 
 interface AddressInputProps {
@@ -17,34 +16,17 @@ export function AddressInput({ value, onChange, placeholder, className }: Addres
   const inputRef = useRef<HTMLInputElement>(null);
   const placesLib = useMapsLibrary('places');
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
-  const [isParsing, setIsParsing] = useState(false);
   const onChangeRef = useRef(onChange);
 
   useEffect(() => {
     onChangeRef.current = onChange;
   }, [onChange]);
 
-  const handleAiParse = async () => {
-    if (!value || value.length < 5) return;
-    setIsParsing(true);
-    try {
-      const result = await parseAddressWithAI(value);
-      if (result && result.formattedAddress) {
-        // If we have lat/lng from AI, use them, otherwise let parent handle
-        onChangeRef.current(result.formattedAddress, result.lat, result.lng, result);
-      }
-    } catch (error) {
-      console.error("AI Address Parse error:", error);
-    } finally {
-      setIsParsing(false);
-    }
-  };
-
   useEffect(() => {
     if (!placesLib || !inputRef.current) return;
 
     const options = {
-      types: ['address'],
+      types: ['geocode', 'establishment'],
       componentRestrictions: { country: 'it' },
       fields: ['address_components', 'formatted_address', 'geometry']
     };
@@ -101,47 +83,18 @@ export function AddressInput({ value, onChange, placeholder, className }: Addres
       <Input
         ref={inputRef}
         type="text"
+        autoComplete="new-password" /* Hack per forzare Chrome a ignorare l'autofill degli indirizzi */
+        name="address-search-force-new"
         placeholder={placeholder || "Inserisci indirizzo o scrivi liberamente..."}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
             e.preventDefault();
-            handleAiParse();
           }
         }}
-        className={cn("pl-12 pr-24", className)}
+        className={cn("pl-12 pr-4", className)}
       />
-      <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-        {value.length > 5 && (
-           <motion.button
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ 
-              scale: 1, 
-              opacity: 1,
-              boxShadow: ["0 0 0px rgba(37, 99, 235, 0)", "0 0 15px rgba(37, 99, 235, 0.4)", "0 0 0px rgba(37, 99, 235, 0)"] 
-            }}
-            transition={{ 
-              repeat: Infinity, 
-              duration: 2,
-              ease: "easeInOut"
-            }}
-            onClick={(e) => {
-              e.preventDefault();
-              handleAiParse();
-            }}
-            disabled={isParsing}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl shadow-xl shadow-blue-500/30 active:scale-95 transition-all disabled:opacity-50 border border-blue-400/30"
-          >
-            {isParsing ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Sparkles className="w-4 h-4" />
-            )}
-            <span className="text-xs font-black uppercase tracking-tight">Magia AI</span>
-          </motion.button>
-        )}
-      </div>
     </div>
   );
 }
