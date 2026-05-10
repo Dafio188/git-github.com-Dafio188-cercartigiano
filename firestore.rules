@@ -109,9 +109,15 @@ service cloud.firestore {
 
     // --- CONVERSATIONS ---
     match /conversations/{convId} {
-      allow read: if isSignedIn() && (request.auth.uid in resource.data.participants || isAdmin());
+      allow read: if isSignedIn() && (
+        resource == null ||
+        !('participants' in resource.data) ||
+        request.auth.uid in resource.data.participants || 
+        resource.data.isPublicContext == true ||
+        isAdmin()
+      );
       allow create: if isSignedIn();
-      allow update: if isAdmin() || (isSignedIn() && (request.auth.uid in existing().participants || request.auth.uid in incoming().participants));
+      allow update: if isSignedIn();
       allow delete: if isAdmin();
     }
 
