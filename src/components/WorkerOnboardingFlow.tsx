@@ -76,6 +76,7 @@ export function WorkerOnboardingFlow({ user, onComplete, onCancel }: WorkerOnboa
   const [partitaIva, setPartitaIva] = useState('');
   const [codiceFiscale, setCodiceFiscale] = useState('');
   const [ragioneSociale, setRagioneSociale] = useState('');
+  const [regimeFiscale, setRegimeFiscale] = useState('forfettario');
   
   // Profile State
   const [bio, setBio] = useState('');
@@ -143,6 +144,7 @@ export function WorkerOnboardingFlow({ user, onComplete, onCancel }: WorkerOnboa
         codiceFiscale: codiceFiscale || '',
         partitaIva: partitaIva || undefined,
         ragioneSociale: ragioneSociale || undefined,
+        regimeFiscale: regimeFiscale || undefined,
         address,
         cap,
         citta,
@@ -494,6 +496,20 @@ export function WorkerOnboardingFlow({ user, onComplete, onCancel }: WorkerOnboa
                     className="h-14 rounded-2xl bg-[#F5F5F7] border-none font-medium tracking-widest"
                   />
                 </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-[#1D1D1F] uppercase tracking-widest pl-1">Regime Fiscale</label>
+                <select
+                  value={regimeFiscale}
+                  onChange={(e) => setRegimeFiscale(e.target.value)}
+                  className="w-full h-14 rounded-2xl bg-[#F5F5F7] border-none font-medium px-4 text-[#1D1D1F] focus:ring-2 focus:ring-blue-600 outline-none"
+                >
+                  <option value="forfettario">Regime Forfettario (L. 190/2014)</option>
+                  <option value="ordinario">Regime Ordinario</option>
+                  <option value="minimi">Regime dei Minimi</option>
+                  <option value="privato">Privato (Senza P.IVA - Ritenuta d'acconto / Autofatturazione)</option>
+                  <option value="altro">Altro</option>
+                </select>
               </div>
             </div>
             <div className="p-5 bg-amber-50 rounded-[2rem] border border-amber-100 flex gap-4">

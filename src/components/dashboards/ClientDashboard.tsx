@@ -59,7 +59,9 @@ export function ClientDashboard({ user, activeTab, initialCategoryId, onClearPen
   const [reviewJob, setReviewJob] = useState<Job | null>(null);
 
   useEffect(() => {
-    // Escuta o perfil do cliente para saber o onboarding
+    if (!user || !user.id) return;
+
+    // Escuta o perfil do cliente per sapere l'onboarding
     const profileRef = doc(db, 'users', user.id);
     const unsubProfile = onSnapshot(profileRef, (docSnap) => {
       if (docSnap.exists()) {

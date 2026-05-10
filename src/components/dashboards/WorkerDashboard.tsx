@@ -61,6 +61,8 @@ export function WorkerDashboard({ user, activeTab }: WorkerDashboardProps) {
   useEffect(() => {
     setActiveSubTab(activeTab || 'home');
     
+    if (!user || !user.id) return;
+
     const profileRef = doc(db, 'workerProfiles', user.id);
     const unsubProfile = onSnapshot(profileRef, (docSnap) => {
       if (docSnap.exists()) {

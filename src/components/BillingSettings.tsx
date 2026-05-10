@@ -135,6 +135,20 @@ export function BillingSettings({ onBack }: BillingSettingsProps) {
                 </div>
               </>
             )}
+            <div>
+              <label className="text-[10px] font-black uppercase tracking-widest text-[#86868B] ml-1 mb-2 block">Regime Fiscale</label>
+              <select
+                value={profile.regimeFiscale || 'forfettario'}
+                onChange={(e) => setProfile({ ...profile, regimeFiscale: e.target.value })}
+                className="w-full h-14 rounded-2xl bg-[#F5F5F7] border-none font-medium px-4 text-[#1D1D1F] focus:ring-2 focus:ring-blue-600 outline-none"
+              >
+                <option value="forfettario">Regime Forfettario (L. 190/2014)</option>
+                <option value="ordinario">Regime Ordinario</option>
+                <option value="minimi">Regime dei Minimi</option>
+                <option value="privato">Privato (Senza P.IVA - Autofatturazione)</option>
+                <option value="altro">Altro</option>
+              </select>
+            </div>
           </div>
 
           <div className="space-y-4">

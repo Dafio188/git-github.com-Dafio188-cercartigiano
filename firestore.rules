@@ -37,9 +37,9 @@ service cloud.firestore {
     function isValidUser(data) {
       return data.keys().hasAll(['id', 'role', 'nome', 'email', 'createdAt', 'status']) &&
              data.id == request.auth.uid &&
-             data.role in ['client', 'worker'] &&
+             data.role in ['client', 'worker', 'admin'] &&
              data.email == request.auth.token.email &&
-             data.status == 'active';
+             (data.status == 'active' || data.status == 'pending' || data.status == 'suspended');
     }
 
     function isValidJob(data) {
@@ -71,7 +71,7 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isSignedIn() && (isOwner(userId) || isAdmin() || exists(/databases/$(database)/documents/workerProfiles/$(userId)));
       allow create: if isSignedIn() && isValidUser(incoming());
-      allow update: if isAdmin() || (isOwner(userId) && incoming().role == existing().role && incoming().email == existing().email);
+      allow update: if isAdmin() || (isOwner(userId) && incoming().email == existing().email);
       allow delete: if isAdmin();
     }
 

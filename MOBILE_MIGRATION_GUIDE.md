@@ -508,5 +508,204 @@ Il core business di CercArtigiano si basa sulla prossimità radiale e sul blind-
 2. **Mobile Smoothness:** Usa librerie native di animazione come `react-native-reanimated` per transizioni fluide stile Apple.
 3. **Cross-Platform Sync:** Assicurati che i dati scritti da Mobile siano leggibili dal Web (nomi campi identici).
 
+---
 
+## 20. PERCORSO DI IDENTIFICAZIONE SPECIALITÀ (LATO ARTIGIANO)
+
+L'app mobile deve garantire che i professionisti possano profilarsi in modo granulare, così da ricevere solo richieste pertinenti. Il percorso "a imbuto" (Top-Down) prevede due fasi essenziali che rispecchiano le strutture presenti in `src/constants.ts`.
+
+### Fase 1: Selezione Macro-Categoria
+L'artigiano sceglie uno o più macro-settori (ad es. "Idraulico" o "Elettricista") attingendo direttamente da `SERVICE_CATEGORIES` (icona + label).
+
+### Fase 2: Selezione Specifiche Competenze (Micro-Skill)
+Per ogni Macro-Categoria scelta, vengono mostrate le specialità esatte. L'artigiano seleziona solo ciò di cui si occupa realmente, attingendo da `CATEGORY_SERVICES`. Di seguito le definizioni per ogni categoria che l'app Mobile DEVE replicare fedelmente:
+
+- **Elettricista (`electrical`)**: Condizionatori, Cancello Automatico, Telecamere, Citofono, Antennista, Pronto Intervento, Certificazioni, Fotovoltaico, Allarme, Domotica, Illuminotecnica, Wallbox.
+- **Idraulico (`plumbing`)**: Perdite, Caldaia, Rifacimento Bagno, Disotturazione, Sanitari, Impianto Irrigazione, Trattamento Acque, Autoclave, Scaldabagno.
+- **Pulizia Casa (`cleaning`)**: Ordinaria, Profonda, Divani/Tappeti, Vetrate, Stiratura, Uffici, Sanificazione, B&B.
+- **Edilizia (`construction`)**: Cartongesso, Pavimenti, Muratura, Tinteggiatura, Ristrutturazione Completa, Isolamento Termico (Cappotto), Parquet, Tetto.
+- **Giardinaggio (`gardening`)**: Taglio Prato, Potatura, Irrigazione, Abbattimento Alto Fusto, Aiuole.
+- **Tuttofare (`handyman`)**: Montaggio Mobili (IKEA/etc.), Appensione Quadri, Tapparelle/Persiane, Serrature, Siliconature.
+- **Traslochi (`moving`)**: Completo, Ufficio, Solo Scatole, Smontaggio/Rimontaggio, Autoscale, Pianoforti, Sgombero.
+- **Meccanico (`mechanic`)**: Tagliando, Freni, Diagnosi, Cambio Gomme, Clima, Cristalli, Elettrauto.
+- **Fabbro / Serramenti (`locksmith`)**: Apertura Porte Bloccate, Sostituzione Serrature, Riparazione Tapparelle / Serrande, Installazione Casseforti, Fabbro Pronto Intervento, Lavorazione Ferro / Cancelli.
+- **Imbianchino (`painter`)**: Tinteggiatura Interni, Tinteggiatura Esterni, Carta da Parati, Decorazioni (Stucco, Spatolato), Trattamenti Antimuffa, Verniciatura Porte/Finestre.
+- **Sarto (`tailor`)**: Riparazioni Sartoriali (Orli, Cerniere), Abiti su Misura, Modifiche Abiti da Cerimonia, Rammendo e Rattoppo, Confezione Tende.
+- **Tecnico Informatico (`it_support`)**: Riparazione PC / Mac, Rimozione Virus / Malware, Configurazione Rete / Wi-Fi, Recupero Dati, Assistenza Smartphone / Tablet, Installazione Software.
+- **Elettrodomestici (`appliances`)**: Riparazione Lavatrice / Asciugatrice, Riparazione Frigorifero, Riparazione Forno / Piano Cottura, Riparazione Lavastoviglie, Riparazione Piccoli Elettrodomestici.
+- **Fotografo / Video (`photography`)**: Servizi Fotografici ed Eventi (Matrimoni), Fotografia Prodotti / E-commerce, Riprese Video e Montaggio, Ritratti, Fotografia Immobiliare.
+- **Ripetizioni (`tutoring`)**: Ripetizioni Scolastiche (Matematica, Lingue, ecc.), Aiuto Compiti, Corsi di Lingua Straniera, Preparazione Test Universitari, Informatica di Base.
+- **Assistenza Anziani (`elderly_care`)**: Compagnia e Veglia, Aiuto Igiene Personale, Preparazione e Somministrazione Pasti, Accompagnamento Visite Mediche, Acquisto Spesa e Commissioni, Assistenza Notturna, Aiuto nella Deambulazione, Supporto Gestione Terapie Farmacologiche.
+- **Baby Sitter (`babysitting`)**: Babysitting Occasionale, Aiuto Compiti, Accompagnamento Attività Extra, Animazione Feste, Puericultrice (Neonati), Presa a Scuola/Asilo.
+- **Pet Sitting (`pet_sitting`)**: Dog Walking (Passeggiate), Pensione per Cani a Domicilio, Pensione per Gatti, Toelettatura, Addestramento Base, Somministrazione Farmaci Animali.
+- **Estetica / Beauty (`beauty`)**: Taglio e Piega, Colore e Schiariture, Manicure e Pedicure (Smalto Semipermanente), Trattamenti Viso e Corpo, Trucco Sposa/Eventi, Massaggi Rilassanti, Epilazione (Cera/Laser), Laminazione Ciglia/Sopracciglia.
+- **Falegname (`carpentry`)**: Riparazione Mobili in Legno, Creazione Arredi su Misura, Restauro Antichità, Posa Battiscopa e Parquet, Riparazione Porte e Infissi, Costruzione Strutture Esterno (Gazebo).
+- **Psicologo (`psychology`)**: Consulenza Individuale, Terapia di Coppia, Sostegno Genitoriale, Psicoterapia Infantile, Gestione Ansia e Stress, Coaching e Motivazione.
+- **Avvocato (`lawyer`)**: Diritto Civile, Diritto Penale, Diritto del Lavoro, Pratiche di Divorzio/Famiglia, Infortunistica Stradale, Recupero Crediti.
+- **Architetto (`architect`)**: Progettazione Architettonica, Interior Design, Pratiche Edilizie (CILA/SCIA), Direzione Lavori, Rilievi e Planimetrie, Consulenza Arredamento.
+- **Commercialista (`accountant`)**: Dichiarazione dei Redditi (730/Unico), Apertura Partita IVA, Contabilità Aziendale, Consulenza Fiscale, Pianificazione Successoria, Gestione Buste Paga.
+- **Fisioterapista (`physiotherapy`)**: Riabilitazione Motoria, Massoterapia, Terapia Posturale, Fisioterapia Sportiva, Linfodrenaggio, Osteopatia.
+
+I dati verranno poi salvati nel database nel documento `workerProfiles` sotto un array `skills[]`.
+
+---
+
+## 21. PERCORSO DI CREAZIONE RICHIESTA: MATCHING E ALLINEAMENTO (LATO CLIENTE)
+
+Lato cliente, quando viene creata una nuova Richiesta di lavoro (Job), l'applicazione Mobile DEVE seguire un percorso analogo per assicurare il *Matching* corretto con l'Artigiano, sfruttando il motore definito in `src/services/questionService.ts`.
+
+### Fasi del Matching:
+1. **Punto d'Ingresso (La Categoria):** Il cliente clicca su una categoria specifica (es. "Elettricista"). Questo parametro (`categoryId="electrical"`) farà sì che il Job sia visibile unicamente agli artigiani che possiedono la Macro-Categoria corrispondente.
+2. **Il Wizard Guidato (Matching Naturale):** L'App Mobile lancia una serie di domande a cascata (`Multi-Step Form`). 
+   - **Domanda Chiave Esempio ("Di che servizio hai bisogno?"):** Tra le opzioni figurano voci come "Riparazione guasto", "Rifacimento impianto", "Certificazione", "Allarmi", "Fotovoltaico".
+   - **Allineamento con le Skill:** Le risposte a questo step vanno salvate all'interno di `Job.meta.service_type`. 
+3. **Il Filtro delle Competenze:** Quando il Job viene pubblicato, l'Artigiano la cui lista di `skills[]` (Punto 20) comprende "Fotovoltaico", riceverà immediatamente una notifica Push per la richiesta con tag "Fotovoltaico". 
+
+**Perché è fondamentale che Web e App abbiano lo stesso percorso e gli stessi identificativi veri e propri?**
+- Permette al Database di incrociare le parole chiave del Wizard Cliente (`questionService.ts` id degli step e delle options) con le Specialità Artigiano (`constants.ts` ID delle categorie).
+- Se l'App Mobile utilizzasse un set di domande diverso, categorie non standard o ID differenti da quelli usati per il Web ("opt_1", "opt_2", "service_type", ecc...), l'algoritmo di matching (che connette l'esigenza del Cliente al portfolio dell'Artigiano) non funzionerebbe e la Dashboard dell'artigiano resterebbe vuota.
+
+Pertanto, **l'App Mobile DEVE importare e renderizzare lo stesso identico file o array di configurazione del Web** (gli stessi `constants.ts` e `questionService.ts` del branch Web) per i wizard cliente e artigiano, costruendo la medesima struttura di step e usando gli **stessi identici ID (`id`) stringa** per le opzioni scelte, salvando le risposte nel documento Firestore del Job, in modo che l'Artigiano navighi nei filter e trovi esattamente le sue specialità.
+
+### Regola d'oro della Sincronizzazione Dati (Web vs Mobile):
+1. Gli `id` dentro `SERVICE_CATEGORIES` (es: `electrical`, `painter`) **devono** essere esattamente gli stessi.
+2. Le chiavi dentro `CATEGORY_SERVICES` **devono** essere identiche ed estrapolate da un unico file configurativo condiviso (se usate monorepo o npm package condiviso).
+3. Tutti gli `id` associati ai singoli step di `questionService.ts` (es: `service_type`, `property_type`, `opt_1`, `opt_2`) **non devono MAI** essere modificati o alterati singolarmente nelle diverse interfacce. Il Backend/Firebase Matching fa un controllo esatto ("Electrical" !== "electrical").
+4. Mantenere scrupolosamente una single source of truth se possibile, oppure copiare **testualmente** i file `constants.ts` e `questionService.ts` nell'ambiente mobile a ogni update.
+
+---
+
+## 22. LOGICA DEL COSTO DEI TOKEN (VARIABILE)
+L'App Mobile deve rispettare rigorosamente il fatto che **il costo in Token di un preventivo non è fisso a 1**.
+- **Costo Variabile (`tokenCost`)**: Quando il Cliente pubblica una richiesta, il sistema Web calcola un "costo tier" del Job in base al livello/budget (es. nell'onboarding, lavori piccoli = 5 Token, medi = 8 Token, grandi/pro = 15/25 Token, con possibili integrazioni di calcolo via AI). 
+- Questo valore viene salvato e scolpito in Firestore come campo **`tokenCost`** all'interno dell'Oggetto `Job`.
+- **Implementazione App Mobile**: L'App Artigiano non stabilisce il costo da sola. Deve leggere il campo `job.tokenCost` dal DB per sapere quanti Token sottrarre durante la call Transazionale di inoltro del preventivo. Se l'artigiano non ha un `saldo tokens >= tokenCost`, l'App deve inibire l'azione (mostrando "Token Insufficienti").
+
+---
+
+## 23. STATO: APPROVAZIONE ARTIGIANO (MANUALE DA ADMIN)
+L'Artigiano **NON può** visualizzare né rispondere a richieste di lavoro subito dopo essersi registrato o aver inviato il documento d'identità. L'approvazione è a tutti gli effetti un processo manuale bloccante.
+- **Workflow App**: 
+  1. Dopo la Registrazione, lo step "Upload Identità" porta l'account in stato `verificationStatus: 'pending'`.
+  2. L'Artigiano deve vedere una schermata di attesa (sul Web è la `WorkerVerificationPhase`).
+  3. L'Amministratore, nel suo AdminDashboard, approva l'artigiano impostando `verificationStatus: 'approved'` e `isApproved: true` in Firestore.
+  4. L'App Mobile deve "ascoltare" in real-time i cambiamenti del documento Profilo. Solo al ricevimento del flag `'approved'`, si dovrà sbloccare la navigazione verso il feed dei lavori per l'Artigiano.
+
+---
+
+## 24. CONCORRENZA E LIMITI: LA POTENZA DEL 5
+Nel portale Web è impostato un cap ferreo denominato **"Top 5 Selection"**. Esiste cioè un tetto massimo alla concorrenza per garantire massima utilità per tutti ed evitare sovraffollamento sul Cliente.
+- **Max Preventivi**: Un singolo Lavoro/Job può ricevere al **massimo 5 preventivi**.
+- **Implementazione App**: 
+  1. Se `isFull` si abilita (calcolato analizzando se la collection interna `proposals` per quel job contiene `>= 5` o tramite counter aggregato `job.proposalsCount >= 5`), la visualizzazione del Lavoro nella bacheca mobile dovrà recare una label ("Lavoro Saturo" / "Pieno") e il CTA di "Invia Preventivo" deve essere obbligatoriamente disabilitato.
+  2. Nessun artigiano ulteriore potrà accaparrarsi l'asta post quinto posto.
+
+---
+
+## 25. MENU E PAGINE DASHBOARD CLIENTE (IN DETTAGLIO)
+Affinché Web e App siano perfettamente speculari, la Dashboard Cliente sull'App Mobile DEVE presentare le seguenti sezioni di navigazione (Bottom Tab Bar e/o Sidebar) e accogliere le stesse funzioni di input previste dal portale web. L'Admin Dashboard non sarà accessibile da App.
+
+**1. Home / Inizio**
+- **Elementi:** Pulsante CTA principale ("Nuova Richiesta"), Carosello degli "Esperti in evidenza" (recuperati dalla collection `workerProfiles`).
+- **Input Dati:** Lancio del Wizard `GuidedJobModal`.
+  - Gli step input del Wizard (Selezione Servizio, Dettagli/Foto opzionali, Indirizzo via Google Places Autocomplete, Contatti).
+  - L'invio crea il job in `jobs` e calcola i token se previsti per la visualizzazione all'artigiano.
+
+**2. Esplora Esperti (Search / Esperti)**
+- **Elementi:** Lista completa e mappa degli artigiani attivi e verificati.
+- **Input Dati:** Barra di ricerca testuale. Filtri per Categoria (`electrical`, `plumbing`, etc.) e Badge Verificato. Input per aprire il profilo pubblico (`PublicProfileModal`) dell'artigiano.
+
+**3. Le mie Richieste (Jobs / Richieste)**
+- **Elementi:** Lista dei Lavori creati dal cliente, divisi per stati ("Aperto", "In Corso", "Completato").
+- **Input Dati/Azioni:** 
+  - Consultazione delle proposte ricevute (`proposals` collection subordinata).
+  - Tasto **"Prolunga Scadenza"**: Se il lavoro scade, l'input prolunga la validità scalando **1 Token** dal portafoglio Cliente.
+  - Tasto **"Accetta Preventivo"**: Segna il job come `in_progress`, popola `hiredWorkerId`, rifiuta gli altri, e sblocca la chat (apre `ChatModal`).
+
+**4. Mio Profilo (Profile)**
+- **Input Dati Form Anagrafica:**
+  - Caricamento Foto Profilo (Avatar Firebase Storage).
+  - Nome, Cognome.
+  - Indirizzo, Civico, Città, CAP, Provincia, Regione.
+  - Telefono (Editabile).
+  - Email (Sola Lettura in quanto legato all'Auth Google/Firebase).
+- **Privacy Switch (Toggle):** Mostra Email, Mostra Telefono, Mostra Indirizzo.
+
+**5. Ricarica Token / Piani**
+- **Elementi/Input:** Acquisizione crediti lato Cliente. Selezione dei vari ticket tier (Es. 1 Token, 5 Token Premium, ecc). In-App Purchase su Mobile (StoreKit/Google Play Billing) mappato su Firebase.
+
+**6. Impostazioni (Settings)**
+In questa sezione, il Mobile deve avere gli stessi identici sottomenù presenti nel Web `SettingsView`:
+- **Sicurezza & Password:** Form per inoltrare un link di password reset.
+- **Notifiche:** Switch on/off per Email o Push relative a Messaggi ricevuti e Aggiornamenti del lavoro.
+- **Privacy & GDPR:** 
+  - Pulsante per "Esporta i miei dati" (Generazione File JSON delle proprie richieste).
+  - Pulsante irreversibile per la **"Cancellazione Account totale"** (Eliminazione Firestore Cloud Function + Auth Cloud).
+
+**7. Uscita (Logout)**
+- Interruzione della sessione Firebase Auth e rimando al flow di on-boarding/guest.
+
+---
+
+## 26. MENU E PAGINE DASHBOARD ARTIGIANO (IN DETTAGLIO)
+L'App Mobile DEVE replicare il CRM web `WorkerDashboard` con la medesima struttura di root. L'approvazione è bloccante: se `isApproved` (flag database) è `false`, nessuna di queste tab deve mostrare i lavori. 
+
+**1. Home / Bacheca (Trova Lavori)**
+- **Elementi:** Elenco Feed Lavori disponibili e non saturati (< 5 limit preventivi).
+- **Elaborazione Automatica:** Mostra solo i lavori il cui `category` matcha col vettore `skills[]` dell'Artigiano.
+- **Input Dati (Preventivo):** L'Apertura del Lavoro espone un form di input testuale ("Messaggio Preventivo") libero + Input numerico del prezzo stimato.
+- **Azione:** L'invio sottrae dinamicamente il valore `tokenCost` del lavoro dall'array tokens (`user.tokens - responseCost`).
+
+**2. Lavori Attivi (Projects)**
+- **Elementi/Input:** Storico delle richieste dove l'artigiano ha partecipato (Preventivi pending) o vinto (Jobs in corso).
+- **Azione:** Ingresso nella Chat di messaggistica. Consultazione del profilo ridotto del cliente.
+- **Rimborso Pay-Per-Win:** Appena si apre la tab, la logica Mobile deve verificare se ci sono preventivi in estado "rejected" e se non rimborsati, ri-accreditare i Token all'artigiano (`workerDashboard` sul web esegue questo on-mount).
+
+**3. Mio Profilo (Profile)**
+- **Input Dati Form Anagrafica:** Medesimi campi del cliente (Nome, Telefono, Indirizzo completo e geocodificato Places API).
+- **Input Dati Specifici Lavoro:** 
+  - Retribuzione oraria stimata (Input Number).
+  - Raggio di Lavoro Km (Input Number).
+  - Bio Dettagliata (Textarea).
+  - Abilità & Categorie (Multi-select dei tag come idraulico/elettricista).
+- **Documenti:** Sezione per visualizzare lo stato di completamento dell'Upload Identità (per il badge Verificato).
+
+**4. Ricarica Token / Piani**
+- **Elementi/Input:** Sezione acquisti Token Pacchetti Crescita (Es. €49 per 20 Token, 50, 150 Token). Utilizzare In-App Purchases Mobile.
+
+**5. Impostazioni (Settings) e Dati Fiscali**
+Area nevralgica. L'app mobile replica tutte le voci della `SettingsView` web per il ruolo *worker*:
+- **Sicurezza:** Reset password via Email.
+- **Notifiche:** Switch "Nuovi Lavori Disponibili", "Nuovi Messaggi", ecc.
+- **Generale Privacy:** Export dati in JSON e **Cancellazione Account**.
+- **Dati Fiscali / Fatturazione (Fondamentale):** (Vedi Dettaglio Paragrafo 27). Impostazione Codice Fiscale, P.IVA, Ragione Sociale, e scelta del Regime Fiscale in un componente input dedicato per mantenere allineato l'admin web della piattaforma sulle fatture.
+
+**6. Uscita (Logout)**
+- Deslogin e ritorno all'Onboarding Mobile.
+
+---
+
+## 27. DATI FISCALI E FATTURAZIONE
+Ogni Artigiano sul Web compila una sezione strutturata per la **Fatturazione Elettronica** (nel `WorkerOnboardingFlow` e in `BillingSettings`). L'App Mobile **DEVE** prevedere gli stessi campi all'interno del menù di modifica/impostazioni fiscali. In Firestore questi dati sono salvati in `billingProfiles/{userId}`. I campi obbligatori sono:
+
+**1. Tipologia (fiscalType)**:
+- "Libero Professionista / Ditta Individuale" (`freelancer`)
+- "Società / Azienda" (`company`)
+- "Privato" (`individual`) *[Se applicabile, anche se su CercArtigiano si presuppone P.IVA base]*
+
+**2. Campi Anagrafici/Fiscali necessari (Input Text/Number)**:
+- **Codice Fiscale**: Obbligatorio per tutti, uppercase (16 caratteri o P.IVA se coincidente).
+- **Partita IVA**: Obbligatorio per `freelancer` e `company` (11 cifre).
+- **Ragione Sociale / Nome Ditta**: Obbligatorio per `freelancer` e `company`.
+- **Codice Univoco / SDI** e **Indirizzo PEC**.
+
+**3. Regime Fiscale (Select/Dropdown)**:
+Deve esistere il campo `regimeFiscale` con gli stessi identici identificativi:
+- `forfettario` (Regime Forfettario L. 190/2014)
+- `ordinario` (Regime Ordinario)
+- `minimi` (Regime dei Minimi / Vantaggio)
+- `privato` (Senza P.IVA - Ritenuta d'acconto / Autofatturazione)
+- `altro` (Altro regime)
+
+L'App Mobile dovrà precompilare (in GET) questi campi e farli aggiornare (in PATCH/MERGE) sulla collection `billingProfiles` garantendo a chi gestisce l'Admin Dashboard di estrarre le fatture correttamente per l'acquisto dei Token o Premium.
 

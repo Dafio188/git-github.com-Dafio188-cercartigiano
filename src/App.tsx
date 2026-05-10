@@ -193,7 +193,7 @@ function App() {
   }, [user, pendingJobDraft]);
 
   useEffect(() => {
-    if (!user) {
+    if (!user || !user.id) {
       setUnreadCount(0);
       return;
     }
@@ -236,7 +236,7 @@ function App() {
         unsubUser = onSnapshot(userRef, async (docSnap) => {
           const isDefaultAdmin = firebaseUser.email === 'fio.davide@gmail.com' || firebaseUser.email === 'admin@cercartigiano.it';
           if (docSnap.exists()) {
-            const data = docSnap.data() as User;
+            const data = { ...docSnap.data(), id: docSnap.id } as User;
             if (data.status === 'suspended') {
               setUser(null);
               setShowAuth(false);
@@ -267,10 +267,10 @@ function App() {
               nome: firebaseUser.displayName || 'Utente',
               email: firebaseUser.email || '',
               role: isDefaultAdmin ? 'admin' : (pendingWorkerRegistration ? 'worker' : 'client'),
-              status: 'active',
+              status: isDefaultAdmin ? 'active' : (pendingWorkerRegistration ? 'pending' : 'active'),
               createdAt: new Date().toISOString(),
               tokens: 0,
-              onboardingComplete: isDefaultAdmin ? true : (pendingJobDraft ? true : false)
+              onboardingComplete: isDefaultAdmin ? true : false
             };
             
             try {

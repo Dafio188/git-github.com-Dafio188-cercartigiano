@@ -42,15 +42,13 @@ export function SettingsView() {
     {
       title: 'Notifiche',
       items: [
-        { id: 'push', label: 'Notifiche Push', icon: Smartphone, detail: 'Attivate sul dispositivo' },
-        { id: 'email', label: 'Notifiche Email', icon: Bell, detail: 'Riepiloghi settimanali' },
+        { id: 'notifications', label: 'Preferenze Notifiche', icon: Bell, detail: 'Gestisci Notifiche Push ed Email' },
       ]
     },
     {
       title: 'Privacy & Dati',
       items: [
-        { id: 'data', label: 'Esporta i tuoi dati', icon: Globe, detail: 'Scarica archivio JSON' },
-        { id: 'privacy', label: 'Gestione Consensi', icon: Shield, detail: 'GDPR & Privacy' },
+        { id: 'privacy_data', label: 'Privacy e Sicurezza Dati', icon: Shield, detail: 'Gestione GDPR ed Esportazione Dati' },
       ]
     }
   ];
@@ -67,11 +65,11 @@ export function SettingsView() {
     return <SecuritySettings onBack={() => setActiveSubView(null)} />;
   }
 
-  if (activeSubView === 'push' || activeSubView === 'email') {
+  if (activeSubView === 'notifications') {
     return <NotificationSettings onBack={() => setActiveSubView(null)} />;
   }
 
-  if (activeSubView === 'data' || activeSubView === 'privacy') {
+  if (activeSubView === 'privacy_data') {
     return <DataPrivacySettings onBack={() => setActiveSubView(null)} />;
   }
 

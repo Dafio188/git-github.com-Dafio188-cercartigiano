@@ -19,7 +19,15 @@ import {
   Trophy,
   Shield,
   Clock,
-  HeartHandshake
+  HeartHandshake,
+  Paintbrush,
+  Key,
+  Scissors,
+  Laptop,
+  Plug,
+  Camera,
+  GraduationCap,
+  Sparkle
 } from 'lucide-react';
 
 import { BadgeType } from './types';
@@ -28,10 +36,17 @@ export const SERVICE_CATEGORIES = [
   { id: 'cleaning', label: 'Pulizia Casa', icon: Sparkles },
   { id: 'plumbing', label: 'Idraulico', icon: Droplets },
   { id: 'electrical', label: 'Elettricista', icon: Zap },
+  { id: 'painter', label: 'Imbianchino', icon: Paintbrush },
+  { id: 'locksmith', label: 'Fabbro / Serramenti', icon: Key },
+  { id: 'tailor', label: 'Sarto', icon: Scissors },
+  { id: 'appliances', label: 'Elettrodomestici', icon: Plug },
+  { id: 'it_support', label: 'Tecnico Informatico', icon: Laptop },
+  { id: 'photography', label: 'Fotografo / Video', icon: Camera },
+  { id: 'tutoring', label: 'Ripetizioni / Corsi', icon: GraduationCap },
   { id: 'elderly_care', label: 'Assistenza Anziani', icon: Heart },
   { id: 'gardening', label: 'Giardinaggio', icon: Leaf },
   { id: 'pet_sitting', label: 'Pet Sitting', icon: Dog },
-  { id: 'beauty', label: 'Estetica/Beauty', icon: Sparkles },
+  { id: 'beauty', label: 'Estetica / Beauty', icon: Sparkle },
   { id: 'babysitting', label: 'Babysitter', icon: Baby },
   { id: 'handyman', label: 'Tuttofare', icon: Hammer },
   { id: 'moving', label: 'Traslochi', icon: Truck },
@@ -72,11 +87,6 @@ export const CATEGORY_SERVICES: Record<string, string[]> = {
     "Cartongesso e Controsoffitti", "Posa Pavimenti e Rivestimenti", "Muratura e Intonaco",
     "Tinteggiatura e Pittura", "Ristrutturazione Chiavi in Mano", "Isolamento Termico (Cappotto)",
     "Posa Parquet", "Rifacimento Tetto", "Impermeabilizzazione Terrazzi", "Opere in Cemento Armato"
-  ],
-  painting: [
-    "Pittura Interni", "Pittura Esterni", "Trattamento Antimuffa e Umidità",
-    "Rimozione Carta da Parati", "Verniciatura Infissi e Persiane", "Spatolato Venisiano",
-    "Decorazioni Pareti", "Pittura Termoisolante"
   ],
   gardening: [
     "Taglio Prato e Bordure", "Potatura Alberi e Siepi", "Installazione Impianto Irrigazione",
@@ -139,6 +149,34 @@ export const CATEGORY_SERVICES: Record<string, string[]> = {
   physiotherapy: [
     "Riabilitazione Motoria", "Massoterapia", "Terapia Posturale",
     "Fisioterapia Sportiva", "Linfodrenaggio", "Osteopatia"
+  ],
+  painter: [
+    "Tinteggiatura Interni", "Tinteggiatura Esterni", "Carta da Parati",
+    "Decorazioni (Stucco, Spatolato)", "Trattamenti Antimuffa", "Verniciatura Porte/Finestre"
+  ],
+  locksmith: [
+    "Apertura Porte Bloccate", "Sostituzione Serrature", "Riparazione Tapparelle / Serrande",
+    "Installazione Casseforti", "Fabbro Pronto Intervento", "Lavorazione Ferro / Cancelli"
+  ],
+  tailor: [
+    "Riparazioni Sartoriali (Orli, Cerniere)", "Abiti su Misura", "Modifiche Abiti da Cerimonia",
+    "Rammendo e Rattoppo", "Confezione Tende"
+  ],
+  appliances: [
+    "Riparazione Lavatrice / Asciugatrice", "Riparazione Frigorifero", "Riparazione Forno / Piano Cottura",
+    "Riparazione Lavastoviglie", "Riparazione Piccoli Elettrodomestici", "Installazione Elettrodomestici"
+  ],
+  it_support: [
+    "Riparazione PC / Mac", "Rimozione Virus / Malware", "Configurazione Rete / Wi-Fi",
+    "Recupero Dati", "Assistenza Smartphone / Tablet", "Installazione Software / SO"
+  ],
+  photography: [
+    "Servizi Fotografici ed Eventi (Matrimoni)", "Fotografia Prodotti / E-commerce", "Riprese Video e Montaggio",
+    "Ritratti e Book Fotografici", "Fotografia Immobiliare", "Riprese con Drone"
+  ],
+  tutoring: [
+    "Ripetizioni Scolastiche (Matematica, Lingue, ecc.)", "Aiuto Compiti", "Corsi di Lingua Straniera",
+    "Preparazione Test Universitari", "Informatica di Base"
   ]
 };
 
