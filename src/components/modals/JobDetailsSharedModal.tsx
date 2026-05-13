@@ -28,8 +28,8 @@ export function JobDetailsSharedModal({ isOpen, onClose, job, user, onOpenPropos
         </VisuallyHidden>
         <div className="flex flex-col h-full">
           {/* Job Details */}
-          <div className="flex-1 p-6 sm:p-8 lg:p-10 flex flex-col items-start overflow-y-auto bg-white">
-            <div className="space-y-6 w-full">
+          <div className="flex-1 p-6 sm:p-8 lg:p-10 flex flex-col overflow-y-auto bg-white">
+            <div className="space-y-6 w-full pb-6">
                <div className="flex items-center gap-3">
                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0">
                    <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
@@ -83,8 +83,10 @@ export function JobDetailsSharedModal({ isOpen, onClose, job, user, onOpenPropos
                  <div className="text-2xl sm:text-3xl font-black text-[#1D1D1F]">€{job.budgetMin} - €{job.budgetMax}</div>
                </div>
             </div>
+          </div>
             
-            <div className="mt-6 sm:mt-8 w-full space-y-3 pt-6 border-t border-[#F5F5F7]">
+          <div className="p-6 sm:p-8 bg-white border-t border-[#F5F5F7] shrink-0">
+             <div className="w-full space-y-3">
               <Button 
                 onClick={() => {
                   onClose();
@@ -121,7 +123,7 @@ export function JobDetailsSharedModal({ isOpen, onClose, job, user, onOpenPropos
               <p className="text-[9px] sm:text-[10px] text-center font-bold text-[#86868B] px-2 sm:px-4 pt-2 leading-tight">
                  Le chat preliminari sono condivise con gli altri artigiani interessati. Lo scambio di contatti prima dell'accettazione del preventivo comporta la sospensione del profilo.
               </p>
-            </div>
+             </div>
           </div>
         </div>
       </DialogContent>

@@ -69,7 +69,7 @@ service cloud.firestore {
 
     // --- USERS ---
     match /users/{userId} {
-      allow read: if isSignedIn() && (isOwner(userId) || isAdmin() || exists(/databases/$(database)/documents/workerProfiles/$(userId)));
+      allow read: if isSignedIn() && (isOwner(userId) || isAdmin() || resource.data.role == 'worker' || exists(/databases/$(database)/documents/workerProfiles/$(userId)));
       allow create: if isSignedIn() && isValidUser(incoming());
       allow update: if isAdmin() || (isOwner(userId) && incoming().email == existing().email);
       allow delete: if isAdmin();
@@ -91,9 +91,9 @@ service cloud.firestore {
         isSignedIn() && (
           existing().clientId == request.auth.uid || 
           existing().assignedWorkerId == request.auth.uid ||
-          // Allow workers to update unread counts if they are involved
-          (incoming().diff(existing()).affectedKeys().hasAny(['unreadMessagesCount']) && 
-           (request.auth.uid in existing().participants || true /* Simplified for now */))
+          // Allow users to update unread counts safely without referencing missing participants field
+          incoming().diff(existing()).affectedKeys().hasOnly(['unreadMessagesCount']) ||
+          incoming().diff(existing()).affectedKeys().hasOnly(['unreadMessagesCount', 'updatedAt'])
         )
       );
       allow delete: if isAdmin();

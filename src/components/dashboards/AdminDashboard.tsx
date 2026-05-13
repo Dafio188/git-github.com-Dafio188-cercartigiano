@@ -1363,7 +1363,7 @@ export function AdminDashboard({ user, summaryOnly = false, initialTab }: AdminD
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {usersList
                   .filter(u => u.role === 'worker' && (u.nome?.toLowerCase().includes(searchTerm.toLowerCase()) || u.email?.toLowerCase().includes(searchTerm.toLowerCase())))
-                  .filter(u => u.status === 'pending' || u.status === 'suspended')
+                  .filter(u => u.status === 'pending' || u.status === 'suspended' || verificationsList.some(v => v.userId === u.id && v.status === 'submitted'))
                   .map(worker => (
                     <div key={worker.id} className="bg-white p-6 rounded-[2.5rem] border border-[#D2D2D7]/30 flex items-center justify-between group hover:shadow-lg transition-all">
                       <div className="flex items-center gap-4">
@@ -1374,14 +1374,14 @@ export function AdminDashboard({ user, summaryOnly = false, initialTab }: AdminD
                           <h4 className="font-black text-lg text-[#1D1D1F] uppercase tracking-tight">{worker.nome}</h4>
                           <div className="flex items-center gap-2">
                             <span className="text-[10px] font-black text-orange-600 uppercase bg-orange-50 px-2 py-0.5 rounded-md">
-                              {worker.status === 'pending' ? 'In Attesa Approvazione' : 'Sospeso'}
+                              {worker.status === 'suspended' ? 'Sospeso' : 'In Attesa Approvazione'}
                             </span>
                             <span className="text-xs font-bold text-[#86868B]">{worker.email}</span>
                           </div>
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        {worker.status === 'pending' && (
+                        {(worker.status === 'pending' || verificationsList.some(v => v.userId === worker.id && v.status === 'submitted')) && (
                           <Button 
                             className="rounded-full h-10 px-6 bg-blue-600 text-white font-black text-xs"
                             onClick={() => {
@@ -1405,7 +1405,7 @@ export function AdminDashboard({ user, summaryOnly = false, initialTab }: AdminD
                       </div>
                     </div>
                   ))}
-                  {usersList.filter(u => u.role === 'worker' && (u.status === 'pending' || u.status === 'suspended')).length === 0 && (
+                  {usersList.filter(u => u.role === 'worker' && (u.status === 'pending' || u.status === 'suspended' || verificationsList.some(v => v.userId === u.id && v.status === 'submitted'))).length === 0 && (
                     <div className="lg:col-span-2 py-20 text-center space-y-4 bg-[#F5F5F7] rounded-[3rem] border border-dashed border-[#D2D2D7]">
                       <CheckCircle className="w-12 h-12 text-green-500 mx-auto" />
                       <div>
