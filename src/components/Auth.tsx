@@ -25,6 +25,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '../lib/utils';
 
 import { BrandLogo } from './BrandLogo';
@@ -36,6 +37,7 @@ interface AuthProps {
 }
 
 export function Auth({ isCompletingRequest = false }: AuthProps) {
+  const { t } = useTranslation();
   const [mode, setMode] = useState<AuthMode>(isCompletingRequest ? 'register' : 'login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

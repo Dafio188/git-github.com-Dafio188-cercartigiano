@@ -21,6 +21,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 import { GuidedJobModal } from '../modals/GuidedJobModal';
 import { ChatModal } from '../modals/ChatModal';
 import { ProposalsModal } from '../modals/ProposalsModal';
@@ -37,6 +38,7 @@ interface ClientDashboardProps {
 }
 
 export function ClientDashboard({ user, activeTab, initialCategoryId, onClearPendingCategory }: ClientDashboardProps) {
+  const { t } = useTranslation();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [isGuidedModalOpen, setIsGuidedModalOpen] = useState(false);
@@ -114,9 +116,9 @@ export function ClientDashboard({ user, activeTab, initialCategoryId, onClearPen
   }, [user.id]);
 
   const stats = [
-    { label: 'Richieste Inviate', value: jobs.length, icon: Package, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { label: 'Lavori Attivi', value: jobs.filter(j => j.status === 'in_progress').length, icon: Activity, color: 'text-orange-600', bg: 'bg-orange-50' },
-    { label: 'Completati', value: jobs.filter(j => j.status === 'completed').length, icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-50' },
+    { label: t('client_dashboard.stats1'), value: jobs.length, icon: Package, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: t('client_dashboard.stats2'), value: jobs.filter(j => j.status === 'in_progress').length, icon: Activity, color: 'text-orange-600', bg: 'bg-orange-50' },
+    { label: t('client_dashboard.stats3'), value: jobs.filter(j => j.status === 'completed').length, icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-50' },
   ];
 
   const handleRenew = async (job: Job) => {
@@ -196,10 +198,10 @@ export function ClientDashboard({ user, activeTab, initialCategoryId, onClearPen
                   <div className="p-6 sm:p-8 lg:p-12">
                     <div className="max-w-2xl">
                       <h1 className="text-3xl sm:text-4xl lg:text-6xl font-black tracking-tight text-[#1D1D1F] mb-3 sm:mb-4">
-                        Bentornato
+                        {t('client_dashboard.welcome')}
                       </h1>
                       <p className="text-base sm:text-lg lg:text-xl text-[#86868B] font-bold mb-6 sm:mb-8">
-                        Ecco cosa sta succedendo ai tuoi interventi.
+                        {t('client_dashboard.subtitle')}
                       </p>
                       
                       <div className="flex flex-col sm:flex-row gap-4">
@@ -208,7 +210,7 @@ export function ClientDashboard({ user, activeTab, initialCategoryId, onClearPen
                           className="h-12 sm:h-14 px-8 rounded-xl sm:rounded-2xl bg-[#1D1D1F] hover:bg-black text-white font-bold text-base sm:text-lg shadow-xl shadow-[#1D1D1F]/20 group"
                         >
                           <Plus className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform" />
-                          Nuova Richiesta
+                          {t('client_dashboard.new_request')}
                         </Button>
                       </div>
                     </div>
@@ -233,14 +235,14 @@ export function ClientDashboard({ user, activeTab, initialCategoryId, onClearPen
                {/* Slogan Card */}
                <div className="p-8 sm:p-12 bg-blue-600 rounded-[2rem] sm:rounded-[2.5rem] text-white flex flex-col md:flex-row items-center gap-6 sm:gap-8 relative overflow-hidden">
                  <div className="relative z-10 space-y-4 text-center md:text-left">
-                    <h3 className="text-3xl sm:text-4xl font-black tracking-tighter leading-tight sm:leading-none">Professionalità garantita,<br className="hidden sm:block" />in un solo tocco.</h3>
-                    <p className="text-white/70 font-bold max-w-sm text-xs sm:text-sm mx-auto md:mx-0">Ogni professionista è verificato manualmente dal nostro supporto.</p>
+                    <h3 className="text-3xl sm:text-4xl font-black tracking-tighter leading-tight sm:leading-none">{t('client_dashboard.slogan_tit')}</h3>
+                    <p className="text-white/70 font-bold max-w-sm text-xs sm:text-sm mx-auto md:mx-0">{t('client_dashboard.slogan_sub')}</p>
                     <Button 
                      variant="outline" 
                      onClick={() => window.dispatchEvent(new CustomEvent('switchTab', { detail: 'search' }))}
                      className="rounded-full bg-white text-[#1D1D1F] hover:bg-gray-100 border-none font-black shadow-lg"
                     >
-                      Esplora Artigiani
+                      {t('client_dashboard.explore_btn')}
                     </Button>
                  </div>
                  <div className="absolute top-[-20%] right-[-10%] w-64 h-64 bg-white/10 rounded-full blur-3xl opacity-50 sm:opacity-100" />
@@ -249,13 +251,13 @@ export function ClientDashboard({ user, activeTab, initialCategoryId, onClearPen
                {/* Recenti Preview */}
                <div className="space-y-4 sm:space-y-6">
                  <div className="flex items-center justify-between px-2">
-                   <h2 className="text-xl sm:text-2xl font-black tracking-tight text-[#1D1D1F]">Attività Recenti</h2>
+                   <h2 className="text-xl sm:text-2xl font-black tracking-tight text-[#1D1D1F]">{t('client_dashboard.recent_act')}</h2>
                    <Button 
                      variant="ghost" 
                      onClick={() => window.dispatchEvent(new CustomEvent('switchTab', { detail: 'jobs' }))}
                      className="text-[10px] font-black uppercase tracking-widest text-blue-600"
                    >
-                     Vedi tutte
+                     {t('client_dashboard.see_all')}
                    </Button>
                  </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
@@ -295,8 +297,8 @@ export function ClientDashboard({ user, activeTab, initialCategoryId, onClearPen
             >
                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-2">
                  <div>
-                   <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-[#1D1D1F]">Le mie Richieste</h2>
-                   <p className="text-xs sm:text-sm font-bold text-[#86868B]">Monitora i tuoi lavori e interagisci con gli artigiani.</p>
+                   <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-[#1D1D1F]">{t('client_dashboard.my_reqs')}</h2>
+                   <p className="text-xs sm:text-sm font-bold text-[#86868B]">{t('client_dashboard.my_reqs_sub')}</p>
                  </div>
                  <Button 
                    onClick={() => setIsGuidedModalOpen(true)}

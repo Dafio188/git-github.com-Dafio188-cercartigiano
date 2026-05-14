@@ -21,6 +21,8 @@ import { SERVICE_CATEGORIES } from '../constants';
 
 import { BrandLogo } from './BrandLogo';
 import { HeroBackground } from './HeroBackground';
+import { LanguageSwitcher } from './LanguageSwitcher';
+import { useTranslation } from 'react-i18next';
 
 interface LandingPageProps {
   onLogin: () => void;
@@ -35,6 +37,7 @@ interface LandingPageProps {
 }
 
 export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTerms, onShowCookies, onShowInfo, onShowCareers, onShowCategories, onRegisterWorker }: LandingPageProps) {
+  const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [workerBackgroundIndex, setWorkerBackgroundIndex] = useState(0);
   const [howItWorksTab, setHowItWorksTab] = useState<'client' | 'worker'>('client');
@@ -141,17 +144,20 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
         </div>
         
         <div className="hidden md:flex items-center gap-8 text-sm font-bold opacity-70">
-          <a href="#professionals" className="hover:opacity-100 transition-opacity">Professionisti</a>
-          <a href="#how-it-works" className="hover:opacity-100 transition-opacity">Come Funziona</a>
-          <a href="#faq" className="hover:opacity-100 transition-opacity">Domande Frequenti</a>
+          <a href="#professionals" className="hover:opacity-100 transition-opacity">{t('navbar.professionals')}</a>
+          <a href="#how-it-works" className="hover:opacity-100 transition-opacity">{t('navbar.howItWorks')}</a>
+          <a href="#faq" className="hover:opacity-100 transition-opacity">{t('navbar.faq')}</a>
         </div>
 
-        <Button 
-          onClick={onLogin}
-          className="rounded-full bg-[#1D1D1F] hover:bg-black text-white px-6 h-10 font-bold transition-all hover:scale-105 active:scale-95"
-        >
-          Accedi
-        </Button>
+        <div className="flex items-center gap-4">
+          <LanguageSwitcher />
+          <Button 
+            onClick={onLogin}
+            className="rounded-full bg-[#1D1D1F] hover:bg-black text-white px-6 h-10 font-bold transition-all hover:scale-105 active:scale-95"
+          >
+            {t('navbar.login')}
+          </Button>
+        </div>
       </nav>
 
       {/* Hero Section */}
@@ -175,13 +181,13 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
                     <div className="flex items-center gap-2 mb-2">
                        <div className="w-8 h-[2px] bg-blue-600" />
                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-600">
-                         Per il Cliente
+                         {t('hero.forClient')}
                        </span>
                     </div>
                     <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tighter text-[#1D1D1F] leading-[0.9]">
-                      Sei in cerca di un artigiano o professionista? <br className="hidden sm:block" />
+                      {t('hero.title_part1')} <br className="hidden sm:block" />
                       <span className="text-blue-600 block mt-2 uppercase italic">
-                        Sei nel posto giusto.
+                        {t('hero.title_part2')}
                       </span>
                     </h1>
                   </div>
@@ -198,7 +204,7 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-600" />
                     <input 
                       type="text"
-                      placeholder="Qual è il problema da risolvere?"
+                      placeholder={t('hero.placeholder')}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onKeyDown={(e) => {
@@ -217,7 +223,7 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
                     }}
                     className="h-14 px-8 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl transition-all shadow-lg shadow-blue-600/20 active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap z-30 relative"
                   >
-                    INIZIA ORA
+                    {t('hero.start')}
                     <ArrowRight className="w-5 h-5" />
                   </button>
 
@@ -225,7 +231,7 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
                   <div className="absolute -bottom-10 left-0 right-0 flex justify-center md:justify-start">
                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100 shadow-sm">
                       <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-                      <span className="text-[9px] font-black text-blue-800 uppercase tracking-[0.2em]">Analisi AI Attiva: Descrivi il tuo problema</span>
+                      <span className="text-[9px] font-black text-blue-800 uppercase tracking-[0.2em]">{t('hero.ai_active')}</span>
                     </div>
                   </div>
                 </motion.div>
@@ -256,21 +262,21 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
             >
               <div className="inline-flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-full border border-blue-100 shadow-sm">
                  <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
-                 <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">Per il Professionista</span>
+                 <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">{t('mobile.for_pro')}</span>
               </div>
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tighter text-[#1D1D1F] leading-[1.1] sm:leading-[0.9]">
-                Trova e gestisci il tuo lavoro, <br />
-                <span className="text-blue-600 italic">tutto dal tuo palmo.</span>
+                {t('mobile.title_part1')} <br />
+                <span className="text-blue-600 italic">{t('mobile.title_part2')}</span>
               </h2>
               <p className="text-base sm:text-lg text-[#1D1D1F] font-bold leading-relaxed">
-                Monitora preventivi, ricevi notifiche istantanee per nuovi lavori e chiudi affari ovunque ti trovi.
+                {t('mobile.desc')}
               </p>
               
               <div className="grid grid-cols-1 gap-4 pt-4">
                  {[
-                   { icon: Zap, text: "Notifiche Real-time per Richieste" },
-                   { icon: MessageSquare, text: "Chat Diretta e Sicura" },
-                   { icon: Clock, text: "Gestione Smart dell'Agenda" }
+                   { icon: Zap, text: t('mobile.feat1') },
+                   { icon: MessageSquare, text: t('mobile.feat2') },
+                   { icon: Clock, text: t('mobile.feat3') }
                  ].map((item, i) => (
                    <div key={i} className="flex items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-[#D2D2D7]/30">
                       <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
@@ -316,11 +322,11 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
                      <div className="space-y-3 sm:space-y-4">
                         <div className="p-3 sm:p-4 bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-[#D2D2D7]/20">
                            <div className="flex justify-between items-center mb-2 sm:mb-3">
-                              <span className="text-[8px] sm:text-[10px] font-black uppercase text-blue-600 tracking-widest">Nuova Richiesta</span>
-                              <span className="text-[7px] sm:text-[8px] font-bold text-[#86868B]">Ora</span>
+                              <span className="text-[8px] sm:text-[10px] font-black uppercase text-blue-600 tracking-widest">{t('mobile.mockup_new')}</span>
+                              <span className="text-[7px] sm:text-[8px] font-bold text-[#86868B]">{t('mobile.mockup_now')}</span>
                            </div>
-                           <h4 className="text-[10px] sm:text-xs font-black text-[#1D1D1F] mb-1">Riparazione Impianto</h4>
-                           <p className="text-[8px] sm:text-[10px] text-[#86868B] font-medium">Roma, 2km da te</p>
+                           <h4 className="text-[10px] sm:text-xs font-black text-[#1D1D1F] mb-1">{t('mobile.mockup_repair')}</h4>
+                           <p className="text-[8px] sm:text-[10px] text-[#86868B] font-medium">{t('mobile.mockup_loc')}</p>
                            <div className="mt-3 sm:mt-4 flex gap-1.5 sm:gap-2">
                               <div className="h-6 sm:h-8 flex-1 bg-blue-600 rounded-lg sm:rounded-xl" />
                               <div className="h-6 w-6 sm:h-8 sm:w-8 bg-gray-100 rounded-lg sm:rounded-xl" />
@@ -329,7 +335,7 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
 
                         <div className="p-3 sm:p-4 bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-[#D2D2D7]/20 opacity-60 scale-95 translate-y-2 sm:translate-y-4">
                            <div className="flex justify-between items-center mb-2 sm:mb-3">
-                              <span className="text-[8px] sm:text-[10px] font-black uppercase text-green-600 tracking-widest">Servizio Completato</span>
+                              <span className="text-[8px] sm:text-[10px] font-black uppercase text-green-600 tracking-widest">{t('mobile.mockup_done')}</span>
                            </div>
                            <div className="h-1.5 sm:h-2 w-1/2 bg-gray-100 rounded-full mb-1" />
                            <div className="h-1.5 sm:h-2 w-1/3 bg-gray-100 rounded-full" />
@@ -359,8 +365,8 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
                     <CheckCircle2 className="w-4 h-4 text-blue-600" />
                   </div>
                   <div>
-                    <div className="text-[10px] font-black text-[#1D1D1F] uppercase tracking-widest leading-none mb-1">Wow!</div>
-                    <div className="text-[10px] font-medium text-[#86868B] leading-none">Hai un nuovo lavoro!</div>
+                    <div className="text-[10px] font-black text-[#1D1D1F] uppercase tracking-widest leading-none mb-1">{t('mobile.mockup_alert_title')}</div>
+                    <div className="text-[10px] font-medium text-[#86868B] leading-none">{t('mobile.mockup_alert_desc')}</div>
                   </div>
                 </motion.div>
               </div>
@@ -375,21 +381,21 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
             >
               <div className="inline-flex items-center gap-2 bg-green-50 px-4 py-2 rounded-full border border-green-100 shadow-sm">
                  <div className="w-2 h-2 rounded-full bg-green-600 animate-pulse" />
-                 <span className="text-[10px] font-black uppercase tracking-widest text-green-600">Per il Cliente</span>
+                 <span className="text-[10px] font-black uppercase tracking-widest text-green-600">{t('mobile.for_client')}</span>
               </div>
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tighter text-[#1D1D1F] leading-[1.1] sm:leading-[0.9]">
-                Vuoi creare una richiesta per un artigiano? <br />
-                <span className="text-green-600 italic">Ottenere aiuto è facile.</span>
+                {t('mobile.title2_part1')} <br />
+                <span className="text-green-600 italic">{t('mobile.title2_part2')}</span>
               </h2>
               <p className="text-base sm:text-lg text-[#1D1D1F] font-bold leading-relaxed">
-                Descrivi il tuo problema in pochi secondi, carica le foto se necessario, e ricevi 5 preventivi gratuiti ovunque tu sia, e dal tuo Device.
+                {t('mobile.desc2')}
               </p>
               
               <div className="grid grid-cols-1 gap-4 pt-4">
                  {[
-                   { icon: Search, text: "Descrivi il Problema" },
-                   { icon: Bell, text: "Ricevi Notifiche Immediate" },
-                   { icon: Shield, text: "Scegli il Migliore" }
+                   { icon: Search, text: t('mobile.feat4') },
+                   { icon: Bell, text: t('mobile.feat5') },
+                   { icon: Shield, text: t('mobile.feat6') }
                  ].map((item, i) => (
                    <div key={i} className="flex items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-[#D2D2D7]/30">
                       <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center shrink-0">
@@ -438,31 +444,31 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
                 className="inline-flex items-center gap-2 bg-blue-600/20 backdrop-blur-md px-4 py-2 rounded-full mb-8 border border-blue-500/30"
               >
                 <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-                <span className="text-[11px] font-black uppercase tracking-widest text-blue-400">Opportunità per tutti</span>
+                <span className="text-[11px] font-black uppercase tracking-widest text-blue-400">{t('pro.badge')}</span>
               </motion.div>
               
               <h2 className="text-4xl md:text-6xl font-black tracking-tighter text-white mb-8 leading-[0.9]">
-                Sei un Artigiano? <br />
-                <span className="text-blue-500 italic">Rivoluzioniamo il tuo lavoro con il Pay-per-Win.</span>
+                {t('pro.title_part1')} <br />
+                <span className="text-blue-500 italic">{t('pro.title_part2')}</span>
               </h2>
               
               <div className="bg-white/90 backdrop-blur-xl p-6 md:p-8 rounded-3xl border border-white/20 shadow-2xl mb-10 text-[#1D1D1F]">
                 <p className="text-lg md:text-xl font-bold mb-6 leading-relaxed">
-                  Basta pagare per preventivi ignorati. Presentiamo il modello <strong>Pay-per-Win</strong>: i tuoi token vengono "congelati" all'invio e <strong className="text-blue-600">addebitati SOLO SE VIENI SCELTO</strong>.
+                  {t('pro.desc_p1')} <strong>{t('pro.desc_p2')}</strong>{t('pro.desc_p3')} <strong className="text-blue-600">{t('pro.desc_p4')}</strong>
                 </p>
                 <div className="space-y-4">
                   <div className="flex items-start gap-3">
                     <CheckCircle2 className="w-6 h-6 text-green-500 shrink-0 mt-0.5" />
                     <div>
-                      <h4 className="font-black text-sm uppercase tracking-widest">Massimo 5 Preventivi</h4>
-                      <p className="text-sm font-medium text-gray-600">Nessuna asta al ribasso. Ti confronti solo con altri 4 professionisti.</p>
+                      <h4 className="font-black text-sm uppercase tracking-widest">{t('pro.bullet1_title')}</h4>
+                      <p className="text-sm font-medium text-gray-600">{t('pro.bullet1_desc')}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <CheckCircle2 className="w-6 h-6 text-green-500 shrink-0 mt-0.5" />
                     <div>
-                      <h4 className="font-black text-sm uppercase tracking-widest">Rimborso Istantaneo</h4>
-                      <p className="text-sm font-medium text-gray-600">Se il cliente sceglie un altro artigiano, i tuoi token vengono restituiti all'istante.</p>
+                      <h4 className="font-black text-sm uppercase tracking-widest">{t('pro.bullet2_title')}</h4>
+                      <p className="text-sm font-medium text-gray-600">{t('pro.bullet2_desc')}</p>
                     </div>
                   </div>
                 </div>
@@ -474,7 +480,7 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
                   onClick={onRegisterWorker}
                   className="w-full sm:w-auto h-16 px-10 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-black text-lg shadow-2xl shadow-blue-600/30 transition-all hover:scale-105 active:scale-95 group border-none"
                 >
-                  Unisciti come Professionista
+                  {t('pro.cta')}
                   <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
                 
@@ -488,7 +494,7 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
                    </div>
                    <div className="text-xs font-bold text-white/60">
                       <span className="text-white block font-black text-sm">12.000+</span>
-                      Già iscritti
+                      {t('pro.stats')}
                    </div>
                 </div>
               </div>
@@ -497,10 +503,10 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
             {/* Grid of benefits */}
             <div className="w-full lg:w-[450px] grid grid-cols-1 sm:grid-cols-2 gap-4">
                {[
-                 { title: "Zero Costi Fissi", desc: "Paghi solo quando decidi di rispondere a un cliente." },
-                 { icon: Shield, title: "Fiducia Totale", desc: "Profilo verificato che ispira serietà immediata." },
-                 { icon: Zap, title: "KM zero", desc: "Ti avvisiamo per lavori realmente vicini a te." },
-                 { icon: Star, title: "Rating Premium", desc: "Costruisci il tuo futuro professionale." }
+                 { title: t('pro.grid1_title'), desc: t('pro.grid1_desc') },
+                 { icon: Shield, title: t('pro.grid2_title'), desc: t('pro.grid2_desc') },
+                 { icon: Zap, title: t('pro.grid3_title'), desc: t('pro.grid3_desc') },
+                 { icon: Star, title: t('pro.grid4_title'), desc: t('pro.grid4_desc') }
                ].map((item, i) => (
                   <motion.div 
                     key={i}
@@ -528,10 +534,10 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
             <div className="max-w-2xl">
               <h2 className="text-3xl md:text-5xl font-black tracking-tight text-[#1D1D1F] mb-6">
-                Trova l'Artigiano perfetto. <br /> I migliori talenti <span className="text-blue-600">a tua disposizione.</span>
+                {t('search.title_part1')} <br /> {t('search.title_part2')}
               </h2>
               <p className="text-lg text-[#86868B] font-medium">
-                Scegli tra centinaia di professionisti certificati e verificati dal nostro team. Qualità garantita al 100%.
+                {t('search.desc')}
               </p>
             </div>
             <Button 
@@ -539,7 +545,7 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
               className="text-blue-600 font-bold p-0 h-auto text-lg group"
               onClick={onShowCategories}
             >
-              Vedi tutte le categorie
+              {t('search.see_all')}
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
           </div>
@@ -558,7 +564,7 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
                 <div>
                   <h3 className="text-lg font-black text-[#1D1D1F] mb-1 leading-tight">{cat.label}</h3>
                   <p className="text-[10px] text-[#86868B] font-bold uppercase tracking-widest mb-4">
-                    Esperti Certificati
+                    {t('search.experts')}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 mt-auto">
@@ -582,8 +588,8 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
         <div className="absolute top-0 right-0 w-1/3 h-full bg-blue-50/40 blur-[100px] -z-10" />
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center max-w-3xl mx-auto mb-12">
-            <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-6">Come Funziona</h2>
-            <p className="text-xl text-[#86868B] font-medium italic">Semplice, veloce, rivoluzionario.</p>
+            <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-6">{t('how.title')}</h2>
+            <p className="text-xl text-[#86868B] font-medium italic">{t('how.subtitle')}</p>
           </div>
 
           {/* Toggle Tab - Apple Style */}
@@ -596,7 +602,7 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
                   howItWorksTab === 'client' ? "bg-white text-[#1D1D1F] shadow-lg" : "text-[#86868B] hover:text-[#1D1D1F]"
                 )}
               >
-                Per il Cliente
+                {t('how.tab_client')}
               </button>
               <button 
                 onClick={() => setHowItWorksTab('worker')}
@@ -605,7 +611,7 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
                   howItWorksTab === 'worker' ? "bg-white text-[#1D1D1F] shadow-lg" : "text-[#86868B] hover:text-[#1D1D1F]"
                 )}
               >
-                Per il Professionista
+                {t('how.tab_pro')}
               </button>
             </div>
           </div>
@@ -624,18 +630,18 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
                   {[
                     { 
                       icon: Zap, 
-                      title: "Algoritmo Prossimità", 
-                      desc: "Il nostro sistema seleziona prima l'artigiano più vicino e meglio quotato. Se non è disponibile entro 5 ore, espandiamo la ricerca ogni passo per garantirti il meglio a KM 0." 
+                      title: t('how.c_step1_title'), 
+                      desc: t('how.c_step1_desc') 
                     },
                     { 
                       icon: Shield, 
-                      title: "Rating Certificato", 
-                      desc: "Nessun profilo improvvisato. Ogni professionista riceve un punteggio iniziale dall'amministrazione dopo rigidi controlli. La reputazione cresce poi con le recensioni reali." 
+                      title: t('how.c_step2_title'), 
+                      desc: t('how.c_step2_desc')
                     },
                     { 
                       icon: MessageSquare, 
-                      title: "La Potenza del 5", 
-                      desc: "Ricevi esattamente 5 preventivi di alta qualità. Il numero perfetto per confrontare professionalità e prezzo senza perdite di tempo in centinaia di offerte confuse." 
+                      title: t('how.c_step3_title'), 
+                      desc: t('how.c_step3_desc')
                     }
                   ].map((step, i) => (
                     <div key={i} className="flex flex-col items-center text-center space-y-6 p-8 rounded-[2.5rem] bg-[#F5F5F7]/50 border border-transparent hover:border-blue-200 transition-all">
@@ -658,9 +664,9 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
                   className="col-span-full grid grid-cols-1 md:grid-cols-3 gap-8"
                 >
                   {[
-                    { icon: Zap, title: "Portafoglio Crediti", desc: "Nessun abbonamento mensile. Carica crediti e spendili solo per sbloccare i lavori che ti interessano davvero." },
-                    { icon: Shield, title: "Contatti Protetti", desc: "Ricevi richieste dettagliate grazie al Triage. Vedi subito la descrizione prima di spendere i tuoi crediti." },
-                    { icon: Briefcase, title: "Gestione Premium", desc: "Una dashboard dedicata per gestire appuntamenti, messaggi e pagamenti in un unico posto." }
+                    { icon: Zap, title: t('how.p_step1_title'), desc: t('how.p_step1_desc') },
+                    { icon: Shield, title: t('how.p_step2_title'), desc: t('how.p_step2_desc') },
+                    { icon: Briefcase, title: t('how.p_step3_title'), desc: t('how.p_step3_desc') }
                   ].map((step, i) => (
                     <div key={i} className="flex flex-col items-center text-center space-y-6 p-8 rounded-[2.5rem] bg-[#F5F5F7]/50 border border-transparent hover:border-orange-200 transition-all">
                       <div className="w-20 h-20 bg-white rounded-3xl shadow-xl flex items-center justify-center">
@@ -682,7 +688,7 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
         <div className="absolute bottom-0 left-0 w-full h-[50%] bg-gradient-to-t from-blue-600/20 to-transparent pointer-events-none" />
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="text-center mb-20">
-            <h2 className="text-3xl md:text-5xl font-black tracking-tight mb-4">Il Valore Aggiunto di</h2>
+            <h2 className="text-3xl md:text-5xl font-black tracking-tight mb-4">{t('value.title')}</h2>
             <div className="flex items-center justify-center gap-2">
                <span className="text-4xl md:text-6xl font-black tracking-tighter">Cerc</span>
                <span className="text-4xl md:text-6xl font-black tracking-tighter text-blue-500">Artigiano</span>
@@ -692,24 +698,24 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               { 
-                title: "Algoritmo KM 0", 
-                desc: "Privilegiamo l'artigiano sotto casa. Se il migliore è vicino a te, lo avvisiamo immediatamente. La prossimità riduce i costi e i tempi di attesa.",
-                highlight: "Ricerca Intelligente"
+                title: t('value.v1_title'), 
+                desc: t('value.v1_desc'),
+                highlight: t('value.v1_hi')
               },
               { 
-                title: "Qualità Verificata", 
-                desc: "Check-in amministrativo obbligatorio. Ogni professionista parte con un rating di fiducia garantito dal nostro portale dopo i controlli.",
-                highlight: "Fiducia Totale"
+                title: t('value.v2_title'), 
+                desc: t('value.v2_desc'),
+                highlight: t('value.v2_hi')
               },
               { 
-                title: "Top 5 Selection", 
-                desc: "Fermiamo il rumore. Ti mandiamo solo i 5 preventivi più competitivi per darti il massimo potere di scelta senza stress.",
-                highlight: "Confronto Reale"
+                title: t('value.v3_title'), 
+                desc: t('value.v3_desc'),
+                highlight: t('value.v3_hi')
               },
               { 
-                title: "Triage Assistito", 
-                desc: "Descrivi il problema in modo tecnico grazie alla nostra guida AI. L'artigiano saprà già cosa serve prima di venire.",
-                highlight: "Efficienza Apple-grade"
+                title: t('value.v4_title'), 
+                desc: t('value.v4_desc'),
+                highlight: t('value.v4_hi')
               }
             ].map((feature, i) => (
               <div key={i} className="bg-white/5 backdrop-blur-md border border-white/10 rounded-[2rem] p-8 hover:bg-white/10 transition-colors group">
@@ -725,8 +731,8 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
       {/* Brand Carousel Section */}
       <section className="py-20 bg-white overflow-hidden border-y border-[#D2D2D7]/20">
         <div className="max-w-7xl mx-auto px-6 mb-12 text-center">
-          <h2 className="text-3xl font-black tracking-tight text-[#1D1D1F]">Le Eccellenze del Territorio</h2>
-          <p className="text-[#86868B] font-bold mt-2">Iscriviti per unirti ai migliori professionisti</p>
+          <h2 className="text-3xl font-black tracking-tight text-[#1D1D1F]">{t('brands.title')}</h2>
+          <p className="text-[#86868B] font-bold mt-2">{t('brands.desc')}</p>
         </div>
         
         <div className="relative">
@@ -745,7 +751,7 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
                 </div>
                 <div>
                   <div className="text-lg font-black text-[#1D1D1F]">{cat.label}</div>
-                  <div className="text-[10px] font-black uppercase tracking-widest text-[#86868B]">Service Partner</div>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-[#86868B]">{t('brands.partner')}</div>
                 </div>
               </div>
             ))}
@@ -757,8 +763,8 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
       <section id="faq" className="py-24 bg-[#F5F5F7] relative">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center max-w-3xl mx-auto mb-12">
-            <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-6">Domande Frequenti</h2>
-            <p className="text-xl text-[#86868B] font-medium">Abbiamo risposto ai dubbi più comuni dei nostri utenti.</p>
+            <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-6">{t('faq.title')}</h2>
+            <p className="text-xl text-[#86868B] font-medium">{t('faq.subtitle')}</p>
           </div>
 
           {/* Toggle Tab for FAQ */}
@@ -771,7 +777,7 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
                   faqTab === 'client' ? "bg-white text-[#1D1D1F] shadow-lg" : "text-[#86868B] hover:text-[#1D1D1F]"
                 )}
               >
-                Per il Cliente
+                {t('faq.tab_client')}
               </button>
               <button 
                 onClick={() => setFaqTab('worker')}
@@ -780,7 +786,7 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
                   faqTab === 'worker' ? "bg-white text-[#1D1D1F] shadow-lg" : "text-[#86868B] hover:text-[#1D1D1F]"
                 )}
               >
-                Per il Professionista
+                {t('faq.tab_pro')}
               </button>
             </div>
           </div>
@@ -798,20 +804,20 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
                 >
                   {[
                     {
-                      q: "Quanto costa pubblicare una richiesta?",
-                      a: "Per il cliente è sempre gratuito al 100%. Nessuna commissione sul lavoro svolto né costi fissi di iscrizione."
+                      q: t('faq.c_q1'),
+                      a: t('faq.c_a1')
                     },
                     {
-                      q: "Cos'è il Triage Intelligente?",
-                      a: "È il nostro sistema di assistenza. Guida il cliente step-by-step per fornire al professionista tutte le informazioni tecniche necessarie, riducendo sopralluoghi inutili."
+                      q: t('faq.c_q2'),
+                      a: t('faq.c_a2')
                     },
                     {
-                      q: "Il mio numero di telefono è pubblico?",
-                      a: "Assolutamente no. Per proteggere la tua privacy, i contatti sono visibili solo al professionista di cui tu hai accettato il preventivo o la richiesta di contatto."
+                      q: t('faq.c_q3'),
+                      a: t('faq.c_a3')
                     },
                     {
-                      q: "Come scelgo il preventivo giusto?",
-                      a: "Riceverai fino a 5 preventivi gratuiti. Potrai confrontare prezzi, recensioni dei professionisti e tempistiche per scegliere l'offerta migliore."
+                      q: t('faq.c_q4'),
+                      a: t('faq.c_a4')
                     }
                   ].map((faq, i) => (
                     <div key={i} className="bg-white p-8 rounded-[2rem] border border-[#D2D2D7]/30 shadow-sm hover:shadow-xl transition-all">
@@ -831,20 +837,20 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
                 >
                   {[
                     {
-                      q: "Come funziona il Pay-per-Win?",
-                      a: "Invii il preventivo congelando i token. Se il cliente sceglie te, i token vengono scalati. Se sceglie un altro, ottieni un rimborso immediato. Paghi solo se vieni scelto!"
+                      q: t('faq.p_q1'),
+                      a: t('faq.p_a1')
                     },
                     {
-                      q: "Posso iscrivermi senza Partita IVA?",
-                      a: "Sì! Supportiamo anche le prestazioni occasionali. Chiunque abbia competenze certificate può iscriversi e iniziare a lavorare seguendo le normative vigenti."
+                      q: t('faq.p_q2'),
+                      a: t('faq.p_a2')
                     },
                     {
-                      q: "Devo pagare abbonamenti mensili?",
-                      a: "No, nessun costo fisso. Paghi solo ed esclusivamente se il cliente accetta il tuo preventivo e riesci ad ottenere il lavoro."
+                      q: t('faq.p_q3'),
+                      a: t('faq.p_a3')
                     },
                     {
-                      q: "Come funzionano le recensioni?",
-                      a: "Sono reali e garantite. Possono essere rilasciate dal cliente solo dopo che il preventivo è stato assegnato a te tramite la piattaforma."
+                      q: t('faq.p_q4'),
+                      a: t('faq.p_a4')
                     }
                   ].map((faq, i) => (
                     <div key={i} className="bg-white p-8 rounded-[2rem] border border-[#D2D2D7]/30 shadow-sm hover:shadow-xl transition-all">
@@ -859,7 +865,7 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
 
           <div className="mt-12 text-center">
             <p className="text-[#86868B] font-bold text-sm">
-              Hai altre domande? Consulta la sezione <span className="text-blue-600 cursor-pointer hover:underline" onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })}>Contatti</span> nel footer della pagina.
+              {t('faq.more_q')} <span className="text-blue-600 cursor-pointer hover:underline" onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })}>{t('faq.more_q_link')}</span> {t('faq.more_q_end')}
             </p>
           </div>
         </div>
@@ -869,13 +875,13 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
       <section className="py-32 bg-white relative">
         <div className="absolute inset-0 bg-blue-50/10 blur-[120px] pointer-events-none" />
         <div className="max-w-7xl mx-auto px-6 text-center">
-           <h2 className="text-3xl md:text-5xl font-black tracking-tight mb-12">I numeri di CercArtigiano</h2>
+           <h2 className="text-3xl md:text-5xl font-black tracking-tight mb-12">{t('stats.title')}</h2>
            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
              {[
-               { val: "12k+", label: "Professionisti" },
-               { val: "45k+", label: "Lavori Completati" },
-               { val: "4.9/5", label: "Media Feedback" },
-               { val: "10 min", label: "Risposta Media" }
+               { val: "12k+", label: t('stats.s1') },
+               { val: "45k+", label: t('stats.s2') },
+               { val: "4.9/5", label: t('stats.s3') },
+               { val: "10 min", label: t('stats.s4') }
              ].map((stat, i) => (
                <div key={i} className="space-y-2">
                  <div className="text-4xl md:text-6xl font-black text-blue-600 tracking-tighter">{stat.val}</div>
@@ -906,14 +912,13 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
               </div>
             </div>
             <p className="text-[#86868B] text-sm font-medium leading-relaxed max-w-sm">
-              Il punto di incontro definitivo tra qualità professionale e necessità privata. 
-              Massima sicurezza, massima efficienza.
+              {t('footer.subtitle')}
             </p>
           </div>
           
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-8 md:col-span-2">
              <div className="space-y-4">
-               <h4 className="text-xs font-black uppercase tracking-widest text-blue-400">Contatti</h4>
+               <h4 className="text-xs font-black uppercase tracking-widest text-blue-400">{t('footer.contacts')}</h4>
                <ul className="space-y-2 text-sm text-[#86868B] font-bold">
                  <li className="text-white">Cercartigiani srl</li>
                  <li className="text-white">Via Bari 1, 70124 Bari</li>
@@ -923,14 +928,14 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
                </ul>
              </div>
              <div className="space-y-4">
-               <h4 className="text-xs font-black uppercase tracking-widest text-blue-400">Informazioni Generali</h4>
+               <h4 className="text-xs font-black uppercase tracking-widest text-blue-400">{t('footer.info')}</h4>
                <ul className="space-y-2 text-sm text-[#86868B] font-bold">
-                 <li><button onClick={onShowInfo} className="hover:text-white cursor-pointer bg-transparent border-none p-0 outline-none transition-colors text-left w-full">Informazioni Generali</button></li>
-                 <li><button onClick={onShowCareers} className="hover:text-white cursor-pointer bg-transparent border-none p-0 outline-none transition-colors text-left w-full">Lavora con noi</button></li>
+                 <li><button onClick={onShowInfo} className="hover:text-white cursor-pointer bg-transparent border-none p-0 outline-none transition-colors text-left w-full">{t('footer.info')}</button></li>
+                 <li><button onClick={onShowCareers} className="hover:text-white cursor-pointer bg-transparent border-none p-0 outline-none transition-colors text-left w-full">{t('footer.work')}</button></li>
                </ul>
              </div>
               <div className="space-y-4">
-                <h4 className="text-xs font-black uppercase tracking-widest text-blue-400">Legale</h4>
+                <h4 className="text-xs font-black uppercase tracking-widest text-blue-400">{t('footer.legal')}</h4>
                 <ul className="space-y-2 text-sm text-[#86868B] font-bold">
                   <li className="opacity-50">Privacy Policy</li>
                   <li className="opacity-50">Termini di Servizio</li>
