@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Button } from './ui/button';
 import { Shield, Home, CheckCircle2 as CheckCircleIcon } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -57,18 +58,8 @@ export function SeoLandingPage() {
     };
   }, [formattedCategoria, formattedComune, formattedProvincia]);
 
-  useEffect(() => {
-    // Aggiorna Meta-Data del documento
-    document.title = `I Migliori ${formattedCategoria} a ${formattedComune} | CercArtigiano`;
-    
-    let metaDescription = document.querySelector('meta[name="description"]');
-    if (!metaDescription) {
-      metaDescription = document.createElement('meta');
-      metaDescription.setAttribute('name', 'description');
-      document.head.appendChild(metaDescription);
-    }
-    metaDescription.setAttribute('content', `Trova e confronta i migliori ${formattedCategoria} a ${formattedComune} (${formattedProvincia}). Preventivi gratuiti, recensioni verificate e professionisti pronti ad intervenire.`);
-  }, [formattedCategoria, formattedComune, formattedProvincia]);
+  const seoTitle = `I Migliori ${formattedCategoria} a ${formattedComune} | CercArtigiano`;
+  const seoDescription = `Trova e confronta i migliori ${formattedCategoria} a ${formattedComune} (${formattedProvincia}). Preventivi gratuiti, recensioni verificate e professionisti pronti ad intervenire.`;
 
   // Navigate to home and trigger job creation flow with prefilled data
   const handleRequestQuote = () => {
@@ -79,6 +70,10 @@ export function SeoLandingPage() {
 
   return (
     <div className="min-h-screen bg-[#FBFBFD] pb-24">
+      <Helmet>
+        <title>{seoTitle}</title>
+        <meta name="description" content={seoDescription} />
+      </Helmet>
       {/* Header Semplice */}
       <header className="h-20 bg-white/80 backdrop-blur-md border-b border-[#D2D2D7]/30 sticky top-0 z-50 flex items-center px-6 lg:px-12">
         <Link to="/" className="flex items-center gap-3">

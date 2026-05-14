@@ -41,6 +41,7 @@ import { ScrollArea } from './components/ui/scroll-area';
 import { cn } from './lib/utils';
 import { BrandLogo } from './components/BrandLogo';
 
+import { Helmet } from 'react-helmet-async';
 import { Routes, Route, useSearchParams, useLocation, useNavigate } from 'react-router-dom';
 import { SeoLandingPage } from './components/SeoLandingPage';
 
@@ -308,6 +309,7 @@ function App() {
   if (loading || !authReady) {
     return (
       <div className="h-screen w-full flex items-center justify-center bg-white">
+        <Helmet><title>Caricamento... | CercArtigiano</title></Helmet>
         <motion.div 
           animate={{ scale: [1, 1.1, 1] }}
           transition={{ repeat: Infinity, duration: 2 }}
@@ -318,11 +320,21 @@ function App() {
   }
 
   if (showInfo) {
-    return <GeneralInfo onBack={() => setShowInfo(false)} />;
+    return (
+      <>
+        <Helmet><title>Come Funziona | CercArtigiano</title></Helmet>
+        <GeneralInfo onBack={() => setShowInfo(false)} />
+      </>
+    );
   }
 
   if (showCareers) {
-    return <CareersPage onBack={() => setShowCareers(false)} />;
+    return (
+      <>
+        <Helmet><title>Lavora con Noi | CercArtigiano</title></Helmet>
+        <CareersPage onBack={() => setShowCareers(false)} />
+      </>
+    );
   }
 
   // Not logged in and not in auth view -> Landing Page
@@ -331,6 +343,9 @@ function App() {
     
     return (
       <div className="relative h-full w-full">
+        <Helmet>
+          <title>{showCategories ? "Esplora Categorie | CercArtigiano" : "CercArtigiano - Tutto nel palmo della tua mano"}</title>
+        </Helmet>
         {showCategories ? (
           <div className="w-full bg-white pb-32 lg:pb-0">
             <CategoriesPage 
@@ -408,6 +423,7 @@ function App() {
 
     return (
       <div className="h-screen w-full flex items-center justify-center bg-[#FBFBFD] p-4 overflow-hidden relative">
+        <Helmet><title>Accedi o Registrati | CercArtigiano</title></Helmet>
         {/* Background blobs for Mac feel */}
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px]" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/5 rounded-full blur-[120px]" />
@@ -429,8 +445,22 @@ function App() {
   const userRole = user?.role || (isAdminEmail ? 'admin' : 'client');
   const effectiveRole = isAdminEmail ? 'admin' : userRole;
 
+  let pageTitle = "CercArtigiano";
+  if (activeTab === 'home') pageTitle = "Dashboard | CercArtigiano";
+  else if (activeTab === 'jobs' || activeTab === 'projects') pageTitle = "I miei Lavori | CercArtigiano";
+  else if (activeTab === 'search') pageTitle = "Cerca Professionisti | CercArtigiano";
+  else if (activeTab.startsWith('admin')) pageTitle = "Amministrazione | CercArtigiano";
+  else if (activeTab === 'profile') pageTitle = "Il mio Profilo | CercArtigiano";
+  else if (activeTab === 'settings') pageTitle = "Impostazioni | CercArtigiano";
+  else if (activeTab === 'credits' || activeTab === 'subscriptions') pageTitle = "Abbonamenti e Crediti | CercArtigiano";
+
   if (user && !user.onboardingComplete && !isAdminEmail) {
-    return <Onboarding user={user} onComplete={() => setUser({ ...user, onboardingComplete: true })} />;
+    return (
+      <>
+        <Helmet><title>Completamento Profilo | CercArtigiano</title></Helmet>
+        <Onboarding user={user} onComplete={() => setUser({ ...user, onboardingComplete: true })} />
+      </>
+    );
   }
 
   const renderDashboard = () => {
@@ -476,6 +506,9 @@ function App() {
 
   return (
     <div className="h-screen w-full flex flex-col lg:flex-row bg-background text-foreground overflow-hidden font-sans">
+      <Helmet>
+        <title>{pageTitle}</title>
+      </Helmet>
       {/* Sidebar - Hidden on mobile */}
       <div className="hidden lg:block">
         <Sidebar 

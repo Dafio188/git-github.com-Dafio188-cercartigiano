@@ -12,13 +12,17 @@ service cloud.firestore {
     // ===============================================================
 
     function isSignedIn() { return request.auth != null; }
-    function isVerified() { return isSignedIn() && request.auth.token.email_verified == true; }
+    function isVerified() { 
+      return isSignedIn() && 'email_verified' in request.auth.token && request.auth.token.email_verified == true; 
+    }
     function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
     
     function isAdmin() { 
       return isSignedIn() && (
-        request.auth.token.email == "fio.davide@gmail.com" ||
-        request.auth.token.email == "admin@cercartigiano.it" ||
+        ('email' in request.auth.token && (
+          request.auth.token.email == "fio.davide@gmail.com" ||
+          request.auth.token.email == "admin@cercartigiano.it"
+        )) ||
         exists(/databases/$(database)/documents/admins/$(request.auth.uid))
       ); 
     }
@@ -69,7 +73,10 @@ service cloud.firestore {
 
     // --- USERS ---
     match /users/{userId} {
-      allow read: if isSignedIn() && (isOwner(userId) || isAdmin() || resource.data.role == 'worker' || exists(/databases/$(database)/documents/workerProfiles/$(userId)));
+      allow get: if isSignedIn() && (isOwner(userId) || isAdmin() || resource.data.role == 'worker' || exists(/databases/$(database)/documents/workerProfiles/$(userId)));
+      allow list: if isSignedIn() && (
+        ('role' in resource.data && resource.data.role == 'worker') || isAdmin()
+      );
       allow create: if isSignedIn() && isValidUser(incoming());
       allow update: if isAdmin() || (isOwner(userId) && incoming().email == existing().email);
       allow delete: if isAdmin();
