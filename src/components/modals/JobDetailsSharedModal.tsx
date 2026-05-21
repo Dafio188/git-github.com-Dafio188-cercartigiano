@@ -7,7 +7,7 @@ import {
 } from '../ui/dialog';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { Button } from '../ui/button';
-import { MapPin, Clock, ArrowRight, Shield, MessageSquare } from 'lucide-react';
+import { MapPin, Clock, ArrowRight, Shield, MessageSquare, Zap } from 'lucide-react';
 import { SERVICE_CATEGORIES } from '../../constants';
 
 interface JobDetailsSharedModalProps {
@@ -36,9 +36,17 @@ export function JobDetailsSharedModal({ isOpen, onClose, job, user, onOpenPropos
                  </div>
                  <div>
                    <h2 className="text-xl sm:text-2xl font-black tracking-tight text-[#1D1D1F] leading-tight line-clamp-2">{job.title}</h2>
-                   <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-2 py-0.5 rounded inline-block mt-0.5 sm:mt-1">
-                     {SERVICE_CATEGORIES.find(c => c.id === job.category)?.label || job.category}
-                   </span>
+                   <div className="flex gap-2 items-center flex-wrap mt-0.5 sm:mt-1">
+                     {job.isUrgent && (
+                       <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-white bg-red-500 flex items-center gap-1 px-2 py-0.5 rounded shadow-sm shadow-red-500/20">
+                         <Zap className="w-3 h-3" />
+                         URGENZA MAXI
+                       </span>
+                     )}
+                     <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-2 py-0.5 rounded inline-block">
+                       {SERVICE_CATEGORIES.find(c => c.id === job.category)?.label || job.category}
+                     </span>
+                   </div>
                  </div>
                </div>
 

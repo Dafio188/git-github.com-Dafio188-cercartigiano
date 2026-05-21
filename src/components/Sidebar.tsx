@@ -30,7 +30,7 @@ interface SidebarProps {
 export function Sidebar({ activeTab, setActiveTab, role, unreadCount = 0 }: SidebarProps) {
   const menuItems = [
     { id: 'home', icon: Home, label: 'Inizio', roles: ['client', 'worker', 'admin'] },
-    { id: 'search', icon: Search, label: 'Esplora Esperti', roles: ['client'] },
+    { id: 'search', icon: Search, label: 'Esplora Servizi', roles: ['client'] },
     { id: 'jobs', icon: Briefcase, label: role === 'worker' ? 'Trova Lavori' : (role === 'admin' ? 'Tutti i Lavori' : 'Le mie Richieste'), roles: ['client', 'worker', 'admin'] },
     { id: 'projects', icon: CheckCircle2, label: 'Lavori Attivi', roles: ['worker'] },
     { id: 'profile', icon: User, label: 'Mio Profilo', roles: ['client', 'worker', 'admin'] },

@@ -50,7 +50,7 @@ export function MobileTabBar({ activeTab, onTabChange, user, onLoginRequest, unr
   // Navigation for Clients
   const clientTabs: TabItem[] = [
     { id: 'home', icon: Home, label: 'Home' },
-    { id: 'search', icon: Search, label: 'Esperti' },
+    { id: 'search', icon: Search, label: 'Servizi' },
     { id: 'jobs', icon: MessageSquare, label: 'Richieste' },
     { id: 'profile', icon: UserIcon, label: 'Mio Profilo' },
     { id: 'credits', icon: Zap, label: 'Token' },

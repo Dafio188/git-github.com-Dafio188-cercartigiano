@@ -937,9 +937,9 @@ export function LandingPage({ onLogin, onSelectCategory, onShowPrivacy, onShowTe
               <div className="space-y-4">
                 <h4 className="text-xs font-black uppercase tracking-widest text-blue-400">{t('footer.legal')}</h4>
                 <ul className="space-y-2 text-sm text-[#86868B] font-bold">
-                  <li className="opacity-50">Privacy Policy</li>
-                  <li className="opacity-50">Termini di Servizio</li>
-                  <li className="opacity-50">Cookie Policy</li>
+                  <li><button onClick={onShowPrivacy} className="hover:text-white cursor-pointer bg-transparent border-none p-0 outline-none transition-colors text-left w-full">Privacy Policy</button></li>
+                  <li><button onClick={onShowTerms} className="hover:text-white cursor-pointer bg-transparent border-none p-0 outline-none transition-colors text-left w-full">Termini di Servizio</button></li>
+                  <li><button onClick={onShowCookies} className="hover:text-white cursor-pointer bg-transparent border-none p-0 outline-none transition-colors text-left w-full">Cookie Policy</button></li>
                 </ul>
               </div>
           </div>

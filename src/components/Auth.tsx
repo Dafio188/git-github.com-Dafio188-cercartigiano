@@ -22,7 +22,8 @@ import {
   AlertCircle,
   Eye,
   EyeOff,
-  CheckCircle2
+  CheckCircle2,
+  Briefcase
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTranslation } from 'react-i18next';
@@ -46,6 +47,11 @@ export function Auth({ isCompletingRequest = false }: AuthProps) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [regRole, setRegRole] = useState<'client' | 'worker'>('client');
+
+  React.useEffect(() => {
+    sessionStorage.setItem('registration_role', regRole);
+  }, [regRole]);
 
   const handleGoogleLogin = async () => {
     if (loading) return;
@@ -183,6 +189,41 @@ export function Auth({ isCompletingRequest = false }: AuthProps) {
           </div>
 
           <form onSubmit={handleEmailAuth} className="space-y-3">
+            {/* Tipo di Account Selector (Desktop) */}
+            <div className="space-y-1.5 pb-2">
+              <label className="text-[10px] font-black text-[#1D1D1F] uppercase tracking-[0.2em] ml-1">
+                Tipo di Account
+              </label>
+              <div className="grid grid-cols-2 gap-2 bg-[#F5F5F7] p-1.5 rounded-2xl border border-transparent">
+                <button
+                  type="button"
+                  onClick={() => setRegRole('client')}
+                  className={cn(
+                    "h-11 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2",
+                    regRole === 'client'
+                      ? "bg-white text-[#1D1D1F] shadow-sm ring-1 ring-black/5"
+                      : "text-[#86868B] hover:text-[#1D1D1F]"
+                  )}
+                >
+                  <UserIcon className="w-4 h-4" />
+                  Cliente
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRegRole('worker')}
+                  className={cn(
+                    "h-11 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2",
+                    regRole === 'worker'
+                      ? "bg-white text-[#1D1D1F] shadow-sm ring-1 ring-black/5"
+                      : "text-[#86868B] hover:text-[#1D1D1F]"
+                  )}
+                >
+                  <Briefcase className="w-4 h-4" />
+                  Artigiano
+                </button>
+              </div>
+            </div>
+
             <div className="relative group">
               <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#86868B] group-focus-within:text-blue-600 transition-colors" />
               <Input 
@@ -405,7 +446,43 @@ export function Auth({ isCompletingRequest = false }: AuthProps) {
 
                 <form onSubmit={handleEmailAuth} className="space-y-4">
                   {mode === 'register' && (
-                    <div className="relative"><UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#86868B]" /><Input placeholder="Nome o Azienda" value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="pl-11 h-14 bg-[#F5F5F7] border-transparent rounded-2xl" /></div>
+                    <>
+                      {/* Tipo di Account Selector (Mobile) */}
+                      <div className="space-y-1.5 pb-1">
+                        <label className="text-[10px] font-black text-[#1D1D1F] uppercase tracking-[0.2em] ml-1">
+                          Tipo di Account
+                        </label>
+                        <div className="grid grid-cols-2 gap-2 bg-[#F5F5F7] p-1.5 rounded-2xl border border-transparent">
+                          <button
+                            type="button"
+                            onClick={() => setRegRole('client')}
+                            className={cn(
+                              "h-11 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2",
+                              regRole === 'client'
+                                ? "bg-white text-[#1D1D1F] shadow-sm ring-1 ring-black/5"
+                                : "text-[#86868B] hover:text-[#1D1D1F]"
+                            )}
+                          >
+                            <UserIcon className="w-4 h-4" />
+                            Cliente
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setRegRole('worker')}
+                            className={cn(
+                              "h-11 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2",
+                              regRole === 'worker'
+                                ? "bg-white text-[#1D1D1F] shadow-sm ring-1 ring-black/5"
+                                : "text-[#86868B] hover:text-[#1D1D1F]"
+                            )}
+                          >
+                            <Briefcase className="w-4 h-4" />
+                            Artigiano
+                          </button>
+                        </div>
+                      </div>
+                      <div className="relative"><UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#86868B]" /><Input placeholder="Nome o Azienda" value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="pl-11 h-14 bg-[#F5F5F7] border-transparent rounded-2xl" /></div>
+                    </>
                   )}
                   <div className="relative"><Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#86868B]" /><Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-11 h-14 bg-[#F5F5F7] border-transparent rounded-2xl" /></div>
                   <div className="relative"><Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#86868B]" /><Input type={showPassword ? 'text' : 'password'} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-11 h-14 bg-[#F5F5F7] border-transparent rounded-2xl" /></div>

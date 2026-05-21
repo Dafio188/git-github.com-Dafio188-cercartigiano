@@ -349,6 +349,12 @@ export function AdminDashboard({ user, summaryOnly = false, initialTab }: AdminD
   };
 
   useEffect(() => {
+    if (!user || user.status === 'suspended') return;
+
+    // Solo se l'utente ha permessi o email admin, procediamo con i listener
+    const isDefaultAdmin = user.email === 'fio.davide@gmail.com' || user.email === 'admin@cercartigiano.it';
+    if (user.role !== 'admin' && !isDefaultAdmin) return;
+
     const unsubInvoices = onSnapshot(collection(db, 'invoices'), (snap) => {
       setInvoicesList(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Invoice[]);
     }, (error) => {
@@ -380,6 +386,8 @@ export function AdminDashboard({ user, summaryOnly = false, initialTab }: AdminD
 
     const unsubVerifications = onSnapshot(collection(db, 'verifications'), (snap) => {
       setVerificationsList(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    }, (error) => {
+      console.error("AdminDashboard verifications onSnapshot error:", error);
     }); 
 
     const unsubUsers = onSnapshot(collection(db, 'users'), (snap) => {
@@ -451,17 +459,19 @@ export function AdminDashboard({ user, summaryOnly = false, initialTab }: AdminD
         }));
         setRecentLogs([...jobLogs, ...userLogs].sort(() => Math.random() - 0.5));
       }
+    }, (error) => {
+      console.error("AdminDashboard logs onSnapshot error:", error);
     });
 
     return () => {
-      unsubInvoices();
-      unsubAdminConfig();
-      unsubVerifications();
-      unsubUsers();
-      unsubJobs();
-      unsubLogs();
+      if (typeof unsubInvoices === 'function') unsubInvoices();
+      if (typeof unsubAdminConfig === 'function') unsubAdminConfig();
+      if (typeof unsubVerifications === 'function') unsubVerifications();
+      if (typeof unsubUsers === 'function') unsubUsers();
+      if (typeof unsubJobs === 'function') unsubJobs();
+      if (typeof unsubLogs === 'function') unsubLogs();
     };
-  }, []);
+  }, [user?.id, user?.role]);
 
   useEffect(() => {
     if (initialTab) {

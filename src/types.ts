@@ -29,6 +29,7 @@ export interface User {
   createdAt: string;
   status: 'active' | 'pending' | 'suspended';
   onboardingComplete: boolean;
+  isApproved?: boolean;
   privacySettings?: UserPrivacySettings;
   transactionHistory?: {
     type: 'purchase' | 'spend' | 'refund';
@@ -108,6 +109,7 @@ export interface Job {
   budgetMax: number;
   preferredTimeSlot: string;
   status: 'open' | 'assigned' | 'in_progress' | 'completed' | 'cancelled' | 'expired';
+  isUrgent?: boolean;
   proposalCount?: number;
   hasNewProposals?: boolean;
   unreadMessagesCount?: Record<string, number>; // uid -> count

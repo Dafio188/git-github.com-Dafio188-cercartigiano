@@ -46,6 +46,21 @@ interface WorkerDashboardProps {
   activeTab: string;
 }
 
+function getDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
+  if (!lat1 || !lon1 || !lat2 || !lon2) return 0;
+  const R = 6371; // Radius of the earth in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2)
+    ; 
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+  const d = R * c; // Distance in km
+  return d;
+}
+
 export function WorkerDashboard({ user, activeTab }: WorkerDashboardProps) {
   const [availableJobs, setAvailableJobs] = useState<Job[]>([]);
   const [activeJobs, setActiveJobs] = useState<Job[]>([]);
@@ -86,6 +101,11 @@ export function WorkerDashboard({ user, activeTab }: WorkerDashboardProps) {
         return expiresTime > now;
       });
       jobs.sort((a, b) => {
+        // 1. Prioritize 'isUrgent'
+        if (a.isUrgent && !b.isUrgent) return -1;
+        if (!a.isUrgent && b.isUrgent) return 1;
+
+        // 2. Fallback to expiresAt matching
         const dateA = a.expiresAt instanceof Date ? a.expiresAt.getTime() : (a.expiresAt as any)?.seconds ? (a.expiresAt as any).seconds * 1000 : new Date(a.expiresAt || 0).getTime();
         const dateB = b.expiresAt instanceof Date ? b.expiresAt.getTime() : (b.expiresAt as any)?.seconds ? (b.expiresAt as any).seconds * 1000 : new Date(b.expiresAt || 0).getTime();
         return dateB - dateA;
@@ -185,7 +205,17 @@ export function WorkerDashboard({ user, activeTab }: WorkerDashboardProps) {
                            workerProfile.categories.length === 0 || 
                            workerProfile.categories.includes(job.category);
 
-    return matchesSearch && matchesCategory && servesCategory;
+    // Filter by radius if both worker and job have locations
+    let withinRadius = true;
+    if (workerProfile?.location && job.location && workerProfile.radiusKm) {
+        const dist = getDistanceKm(
+            workerProfile.location.lat, workerProfile.location.lng,
+            job.location.lat, job.location.lng
+        );
+        withinRadius = dist <= workerProfile.radiusKm;
+    }
+
+    return matchesSearch && matchesCategory && servesCategory && withinRadius;
   });
 
   const [chatJob, setChatJob] = useState<Job | null>(null);
@@ -641,8 +671,10 @@ export function WorkerDashboard({ user, activeTab }: WorkerDashboardProps) {
                     <Card 
                       key={job.id} 
                       className={cn(
-                        "rounded-[1.5rem] sm:rounded-[2rem] border-[#D2D2D7]/30 hover:shadow-2xl transition-all cursor-pointer group flex flex-col overflow-hidden",
-                        job.publicationPlan === 'premium' ? "bg-gradient-to-br from-yellow-50 to-white ring-1 ring-yellow-400/20" : "bg-white"
+                        "rounded-[1.5rem] sm:rounded-[2rem] border-[#D2D2D7]/30 hover:shadow-2xl transition-all cursor-pointer group flex flex-col overflow-hidden relative",
+                        job.isUrgent 
+                          ? "bg-gradient-to-br from-red-50 to-white ring-2 ring-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.2)]" 
+                          : (job.publicationPlan === 'premium' ? "bg-gradient-to-br from-yellow-50 to-white ring-1 ring-yellow-400/20" : "bg-white")
                       )}
                       onClick={async () => {
                         // Reset notification flags for the worker
@@ -656,11 +688,19 @@ export function WorkerDashboard({ user, activeTab }: WorkerDashboardProps) {
                     >
                       <div className="p-5 sm:p-6 flex-1 space-y-4">
                         <div className="flex items-center justify-between gap-2 overflow-hidden">
-                           <div className={cn(
-                             "px-2 sm:px-3 py-1 rounded-full text-[8px] sm:text-[9px] font-black uppercase tracking-widest truncate shrink",
-                             job.publicationPlan === 'premium' ? "bg-yellow-200 text-yellow-800" : "bg-[#F5F5F7] text-[#86868B]"
-                           )}>
-                             {SERVICE_CATEGORIES.find(c => c.id === job.category)?.label}
+                           <div className="flex gap-2 items-center flex-wrap shrink">
+                             {job.isUrgent && (
+                               <div className="px-2 sm:px-3 py-1 rounded-full text-[8px] sm:text-[9px] font-black uppercase tracking-widest truncate shrink bg-red-500 text-white flex items-center gap-1 shadow-sm shadow-red-500/20">
+                                 <Zap className="w-2.5 h-2.5" />
+                                 URGENZA MAXI
+                               </div>
+                             )}
+                             <div className={cn(
+                               "px-2 sm:px-3 py-1 rounded-full text-[8px] sm:text-[9px] font-black uppercase tracking-widest truncate shrink",
+                               job.publicationPlan === 'premium' ? "bg-yellow-200 text-yellow-800" : "bg-[#F5F5F7] text-[#86868B]"
+                             )}>
+                               {SERVICE_CATEGORIES.find(c => c.id === job.category)?.label}
+                             </div>
                            </div>
                            <div className="flex items-center gap-2 shrink-0">
                              {(job.unreadMessagesCount?.[user.id] || 0) > 0 && (

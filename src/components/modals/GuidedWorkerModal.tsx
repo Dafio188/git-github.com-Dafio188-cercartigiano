@@ -116,8 +116,9 @@ export function GuidedWorkerModal({ isOpen, onClose, onComplete }: GuidedWorkerM
           nome: `${formData.firstName} ${formData.lastName}`,
           email: formData.email,
           role: 'worker',
-          status: 'pending', // Pending verification usually
-          tokens: 10, // Welcome tokens for workers
+          status: 'active',
+          isApproved: true,
+          tokens: 100, // Welcome tokens for workers
           createdAt: new Date().toISOString(),
           onboardingComplete: true,
           phone: formData.phone,

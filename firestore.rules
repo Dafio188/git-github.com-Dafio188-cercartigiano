@@ -13,20 +13,19 @@ service cloud.firestore {
 
     function isSignedIn() { return request.auth != null; }
     function isVerified() { 
-      return isSignedIn() && 'email_verified' in request.auth.token && request.auth.token.email_verified == true; 
+      return isSignedIn() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isApproved', false) == true;
     }
     function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
     
     function isAdmin() { 
       return isSignedIn() && (
-        ('email' in request.auth.token && (
-          request.auth.token.email == "fio.davide@gmail.com" ||
-          request.auth.token.email == "admin@cercartigiano.it"
-        )) ||
+        request.auth.token.get('email', '').lower() == "fio.davide@gmail.com" ||
+        request.auth.token.get('email', '').lower() == "admin@cercartigiano.it" ||
         exists(/databases/$(database)/documents/admins/$(request.auth.uid))
       ); 
     }
-    
+
     function incoming() { return request.resource.data; }
     function existing() { return resource.data; }
 
@@ -39,18 +38,18 @@ service cloud.firestore {
     // ===============================================================
 
     function isValidUser(data) {
-      return data.keys().hasAll(['id', 'role', 'nome', 'email', 'createdAt', 'status']) &&
+      return data.keys().hasAll(['id', 'role', 'nome', 'email', 'createdAt', 'status', 'isApproved']) &&
              data.id == request.auth.uid &&
              data.role in ['client', 'worker', 'admin'] &&
-             data.email == request.auth.token.email &&
+             data.email.lower() == request.auth.token.email.lower() &&
              (data.status == 'active' || data.status == 'pending' || data.status == 'suspended');
     }
 
     function isValidJob(data) {
       return data.keys().hasAll(['id', 'clientId', 'title', 'category', 'description', 'location', 'status', 'createdAt']) &&
+             data.id == request.resource.id &&
              data.clientId == request.auth.uid &&
              data.title is string && data.title.size() <= 200 &&
-             data.description is string && data.description.size() <= 5000 &&
              data.status == 'open';
     }
 
@@ -73,12 +72,10 @@ service cloud.firestore {
 
     // --- USERS ---
     match /users/{userId} {
-      allow get: if isSignedIn() && (isOwner(userId) || isAdmin() || resource.data.role == 'worker' || exists(/databases/$(database)/documents/workerProfiles/$(userId)));
-      allow list: if isSignedIn() && (
-        ('role' in resource.data && resource.data.role == 'worker') || isAdmin()
-      );
+      allow get: if isSignedIn() && (isOwner(userId) || isAdmin() || (resource != null && resource.data.role == 'worker') || exists(/databases/$(database)/documents/workerProfiles/$(userId)));
+      allow list: if isSignedIn();
       allow create: if isSignedIn() && isValidUser(incoming());
-      allow update: if isAdmin() || (isOwner(userId) && incoming().email == existing().email);
+      allow update: if isOwner(userId) || isAdmin();
       allow delete: if isAdmin();
     }
 
@@ -95,12 +92,12 @@ service cloud.firestore {
       allow read: if true;
       allow create: if isVerified() && isValidJob(incoming());
       allow update: if isAdmin() || (
-        isSignedIn() && (
-          existing().clientId == request.auth.uid || 
-          existing().assignedWorkerId == request.auth.uid ||
+        isSignedIn() && resource != null && (
+          resource.data.clientId == request.auth.uid || 
+          resource.data.assignedWorkerId == request.auth.uid ||
           // Allow users to update unread counts safely without referencing missing participants field
-          incoming().diff(existing()).affectedKeys().hasOnly(['unreadMessagesCount']) ||
-          incoming().diff(existing()).affectedKeys().hasOnly(['unreadMessagesCount', 'updatedAt'])
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['unreadMessagesCount']) ||
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['unreadMessagesCount', 'updatedAt'])
         )
       );
       allow delete: if isAdmin();
@@ -109,8 +106,8 @@ service cloud.firestore {
     // --- PROPOSALS ---
     match /proposals/{proposalId} {
       allow read: if isSignedIn() && (resource.data.workerId == request.auth.uid || resource.data.clientId == request.auth.uid || isAdmin());
-      allow create: if isVerified();
-      allow update: if isAdmin() || (isSignedIn() && (existing().workerId == request.auth.uid || existing().clientId == request.auth.uid));
+      allow create: if isSignedIn();
+      allow update: if isAdmin() || (isSignedIn() && resource != null && (resource.data.workerId == request.auth.uid || resource.data.clientId == request.auth.uid));
       allow delete: if isAdmin();
     }
 
@@ -143,8 +140,8 @@ service cloud.firestore {
     // --- REVIEWS ---
     match /reviews/{reviewId} {
       allow read: if true;
-      allow create: if isVerified();
-      allow update: if isAdmin() || (isSignedIn() && existing().clientId == request.auth.uid);
+      allow create: if isSignedIn();
+      allow update: if isAdmin() || (isSignedIn() && resource != null && resource.data.clientId == request.auth.uid);
       allow delete: if isAdmin();
     }
 
@@ -162,13 +159,19 @@ service cloud.firestore {
 
     // Invoices are sensitive
     match /invoices/{invoiceId} {
-      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow read: if isAdmin() || (isSignedIn() && resource != null && resource.data.userId == request.auth.uid);
       allow create, update, delete: if isAdmin();
+    }
+
+    // Logs
+    match /logs/{logId} {
+      allow get, list: if isAdmin();
+      allow write: if isAdmin();
     }
 
     // Notifications
     match /notifications/{notifId} {
-      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.userId == 'all' || isAdmin());
+      allow read: if isSignedIn();
       allow write: if isAdmin();
     }
 
@@ -185,7 +188,7 @@ service cloud.firestore {
     match /jobQuestions/{questionId} {
       allow read: if true;
       allow create: if isSignedIn();
-      allow update, delete: if isAdmin() || (isSignedIn() && existing().userId == request.auth.uid);
+      allow update, delete: if isAdmin() || (isSignedIn() && resource != null && resource.data.userId == request.auth.uid);
     }
   }
 }

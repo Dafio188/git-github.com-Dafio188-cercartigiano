@@ -49,9 +49,11 @@ export function ClientDashboard({ user, activeTab, initialCategoryId, onClearPen
     if (initialCategoryId) {
       setPreSelectedCategoryId(initialCategoryId);
       setIsGuidedModalOpen(true);
-      onClearPendingCategory?.();
+      if (onClearPendingCategory) {
+        onClearPendingCategory();
+      }
     }
-  }, [initialCategoryId]);
+  }, [initialCategoryId]); // Ignore onClearPendingCategory to prevent infinite loops
   const [chatJob, setChatJob] = useState<Job | null>(null);
   const [isProposalsModalOpen, setIsProposalsModalOpen] = useState(false);
   const [clientProfile, setClientProfile] = useState<UserProfile | null>(null);
@@ -188,10 +190,25 @@ export function ClientDashboard({ user, activeTab, initialCategoryId, onClearPen
             >
                {/* Hero Section */}
                <section className="relative overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] bg-white border border-[#D2D2D7]/30 shadow-sm">
-                  <div className="absolute top-0 right-0 p-4 sm:p-8">
+                  <div className="absolute top-0 right-0 p-4 sm:p-8 flex flex-col items-end gap-2">
                     <div className="bg-blue-50 px-2 sm:px-3 py-1 rounded-full border border-blue-100 flex items-center gap-1 sm:gap-2">
                       <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-blue-500 animate-pulse" />
                       <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-blue-700">Centro Clienti</span>
+                    </div>
+                    <div 
+                      onClick={() => window.dispatchEvent(new CustomEvent('switchTab', { detail: 'credits' }))}
+                      className="cursor-pointer bg-[#F5F5F7] hover:bg-gray-200 transition-colors px-3 py-1.5 rounded-xl border border-[#D2D2D7]/50 flex items-center gap-2 shadow-sm relative group"
+                    >
+                      <Zap className="w-4 h-4 text-blue-600" />
+                      <div>
+                        <div className="text-[10px] font-black uppercase tracking-widest text-[#86868B] leading-none mb-0.5">I tuoi Token</div>
+                        <div className="font-black text-[#1D1D1F] leading-none text-sm">{user.tokens || 0}</div>
+                      </div>
+                      
+                      {/* Tooltip / Spiegazione Tokens */}
+                      <div className="absolute top-12 left-1/2 -translate-x-1/2 w-48 bg-[#1D1D1F] text-white p-3 rounded-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 text-[10px] font-medium leading-tight shadow-xl">
+                        I token ti permettono di pubblicare richieste in <span className="font-bold text-blue-400">Urgenza Maxi</span> (5 Token) oppure di <span className="font-bold text-blue-400">prolungare</span> le richieste aperte (1 Token = 30 gg).
+                      </div>
                     </div>
                   </div>
 
@@ -239,10 +256,10 @@ export function ClientDashboard({ user, activeTab, initialCategoryId, onClearPen
                     <p className="text-white/70 font-bold max-w-sm text-xs sm:text-sm mx-auto md:mx-0">{t('client_dashboard.slogan_sub')}</p>
                     <Button 
                      variant="outline" 
-                     onClick={() => window.dispatchEvent(new CustomEvent('switchTab', { detail: 'search' }))}
+                     onClick={() => setIsGuidedModalOpen(true)}
                      className="rounded-full bg-white text-[#1D1D1F] hover:bg-gray-100 border-none font-black shadow-lg"
                     >
-                      {t('client_dashboard.explore_btn')}
+                      {t('client_dashboard.new_request')}
                     </Button>
                  </div>
                  <div className="absolute top-[-20%] right-[-10%] w-64 h-64 bg-white/10 rounded-full blur-3xl opacity-50 sm:opacity-100" />
@@ -262,10 +279,18 @@ export function ClientDashboard({ user, activeTab, initialCategoryId, onClearPen
                  </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                    {jobs.slice(0, 2).map((job) => (
-                     <Card key={job.id} className="rounded-[1.5rem] sm:rounded-[2rem] border-[#D2D2D7]/30 p-5 sm:p-6 bg-white flex flex-col justify-between">
-                        <div>
+                     <Card key={job.id} className={cn("rounded-[1.5rem] sm:rounded-[2rem] border-[#D2D2D7]/30 p-5 sm:p-6 bg-white flex flex-col justify-between relative overflow-hidden", job.isUrgent && "bg-gradient-to-br from-red-50 to-white ring-2 ring-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.2)]")}>
+                        <div className="relative z-10">
                           <div className="flex items-center justify-between mb-2">
-                             <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-blue-600">{job.category}</span>
+                             <div className="flex gap-2 items-center">
+                               {job.isUrgent && (
+                                 <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-white bg-red-500 flex items-center gap-1 px-1.5 py-0.5 rounded shadow-sm shadow-red-500/20">
+                                   <Zap className="w-2.5 h-2.5" />
+                                   MAXI
+                                 </span>
+                               )}
+                               <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-blue-600">{job.category}</span>
+                             </div>
                              <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-gray-400">{job.createdAt?.seconds ? new Date(job.createdAt.seconds * 1000).toLocaleDateString() : 'Oggi'}</span>
                           </div>
                           <h4 className="font-black text-base sm:text-lg mb-1">{job.title}</h4>
@@ -318,7 +343,10 @@ export function ClientDashboard({ user, activeTab, initialCategoryId, onClearPen
                      exit={{ opacity: 0, scale: 0.95 }}
                    >
                      <Card 
-                       className="rounded-[1.5rem] sm:rounded-[2rem] bg-white border border-[#D2D2D7]/30 hover:shadow-xl hover:shadow-black/5 transition-all cursor-pointer group overflow-hidden"
+                       className={cn(
+                         "rounded-[1.5rem] sm:rounded-[2rem] bg-white border border-[#D2D2D7]/30 hover:shadow-xl hover:shadow-black/5 transition-all cursor-pointer group overflow-hidden relative",
+                         job.isUrgent && "bg-gradient-to-br from-red-50 to-white ring-2 ring-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.2)]"
+                       )}
                        onClick={async () => {
                          // Reset notification flags
                          if (job.hasNewProposals || (job.unreadMessagesCount?.[user.id] || 0) > 0) {
@@ -339,11 +367,19 @@ export function ClientDashboard({ user, activeTab, initialCategoryId, onClearPen
                          }
                        }}
                      >
-                       <CardHeader className="flex-row items-start justify-between space-y-0 pb-2 px-5 sm:px-6">
+                       <CardHeader className="flex-row items-start justify-between space-y-0 pb-2 px-5 sm:px-6 relative z-10">
                          <div className="space-y-1">
-                           <span className="text-[9px] font-black uppercase tracking-widest text-[#86868B] bg-[#F5F5F7] px-2 py-0.5 rounded">
-                             {job.category}
-                           </span>
+                           <div className="flex gap-2 items-center flex-wrap">
+                             {job.isUrgent && (
+                               <span className="text-[9px] font-black uppercase tracking-widest text-white bg-red-500 flex items-center gap-1 px-2 py-0.5 rounded shadow-sm shadow-red-500/20">
+                                 <Zap className="w-2.5 h-2.5" />
+                                 URGENZA MAXI
+                               </span>
+                             )}
+                             <span className="text-[9px] font-black uppercase tracking-widest text-[#86868B] bg-[#F5F5F7] px-2 py-0.5 rounded">
+                               {job.category}
+                             </span>
+                           </div>
                            <CardTitle className="text-lg sm:text-xl font-black tracking-tight group-hover:text-blue-600 transition-colors flex items-center justify-between gap-2">
                              {job.title}
                              {job.hasNewProposals && (

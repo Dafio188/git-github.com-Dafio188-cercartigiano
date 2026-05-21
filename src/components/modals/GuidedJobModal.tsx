@@ -8,7 +8,7 @@ import { SERVICE_CATEGORIES } from '../../constants';
 import { CATEGORY_FLOWS, DEFAULT_FLOW, CategoryQuestion } from '../../services/questionService';
 import { evaluateJobComplexity } from '../../services/aiService';
 import { auth, db, storage } from '../../firebase';
-import { collection, addDoc, serverTimestamp, setDoc, doc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, setDoc, doc, getDoc, runTransaction } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { Camera, Image as ImageIcon, Trash2, Loader2, Upload } from 'lucide-react';
@@ -23,15 +23,18 @@ interface GuidedJobModalProps {
   mappedMessage?: string;
 }
 
+const EMPTY_ANSWERS = {};
+
 export function GuidedJobModal({ 
   isOpen, 
   onClose, 
   categoryId: initialCategoryId, 
   userId, 
   onComplete,
-  initialAnswers = {},
+  initialAnswers = EMPTY_ANSWERS,
   mappedMessage
 }: GuidedJobModalProps) {
+  console.log("GuidedJobModal render - isOpen:", isOpen, "initialCategoryId:", initialCategoryId);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(initialCategoryId);
   const [stepHistory, setStepHistory] = useState<number[]>([0]);
   const currentStepIndex = stepHistory[stepHistory.length - 1] || 0;
@@ -72,19 +75,45 @@ export function GuidedJobModal({
         flowWithBudget.push(budgetStep);
       }
     }
+
+    if (!flowWithBudget.find(q => q.id === 'is_urgent')) {
+      const urgentStep: CategoryQuestion = {
+        id: 'is_urgent',
+        type: 'choice',
+        title: 'Richiesta Urgente',
+        question: 'Hai bisogno di un intervento rapido?',
+        description: 'Con 5 Token la tua richiesta otterrà la Priorità MASSIMA. Gli artigiani in zona verranno allertati immediatamente per risponderti entro 60 minuti.',
+        options: [
+          { id: 'no', label: 'No, ho tempi flessibili (Gratis)' },
+          { id: 'yes', label: 'Sì, è un\'URGENZA! (Costo: 5 Token)' }
+        ]
+      };
+      
+      const contactIdx = flowWithBudget.findIndex(q => q.type === 'contact');
+      if (contactIdx !== -1) {
+        flowWithBudget.splice(contactIdx, 0, urgentStep);
+      } else {
+        flowWithBudget.push(urgentStep);
+      }
+    }
+
     return flowWithBudget;
   }, [rawBaseFlow]);
 
   // Per gli utenti già loggati, rimuoviamo lo step dei contatti per evitare sforzi inutili
-  const flow = auth.currentUser ? baseFlow.filter(q => q.type !== 'contact') : baseFlow;
+  const flow = useMemo(() => {
+    return auth.currentUser ? baseFlow.filter(q => q.type !== 'contact') : baseFlow;
+  }, [baseFlow, auth.currentUser]);
 
   const currentQuestion = flow[currentStepIndex];
 
   // Calculate progress percentage
-  const progressPercent = Math.round(((currentStepIndex + 1) / flow.length) * 100);
+  const progressPercent = currentQuestion ? Math.round(((currentStepIndex + 1) / flow.length) * 100) : 0;
 
   // Get current price range or use default
   const activePriceRange = React.useMemo(() => {
+    if (!currentQuestion) return { min: 60, max: 500 };
+    
     // 1. Check if the current question has a priceRange in the selected option
     const currentAnswerId = answers[currentQuestion.id];
     if (currentQuestion.type === 'choice' && currentAnswerId && currentQuestion.options) {
@@ -110,13 +139,6 @@ export function GuidedJobModal({
   useEffect(() => {
     if (isOpen) {
       setSelectedCategoryId(initialCategoryId);
-      // Se abbiamo una selezione iniziale per il primo step, andiamo direttamente al secondo
-      const firstStepAnswer = initialAnswers[flow[0].id];
-      if (firstStepAnswer) {
-        setStepHistory([1]);
-      } else {
-        setStepHistory([0]);
-      }
       
       // Pre-fill user data if already logged in
       const currentUser = auth.currentUser;
@@ -130,17 +152,34 @@ export function GuidedJobModal({
       
       setAnswers(baseAnswers);
       
+      // Importante: settiamo lo stepHistory DOPO aver ricalcolato il flow (se possibile)
+      // Ma qui usiamo il flow corrente. Se initialAnswers ha il primo step, saltiamo.
+      const firstQuestionId = (initialCategoryId && CATEGORY_FLOWS[initialCategoryId]) 
+        ? CATEGORY_FLOWS[initialCategoryId][0]?.id 
+        : DEFAULT_FLOW[0]?.id;
+        
+      if (firstQuestionId && initialAnswers[firstQuestionId]) {
+        setStepHistory([1]);
+      } else {
+        setStepHistory([0]);
+      }
+      
       setAddress('');
       setLocation(null);
       setLoading(false);
+      setShowSummary(false);
+      setSuccess(false);
       // Small delay to show price range after opening
       setTimeout(() => setShowPriceRange(true), 500);
     }
-  }, [isOpen, initialCategoryId, initialAnswers, flow]);
+  }, [isOpen, initialCategoryId]); // Only re-run when modal opens or initial category changes
 
   const handleCategorySelect = (id: string) => {
+    console.log("GuidedJobModal selecting category:", id);
     setSelectedCategoryId(id);
     setStepHistory([0]);
+    setShowSummary(false);
+    setAnswers({}); // Reset answers when category changes
   };
 
   const handleOptionSelect = (optionId: string) => {
@@ -217,6 +256,7 @@ export function GuidedJobModal({
         email: userCredential.user.email || '',
         role: 'client',
         status: 'active',
+        isApproved: true,
         createdAt: new Date().toISOString(),
         tokens: 5,
         onboardingComplete: true,
@@ -291,6 +331,7 @@ export function GuidedJobModal({
             email: answers.userEmail,
             role: 'client',
             status: 'active',
+            isApproved: true,
             createdAt: new Date().toISOString(),
             tokens: 5,
             onboardingComplete: true,
@@ -330,16 +371,51 @@ export function GuidedJobModal({
         if (budgetAnswer === 'large') tierTokenCost = 15;
         if (budgetAnswer === 'pro') tierTokenCost = 25;
 
-        await addDoc(collection(db, 'jobs'), {
+        const isUrgentAnswer = answers['is_urgent'];
+        let isUrgent = isUrgentAnswer === 'yes';
+        const userDocRef = doc(db, 'users', currentUserId);
+        const newJobRef = doc(collection(db, 'jobs'));
+
+        if (isUrgent) {
+          const userDoc = await getDoc(userDocRef);
+          const userTokens = userDoc.exists() ? (userDoc.data().tokens || 0) : 0;
+          if (userTokens < 5) {
+            const proceed = window.confirm("Non hai abbastanza Token per la richiesta Urgente (richiede 5 Token). Vuoi inviare la richiesta come Standard (Gratis)?\n\n- Premi OK per inviare gratis\n- Premi Annulla per tornare alla richiesta e poter ricaricare tramite la schermata Crediti");
+            if (!proceed) {
+              setLoading(false);
+              return; // Blocca l'invio
+            }
+            isUrgent = false; // Invio standard
+          }
+        }
+
+        const jobPayload = {
           ...jobData,
+          id: newJobRef.id,
           clientId: currentUserId,
           tokenCost: tierTokenCost,
+          isUrgent: isUrgent,
           proposalCount: 0,
           publicationPlan: 'free',
           expiresAt: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
-        });
+        };
+
+        if (isUrgent) {
+          await runTransaction(db, async (transaction) => {
+            const userSnap = await transaction.get(userDocRef);
+            if (!userSnap.exists()) throw "User does not exist";
+            const currentTokens = userSnap.data().tokens || 0;
+            if (currentTokens < 5) {
+              throw "Not enough tokens";
+            }
+            transaction.update(userDocRef, { tokens: currentTokens - 5 });
+            transaction.set(newJobRef, jobPayload);
+          });
+        } else {
+          await setDoc(newJobRef, jobPayload);
+        }
         
         setSuccess(true);
         setTimeout(() => {
@@ -388,124 +464,102 @@ export function GuidedJobModal({
     }
   };
 
-  if (!isOpen) return null;
-
-  // Show category selection if not provided
-  if (!selectedCategoryId) {
-    return (
-      <AnimatePresence>
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-4">
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-4 overflow-hidden">
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="absolute inset-0 bg-[#1D1D1F]/60 backdrop-blur-md"
+            className="absolute inset-0 bg-[#000000]/60 backdrop-blur-md"
           />
           
           <motion.div 
-            initial={{ opacity: 0, scale: 0.9, y: 40 }}
+            key={selectedCategoryId ? 'flow' : 'selection'}
+            initial={{ opacity: 0, scale: 0.95, y: 40 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 40 }}
-            className="relative w-full max-w-2xl bg-white md:rounded-[3rem] shadow-2xl overflow-hidden h-full md:h-auto overflow-y-auto"
+            exit={{ opacity: 0, scale: 0.95, y: 40 }}
+            className="relative w-full md:h-[85vh] md:max-h-[800px] max-w-5xl bg-white md:rounded-[3rem] shadow-2xl overflow-hidden h-full flex flex-col md:flex-row"
           >
-            <div className="p-8 lg:p-12">
-              <div className="flex items-center justify-between mb-8">
-                <h3 className="text-2xl font-black text-[#1D1D1F]">Di cosa hai bisogno?</h3>
-                <button onClick={onClose} className="p-3 hover:bg-[#F5F5F7] rounded-full transition-colors">
-                  <X className="w-6 h-6 text-[#86868B]" />
-                </button>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                {SERVICE_CATEGORIES.map(cat => (
-                  <button
-                    key={cat.id}
-                    onClick={() => handleCategorySelect(cat.id)}
-                    className="flex flex-col items-center justify-center gap-4 p-6 bg-[#FBFBFD] border-2 border-[#F2F2F7] rounded-[2rem] hover:border-blue-600 hover:bg-white transition-all group"
-                  >
-                    <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-[#1D1D1F] group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm">
-                      <cat.icon className="w-8 h-8" />
-                    </div>
-                    <span className="text-xs font-black text-[#1D1D1F] text-center uppercase tracking-widest">{cat.label}</span>
+            {!selectedCategoryId ? (
+              <div className="flex-1 p-8 lg:p-12 overflow-y-auto">
+                <div className="flex items-center justify-between mb-8">
+                  <h3 className="text-2xl font-black text-[#1D1D1F]">Di cosa hai bisogno?</h3>
+                  <button onClick={onClose} className="p-3 hover:bg-[#F5F5F7] rounded-full transition-colors">
+                    <X className="w-6 h-6 text-[#86868B]" />
                   </button>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </AnimatePresence>
-    );
-  }
-
-  return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-4 overflow-hidden">
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
-          className="absolute inset-0 bg-[#000000]/40 backdrop-blur-sm"
-        />
-        
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95, y: 40 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 40 }}
-          className="relative w-full md:h-[85vh] md:max-h-[800px] max-w-5xl bg-white md:rounded-[3rem] shadow-2xl overflow-hidden h-full flex flex-col md:flex-row"
-        >
-          {/* Procedure Sidebar (Desktop) */}
-          <div className="hidden md:flex w-72 bg-[#FBFBFD] border-r border-[#F2F2F7] flex-col p-8 space-y-12">
-             <div className="flex items-center gap-4 mb-6">
-                <div className="w-14 h-14 bg-[#1D1D1F] rounded-[1.25rem] flex items-center justify-center shadow-xl shadow-black/10 border border-white/10 shrink-0">
-                    <img src="/logo.png" className="w-8 h-8 invert" alt="C" />
                 </div>
-                <div className="flex flex-col gap-0.5">
-                   <h2 className="text-[14px] font-black text-[#1D1D1F] uppercase tracking-tighter leading-none">CercArtigiano</h2>
-                   <span className="text-[9px] font-bold text-[#86868B] uppercase tracking-[0.25em] leading-none opacity-50">Smart Request</span>
-                </div>
-             </div>
-
-             <div className="space-y-1">
-                {[
-                  { label: 'Dettagli', icon: Info },
-                  { label: 'Intervento', icon: Zap },
-                  { label: 'Urgenza', icon: Clock },
-                  { label: 'Posizione', icon: MapPin },
-                  { label: 'Contatto', icon: MessageSquare }
-                ].map((s, idx) => {
-                  const stepProgress = (currentStepIndex + 1) / flow.length;
-                  const itemProgress = (idx + 1) / 5;
-                  const isCurrent = currentStepIndex >= idx; // Simplified for guidance
-                  
-                  return (
-                    <div key={idx} className={`flex items-center gap-3 p-3 rounded-2xl transition-all ${isCurrent ? "bg-white shadow-sm border border-[#D2D2D7]/20" : "opacity-30"}`}>
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isCurrent ? "bg-blue-600 text-white" : "bg-[#F5F5F7] text-[#1D1D1F]"}`}>
-                         <s.icon className="w-4 h-4" />
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pb-12">
+                  {SERVICE_CATEGORIES.map(cat => (
+                      <button
+                        key={cat.id}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          console.log("GuidedJobModal ICON CLICKED:", cat.id);
+                          handleCategorySelect(cat.id);
+                        }}
+                        className="flex flex-col items-center justify-center gap-4 p-6 bg-[#FBFBFD] border-2 border-[#F2F2F7] rounded-[2rem] hover:border-blue-600 hover:bg-white transition-all group cursor-pointer relative z-20"
+                      >
+                      <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-[#1D1D1F] group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm">
+                        <cat.icon className="w-8 h-8" />
                       </div>
-                      <span className={`text-[10px] font-black uppercase tracking-widest ${isCurrent ? "text-blue-600" : "text-[#1D1D1F]"}`}>{s.label}</span>
-                    </div>
-                  );
-                })}
-             </div>
-
-             <div className="mt-auto">
-                <div className="p-5 bg-white rounded-2xl border border-[#F2F2F7] shadow-sm">
-                   <div className="flex items-center gap-2 mb-2">
-                      <Shield className="w-4 h-4 text-green-600" />
-                      <span className="text-[10px] font-black text-[#1D1D1F] uppercase tracking-widest">Garanzia Safe</span>
-                   </div>
-                   <p className="text-[9px] text-[#86868B] font-medium leading-relaxed">
-                      Riceverai fino a 5 preventivi gratuiti. La tua privacy è protetta dai nostri protocolli di sicurezza.
-                   </p>
+                      <span className="text-xs font-black text-[#1D1D1F] text-center uppercase tracking-widest leading-tight">{cat.label}</span>
+                    </button>
+                  ))}
                 </div>
-             </div>
-          </div>
+              </div>
+            ) : (
+              <>
+                {/* Procedure Sidebar (Desktop) */}
+                <div className="hidden md:flex w-72 bg-[#FBFBFD] border-r border-[#F2F2F7] flex-col p-8 space-y-12 shrink-0">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-14 h-14 bg-[#1D1D1F] rounded-[1.25rem] flex items-center justify-center shadow-xl shadow-black/10 border border-white/10 shrink-0">
+                        <img src="/logo.png" className="w-8 h-8 invert" alt="C" />
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                       <h2 className="text-[14px] font-black text-[#1D1D1F] uppercase tracking-tighter leading-none">CercArtigiano</h2>
+                       <span className="text-[9px] font-bold text-[#86868B] uppercase tracking-[0.25em] leading-none opacity-50">Smart Request</span>
+                    </div>
+                  </div>
 
-          {/* Main Content Pane */}
-          <div className="flex-1 flex flex-col min-h-0">
-            {/* Top Header */}
-            <div className="bg-white border-b border-[#F2F2F7] md:border-none z-10 p-6 md:px-12 md:pt-16 md:pb-8 flex flex-col gap-6">
+                  <div className="space-y-1">
+                    {[
+                      { label: 'Dettagli', icon: Info },
+                      { label: 'Intervento', icon: Zap },
+                      { label: 'Urgenza', icon: Clock },
+                      { label: 'Posizione', icon: MapPin },
+                      { label: 'Contatto', icon: MessageSquare }
+                    ].map((s, idx) => {
+                      const isCurrent = currentStepIndex >= idx || showSummary;
+                      return (
+                        <div key={idx} className={`flex items-center gap-3 p-3 rounded-2xl transition-all ${isCurrent ? "bg-white shadow-sm border border-[#D2D2D7]/20" : "opacity-30"}`}>
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isCurrent ? "bg-blue-600 text-white" : "bg-[#F5F5F7] text-[#1D1D1F]"}`}>
+                             <s.icon className="w-4 h-4" />
+                          </div>
+                          <span className={`text-[10px] font-black uppercase tracking-widest ${isCurrent ? "text-blue-600" : "text-[#1D1D1F]"}`}>{s.label}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="mt-auto">
+                    <div className="p-5 bg-white rounded-2xl border border-[#F2F2F7] shadow-sm">
+                       <div className="flex items-center gap-2 mb-2">
+                          <Shield className="w-4 h-4 text-green-600" />
+                          <span className="text-[10px] font-black text-[#1D1D1F] uppercase tracking-widest">Garanzia Safe</span>
+                       </div>
+                       <p className="text-[9px] text-[#86868B] font-medium leading-relaxed">
+                          Riceverai fino a 5 preventivi gratuiti. La tua privacy è protetta dai nostri protocolli di sicurezza.
+                       </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Main Content Pane */}
+                <div className="flex-1 flex flex-col min-h-0">
+                  <div className="bg-white border-b border-[#F2F2F7] md:border-none z-10 p-6 md:px-12 md:pt-16 md:pb-8 flex flex-col gap-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-5">
                   <button 
@@ -1030,23 +1084,16 @@ export function GuidedJobModal({
                       )}
                     </Button>
                     
-                    <div className="flex items-center gap-4">
-                       <div className="flex -space-x-2">
-                         {[1,2,3].map(i => (
-                           <div key={i} className="w-6 h-6 rounded-full border-2 border-white bg-gray-200 overflow-hidden">
-                              <img src={`https://i.pravatar.cc/100?u=${i}`} alt="User" />
-                           </div>
-                         ))}
-                       </div>
-                       <span className="text-[10px] font-bold text-[#86868B] uppercase tracking-widest">Oltre 500 clienti soddisfatti questa settimana</span>
-                    </div>
                   </div>
                 )}
               </div>
             </div>
           </div>
-        </motion.div>
-      </div>
-    </AnimatePresence>
-  );
+        </>
+      )}
+    </motion.div>
+  </div>
+)}
+</AnimatePresence>
+);
 }

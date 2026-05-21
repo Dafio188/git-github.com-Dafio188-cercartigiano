@@ -10,7 +10,6 @@ import { ClientDashboard } from './components/dashboards/ClientDashboard';
 import { WorkerDashboard } from './components/dashboards/WorkerDashboard';
 import { LandingPage } from './components/LandingPage';
 import { ProfileView } from './components/ProfileView';
-import { ProfessionalSearchView } from './components/ProfessionalSearchView';
 import { SettingsView } from './components/SettingsView';
 import { CreditsView } from './components/CreditsView';
 import { SubscriptionsView } from './components/SubscriptionsView';
@@ -19,6 +18,9 @@ import { PrivacyBanner } from './components/PrivacyBanner';
 import { GeneralInfo } from './components/GeneralInfo';
 import { CareersPage } from './components/CareersPage';
 import { CategoriesPage } from './components/CategoriesPage';
+import { PrivacyPolicy } from './components/PrivacyPolicy';
+import { TermsOfService } from './components/TermsOfService';
+import { CookiePolicy } from './components/CookiePolicy';
 import { NotificationsModal } from './components/modals/NotificationsModal';
 import { GuidedJobModal } from './components/modals/GuidedJobModal';
 import { GuidedWorkerModal } from './components/modals/GuidedWorkerModal';
@@ -52,6 +54,9 @@ function App() {
   const [showInfo, setShowInfo] = useState(false);
   const [showCareers, setShowCareers] = useState(false);
   const [showCategories, setShowCategories] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const [showCookies, setShowCookies] = useState(false);
   const [authReady, setAuthReady] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -104,11 +109,17 @@ function App() {
       setShowCategories(true);
       setShowCareers(false);
       setShowInfo(false);
+      setShowPrivacy(false);
+      setShowTerms(false);
+      setShowCookies(false);
       setShowAuth(false);
     } else if (tabId === 'landing-home') {
       setShowCategories(false);
       setShowCareers(false);
       setShowInfo(false);
+      setShowPrivacy(false);
+      setShowTerms(false);
+      setShowCookies(false);
       setShowAuth(false);
       setActiveTab('home');
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -117,6 +128,9 @@ function App() {
       setShowCategories(false);
       setShowCareers(false);
       setShowInfo(false);
+      setShowPrivacy(false);
+      setShowTerms(false);
+      setShowCookies(false);
       setShowAuth(false);
       
       // Use a timeout to ensure the LandingPage is rendered before scrolling
@@ -170,8 +184,13 @@ function App() {
         try {
           const aiTokenCost = await evaluateJobComplexity(pendingJobDraft.title, pendingJobDraft.description);
 
-          await addDoc(collection(db, 'jobs'), {
+          const jobsColRef = collection(db, 'jobs');
+          const newJobDocRef = doc(jobsColRef);
+          const jobId = newJobDocRef.id;
+          
+          await setDoc(newJobDocRef, {
             ...pendingJobDraft,
+            id: jobId,
             clientId: user.id,
             status: 'open',
             tokenCost: aiTokenCost,
@@ -263,14 +282,16 @@ function App() {
             setShowAuth(false);
           } else {
             // Handle first-time Google login: Create a profile if it doesn't exist
+            const registrationRole = sessionStorage.getItem('registration_role') || (pendingWorkerRegistration ? 'worker' : 'client');
             const newUser: User = {
               id: firebaseUser.uid,
               nome: firebaseUser.displayName || 'Utente',
               email: firebaseUser.email || '',
-              role: isDefaultAdmin ? 'admin' : (pendingWorkerRegistration ? 'worker' : 'client'),
-              status: isDefaultAdmin ? 'active' : (pendingWorkerRegistration ? 'pending' : 'active'),
+              role: isDefaultAdmin ? 'admin' : (registrationRole as any),
+              status: 'active',
+              isApproved: true,
+              tokens: 100, // Tokens for testing
               createdAt: new Date().toISOString(),
-              tokens: 0,
               onboardingComplete: isDefaultAdmin ? true : false
             };
             
@@ -308,13 +329,49 @@ function App() {
 
   if (loading || !authReady) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-white">
+      <div className="h-screen w-full flex flex-col items-center justify-center bg-[#F5F5F7]">
         <Helmet><title>Caricamento... | CercArtigiano</title></Helmet>
-        <motion.div 
-          animate={{ scale: [1, 1.1, 1] }}
-          transition={{ repeat: Infinity, duration: 2 }}
-          className="w-12 h-12 bg-primary rounded-xl shadow-xl shadow-primary/20"
-        />
+        <div className="flex flex-col items-center">
+          <motion.div
+            animate={{ 
+              scale: [0.95, 1.03, 0.95],
+              opacity: [0.8, 1, 0.8]
+            }}
+            transition={{ 
+              repeat: Infinity, 
+              duration: 2.5,
+              ease: "easeInOut"
+            }}
+            className="w-24 h-24 bg-white rounded-[2rem] shadow-2xl shadow-black/5 flex items-center justify-center border border-white/50 relative overflow-hidden"
+          >
+            <img 
+              src="/logo.png" 
+              alt="C" 
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                const parent = target.parentElement;
+                if (parent) {
+                  const fallback = document.createElement('div');
+                  fallback.className = 'w-full h-full bg-primary flex items-center justify-center text-white text-3xl font-black';
+                  fallback.innerText = 'C';
+                  parent.appendChild(fallback);
+                }
+              }}
+              className="w-16 h-16 object-contain"
+            />
+          </motion.div>
+          
+          <div className="mt-8 flex flex-col items-center gap-1">
+            <h1 className="text-base font-black text-[#1D1D1F] uppercase tracking-wider">CercArtigiano</h1>
+            <p className="text-[11px] text-[#86868B] font-bold tracking-tight">Tutto nel palmo della Tua mano</p>
+            <div className="mt-4 flex gap-1.5 items-center">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce [animation-delay:-0.3s]"></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce [animation-delay:-0.15s]"></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce"></span>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -333,6 +390,33 @@ function App() {
       <>
         <Helmet><title>Lavora con Noi | CercArtigiano</title></Helmet>
         <CareersPage onBack={() => setShowCareers(false)} />
+      </>
+    );
+  }
+
+  if (showPrivacy) {
+    return (
+      <>
+        <Helmet><title>Privacy Policy | CercArtigiano</title></Helmet>
+        <PrivacyPolicy onBack={() => setShowPrivacy(false)} />
+      </>
+    );
+  }
+
+  if (showTerms) {
+    return (
+      <>
+        <Helmet><title>Termini di Servizio | CercArtigiano</title></Helmet>
+        <TermsOfService onBack={() => setShowTerms(false)} />
+      </>
+    );
+  }
+
+  if (showCookies) {
+    return (
+      <>
+        <Helmet><title>Cookie Policy | CercArtigiano</title></Helmet>
+        <CookiePolicy onBack={() => setShowCookies(false)} />
       </>
     );
   }
@@ -369,6 +453,9 @@ function App() {
             }}
             onShowCareers={() => setShowCareers(true)}
             onShowCategories={() => setShowCategories(true)}
+            onShowPrivacy={() => setShowPrivacy(true)}
+            onShowTerms={() => setShowTerms(true)}
+            onShowCookies={() => setShowCookies(true)}
           />
         )}
         <div className="lg:hidden">
@@ -602,10 +689,6 @@ function App() {
                   <WorkerDashboard key="worker-projects" user={user!} activeTab="projects" />
                 )}
 
-                {activeTab === 'search' && (effectiveRole === 'client' || effectiveRole === 'admin') && (
-                  <ProfessionalSearchView key="search-view" currentUser={user!} />
-                )}
-
                 {/* Admin specific views */}
                 {effectiveRole === 'admin' && (
                   <>
@@ -619,6 +702,7 @@ function App() {
                 )}
 
                 {/* Common views */}
+                {activeTab === 'search' && <CategoriesPage onBack={() => setActiveTab('home')} onSelectCategory={handleSelectCategory} />}
                 {activeTab === 'profile' && <ProfileView user={user!} />}
                 {activeTab === 'settings' && <SettingsView />}
                 {activeTab === 'credits' && <CreditsView user={user!} />}
