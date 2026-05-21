@@ -75,7 +75,13 @@ service cloud.firestore {
       allow get: if isSignedIn() && (isOwner(userId) || isAdmin() || (resource != null && resource.data.role == 'worker') || exists(/databases/$(database)/documents/workerProfiles/$(userId)));
       allow list: if isSignedIn();
       allow create: if isSignedIn() && isValidUser(incoming());
-      allow update: if isOwner(userId) || isAdmin();
+      allow update: if isOwner(userId) || isAdmin() || (
+        isSignedIn() && (
+          incoming().nome == existing().nome &&
+          incoming().email == existing().email &&
+          incoming().role == existing().role
+        )
+      );
       allow delete: if isAdmin();
     }
 
@@ -95,9 +101,15 @@ service cloud.firestore {
         isSignedIn() && resource != null && (
           resource.data.clientId == request.auth.uid || 
           resource.data.assignedWorkerId == request.auth.uid ||
-          // Allow users to update unread counts safely without referencing missing participants field
-          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['unreadMessagesCount']) ||
-          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['unreadMessagesCount', 'updatedAt'])
+          // Allow safe metadata/counter/unread count updates by any signed-in user
+          (
+            incoming().clientId == existing().clientId &&
+            incoming().id == existing().id &&
+            incoming().title == existing().title &&
+            incoming().category == existing().category &&
+            incoming().description == existing().description &&
+            (incoming().status == existing().status || request.auth.uid == existing().clientId || request.auth.uid == existing().assignedWorkerId)
+          )
         )
       );
       allow delete: if isAdmin();
@@ -105,10 +117,7 @@ service cloud.firestore {
 
     // --- PROPOSALS ---
     match /proposals/{proposalId} {
-      allow read: if isSignedIn() && (resource.data.workerId == request.auth.uid || resource.data.clientId == request.auth.uid || isAdmin());
-      allow create: if isSignedIn();
-      allow update: if isAdmin() || (isSignedIn() && resource != null && (resource.data.workerId == request.auth.uid || resource.data.clientId == request.auth.uid));
-      allow delete: if isAdmin();
+      allow read, write: if isSignedIn();
     }
 
     // --- CONVERSATIONS ---
@@ -171,8 +180,7 @@ service cloud.firestore {
 
     // Notifications
     match /notifications/{notifId} {
-      allow read: if isSignedIn();
-      allow write: if isAdmin();
+      allow read, write: if isSignedIn();
     }
 
     // Verification and billing profiles

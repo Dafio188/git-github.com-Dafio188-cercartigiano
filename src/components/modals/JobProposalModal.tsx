@@ -112,6 +112,12 @@ export function JobProposalModal({ isOpen, onClose, job, workerId, workerTokens:
           throw new Error("Saldo token insufficiente");
         }
 
+        const jobRef = doc(db, 'jobs', job.id);
+        const jobDoc = await transaction.get(jobRef);
+        if (!jobDoc.exists()) {
+          throw new Error("Lavoro non trovato");
+        }
+
         // 1. Deduct tokens
         transaction.update(userRef, {
           tokens: increment(-responseCost)
@@ -136,7 +142,6 @@ export function JobProposalModal({ isOpen, onClose, job, workerId, workerTokens:
         });
 
         // 3. Update job proposal count and notify
-        const jobRef = doc(db, 'jobs', job.id);
         transaction.update(jobRef, {
           proposalCount: increment(1),
           hasNewProposals: true
