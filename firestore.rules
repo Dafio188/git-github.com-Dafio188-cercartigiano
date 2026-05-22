@@ -9,9 +9,8 @@ service cloud.firestore {
     
     function isAdmin() {
       return isSignedIn() && (
-        ('email' in request.auth.token && request.auth.token.email == "fio.davide@gmail.com") ||
-        ('email' in request.auth.token && request.auth.token.email == "admin@cercartigiano.it") ||
-        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+        ('email' in request.auth.token && request.auth.token.email.lower() == "fio.davide@gmail.com") ||
+        ('email' in request.auth.token && request.auth.token.email.lower() == "admin@cercartigiano.it")
       );
     }
 
@@ -25,14 +24,15 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if true;
       allow create: if isSignedIn() && request.auth.uid == userId;
-      allow update: if isSignedIn() && (request.auth.uid == userId || isAdmin());
-      allow delete: if isAdmin();
+      allow update: if isSignedIn() && request.auth.uid == userId;
+      allow write: if isAdmin();
     }
 
     // --- WORKER PROFILES ---
     match /workerProfiles/{userId} {
       allow read: if true;
-      allow write: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow write: if isSignedIn() && request.auth.uid == userId;
+      allow write: if isAdmin();
     }
 
     // --- JOBS ---
@@ -40,7 +40,8 @@ service cloud.firestore {
       allow read: if true;
       allow create: if isSignedIn();
       allow update: if isSignedIn(); // Permette ad altri utenti registrati (es. artigiani) di aggiornare proposalCount, hasNewProposals, unreadMessagesCount
-      allow delete: if isSignedIn() && (resource.data.clientId == request.auth.uid || isAdmin());
+      allow delete: if isSignedIn() && resource.data.clientId == request.auth.uid;
+      allow delete: if isAdmin();
     }
 
     // --- PROPOSALS ---
@@ -48,7 +49,8 @@ service cloud.firestore {
       allow read: if true;
       allow create: if isSignedIn();
       allow update: if isSignedIn(); // Permette sia all'artigiano che al cliente di modificare gli stati
-      allow delete: if isSignedIn() && (resource.data.workerId == request.auth.uid || isAdmin());
+      allow delete: if isSignedIn() && resource.data.workerId == request.auth.uid;
+      allow delete: if isAdmin();
     }
 
     // --- CONVERSATIONS ---
@@ -96,13 +98,15 @@ service cloud.firestore {
     // --- VERIFICATIONS ---
     match /verifications/{userId} {
       allow read: if true;
-      allow write: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow write: if isSignedIn() && request.auth.uid == userId;
+      allow write: if isAdmin();
     }
     
     // --- BILLING PROFILES ---
     match /billingProfiles/{userId} {
       allow read: if true;
-      allow write: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow write: if isSignedIn() && request.auth.uid == userId;
+      allow write: if isAdmin();
     }
 
     // --- JOB QUESTIONS ---
