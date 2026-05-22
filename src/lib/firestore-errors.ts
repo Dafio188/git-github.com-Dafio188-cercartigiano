@@ -54,6 +54,5 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
   const errorMessage = JSON.stringify(errInfo);
   console.error('Firestore Error Detailed: ', errorMessage);
   
-  // We log but don't throw to avoid crashing the app during evaluation
-  // throw customError;
+  throw new Error(errorMessage);
 }

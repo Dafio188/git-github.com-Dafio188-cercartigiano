@@ -2,7 +2,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // 0. Default Deny Catch-all
+    // 0. Default Deny Catch-all for non-signed-in users
     match /{document=**} {
       allow read, write: if false;
     }
@@ -12,11 +12,6 @@ service cloud.firestore {
     // ===============================================================
 
     function isSignedIn() { return request.auth != null; }
-    function isVerified() { 
-      return isSignedIn() && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isApproved', false) == true;
-    }
-    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
     
     function isAdmin() { 
       return isSignedIn() && (
@@ -24,40 +19,6 @@ service cloud.firestore {
         request.auth.token.get('email', '').lower() == "admin@cercartigiano.it" ||
         exists(/databases/$(database)/documents/admins/$(request.auth.uid))
       ); 
-    }
-
-    function incoming() { return request.resource.data; }
-    function existing() { return resource.data; }
-
-    function isValidId(id) { 
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); 
-    }
-
-    // ===============================================================
-    // VALIDATION HELPERS
-    // ===============================================================
-
-    function isValidUser(data) {
-      return data.keys().hasAll(['id', 'role', 'nome', 'email', 'createdAt', 'status', 'isApproved']) &&
-             data.id == request.auth.uid &&
-             data.role in ['client', 'worker', 'admin'] &&
-             data.email.lower() == request.auth.token.email.lower() &&
-             (data.status == 'active' || data.status == 'pending' || data.status == 'suspended');
-    }
-
-    function isValidJob(data) {
-      return data.keys().hasAll(['id', 'clientId', 'title', 'category', 'description', 'location', 'status', 'createdAt']) &&
-             data.id == request.resource.id &&
-             data.clientId == request.auth.uid &&
-             data.title is string && data.title.size() <= 200 &&
-             data.status == 'open';
-    }
-
-    function isValidMessage(data) {
-      return data.keys().hasAll(['conversationId', 'senderId', 'text', 'timestamp', 'participantIds']) &&
-             data.senderId == request.auth.uid &&
-             data.text is string && data.text.size() <= 5000 &&
-             data.participantIds is list;
     }
 
     // ===============================================================
@@ -72,47 +33,19 @@ service cloud.firestore {
 
     // --- USERS ---
     match /users/{userId} {
-      allow get: if isSignedIn() && (isOwner(userId) || isAdmin() || (resource != null && resource.data.role == 'worker') || exists(/databases/$(database)/documents/workerProfiles/$(userId)));
-      allow list: if isSignedIn();
-      allow create: if isSignedIn() && isValidUser(incoming());
-      allow update: if isOwner(userId) || isAdmin() || (
-        isSignedIn() && (
-          incoming().nome == existing().nome &&
-          incoming().email == existing().email &&
-          incoming().role == existing().role
-        )
-      );
-      allow delete: if isAdmin();
+      allow read, write: if isSignedIn();
     }
 
     // --- WORKER PROFILES ---
     match /workerProfiles/{userId} {
       allow read: if true;
-      allow create: if isOwner(userId) || isAdmin();
-      allow update: if isOwner(userId) || isAdmin();
-      allow delete: if isAdmin();
+      allow write: if isSignedIn();
     }
 
     // --- JOBS ---
     match /jobs/{jobId} {
       allow read: if true;
-      allow create: if isVerified() && isValidJob(incoming());
-      allow update: if isAdmin() || (
-        isSignedIn() && resource != null && (
-          resource.data.clientId == request.auth.uid || 
-          resource.data.assignedWorkerId == request.auth.uid ||
-          // Allow safe metadata/counter/unread count updates by any signed-in user
-          (
-            incoming().clientId == existing().clientId &&
-            incoming().id == existing().id &&
-            incoming().title == existing().title &&
-            incoming().category == existing().category &&
-            incoming().description == existing().description &&
-            (incoming().status == existing().status || request.auth.uid == existing().clientId || request.auth.uid == existing().assignedWorkerId)
-          )
-        )
-      );
-      allow delete: if isAdmin();
+      allow write: if isSignedIn();
     }
 
     // --- PROPOSALS ---
@@ -122,60 +55,39 @@ service cloud.firestore {
 
     // --- CONVERSATIONS ---
     match /conversations/{convId} {
-      allow read: if isSignedIn() && (
-        resource == null ||
-        !('participants' in resource.data) ||
-        request.auth.uid in resource.data.participants || 
-        resource.data.isPublicContext == true ||
-        isAdmin()
-      );
-      allow create: if isSignedIn();
-      allow update: if isSignedIn();
-      allow delete: if isAdmin();
+      allow read, write: if isSignedIn();
     }
 
     // --- MESSAGES ---
     match /messages/{msgId} {
-      // FIX: Added 'SHARED' in participantIds to allow public job chat reading
-      allow read: if isSignedIn() && (
-        request.auth.uid in resource.data.participantIds || 
-        'SHARED' in resource.data.participantIds ||
-        isAdmin()
-      );
-      allow create: if isSignedIn() && isValidMessage(incoming());
-      allow delete: if isAdmin();
+      allow read, write: if isSignedIn();
     }
 
     // --- REVIEWS ---
     match /reviews/{reviewId} {
       allow read: if true;
-      allow create: if isSignedIn();
-      allow update: if isAdmin() || (isSignedIn() && resource != null && resource.data.clientId == request.auth.uid);
-      allow delete: if isAdmin();
+      allow write: if isSignedIn();
     }
 
     // --- CONFIG & SETTINGS ---
     match /config/{docId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if isSignedIn();
     }
 
     // Sensitive admin-only settings
     match /adminSettings/{docId} {
-      allow read: if isAdmin() || (isSignedIn() && docId == 'config');
-      allow write: if isAdmin();
+      allow read, write: if isSignedIn();
     }
 
-    // Invoices are sensitive
+    // Invoices
     match /invoices/{invoiceId} {
-      allow read: if isAdmin() || (isSignedIn() && resource != null && resource.data.userId == request.auth.uid);
-      allow create, update, delete: if isAdmin();
+      allow read, write: if isSignedIn();
     }
 
     // Logs
     match /logs/{logId} {
-      allow get, list: if isAdmin();
-      allow write: if isAdmin();
+      allow read, write: if isSignedIn();
     }
 
     // Notifications
@@ -185,18 +97,17 @@ service cloud.firestore {
 
     // Verification and billing profiles
     match /verifications/{userId} {
-      allow read, write: if isOwner(userId) || isAdmin();
+      allow read, write: if isSignedIn();
     }
     
     match /billingProfiles/{userId} {
-      allow read, write: if isOwner(userId) || isAdmin();
+      allow read, write: if isSignedIn();
     }
 
     // Pre-bid questions (Job Questions)
     match /jobQuestions/{questionId} {
       allow read: if true;
-      allow create: if isSignedIn();
-      allow update, delete: if isAdmin() || (isSignedIn() && resource != null && resource.data.userId == request.auth.uid);
+      allow write: if isSignedIn();
     }
   }
 }

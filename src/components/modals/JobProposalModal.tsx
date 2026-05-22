@@ -28,6 +28,7 @@ import { Job } from '../../types';
 import { notifyNewProposal } from '../../lib/notifications';
 import { validateMessage } from '../../lib/contentFilter';
 import { BuyCreditsModal } from './BuyCreditsModal';
+import { handleFirestoreError, OperationType } from '../../lib/firestore-errors';
 
 interface JobProposalModalProps {
   isOpen: boolean;
@@ -104,55 +105,86 @@ export function JobProposalModal({ isOpen, onClose, job, workerId, workerTokens:
       }
 
       // Use transaction to ensure token deduction and proposal creation are atomic
-      await runTransaction(db, async (transaction) => {
-        const userRef = doc(db, 'users', workerId);
-        const userDoc = await transaction.get(userRef);
-        
-        if (!userDoc.exists() || (userDoc.data().tokens || 0) < responseCost) {
-          throw new Error("Saldo token insufficiente");
-        }
+      try {
+        await runTransaction(db, async (transaction) => {
+          const userRef = doc(db, 'users', workerId);
+          const userDoc = await transaction.get(userRef);
+          
+          if (!userDoc.exists() || (userDoc.data().tokens || 0) < responseCost) {
+            throw new Error("Saldo token insufficiente");
+          }
 
-        const jobRef = doc(db, 'jobs', job.id);
-        const jobDoc = await transaction.get(jobRef);
-        if (!jobDoc.exists()) {
-          throw new Error("Lavoro non trovato");
-        }
+          const jobRef = doc(db, 'jobs', job.id);
+          const jobDoc = await transaction.get(jobRef);
+          if (!jobDoc.exists()) {
+            throw new Error("Lavoro non trovato");
+          }
 
-        // 1. Deduct tokens
-        transaction.update(userRef, {
-          tokens: increment(-responseCost)
+          const workerData = userDoc.data();
+          const workerName = workerData.nome || workerData.name || 'Professionista';
+
+          const profileRef = doc(db, 'workerProfiles', workerId);
+          let workerRating = 4.9;
+          let workerBadges: string[] = [];
+          
+          try {
+            const profileDoc = await transaction.get(profileRef);
+            if (profileDoc.exists()) {
+              const pData = profileDoc.data();
+              workerRating = pData.score || pData.rating || 4.9;
+              workerBadges = pData.badges || [];
+            }
+          } catch (profileError) {
+            console.warn("Could not read workerProfile in transaction:", profileError);
+          }
+
+          // 1. Deduct tokens
+          transaction.update(userRef, {
+            tokens: increment(-responseCost)
+          });
+
+          // 2. Create proposal
+          const proposalRef = doc(collection(db, 'proposals'));
+          transaction.set(proposalRef, {
+            jobId: job.id,
+            workerId,
+            workerName,
+            workerRating,
+            workerBadges,
+            clientId: job.clientId,
+            materialsCost: formData.materialsCost,
+            laborCost: formData.laborCost,
+            price: totalPrice,
+            estimatedDays: formData.estimatedDays,
+            validityDays: formData.validityDays,
+            message: formData.message,
+            status: 'pending',
+            tokenCostSpent: responseCost,
+            refunded: false,
+            createdAt: serverTimestamp()
+          });
+
+          // 3. Update job proposal count and notify
+          transaction.update(jobRef, {
+            proposalCount: increment(1),
+            hasNewProposals: true
+          });
+
+          // Trigger notification (after transaction for better stability, or inside if needed by logic)
+          // We do it after generally, but here let's ensure the flag is set.
         });
-
-        // 2. Create proposal
-        const proposalRef = doc(collection(db, 'proposals'));
-        transaction.set(proposalRef, {
-          jobId: job.id,
-          workerId,
-          clientId: job.clientId,
-          materialsCost: formData.materialsCost,
-          laborCost: formData.laborCost,
-          price: totalPrice,
-          estimatedDays: formData.estimatedDays,
-          validityDays: formData.validityDays,
-          message: formData.message,
-          status: 'pending',
-          tokenCostSpent: responseCost,
-          refunded: false,
-          createdAt: serverTimestamp()
-        });
-
-        // 3. Update job proposal count and notify
-        transaction.update(jobRef, {
-          proposalCount: increment(1),
-          hasNewProposals: true
-        });
-
-        // Trigger notification (after transaction for better stability, or inside if needed by logic)
-        // We do it after generally, but here let's ensure the flag is set.
-      });
+      } catch (error: any) {
+        handleFirestoreError(error, OperationType.WRITE, 'proposals');
+        throw error;
+      }
 
       // Notify outside transaction to avoid slowing it down
-      await notifyNewProposal(job.clientId, job.id, job.title);
+      try {
+        await notifyNewProposal(job.clientId, job.id, job.title);
+      } catch (error: any) {
+        handleFirestoreError(error, OperationType.UPDATE, `jobs/${job.id}`);
+        console.warn("Messa a fuoco notifiche fallita, ma la proposta è stata creata:", error);
+      }
 
       onClose();
       alert("Preventivo standard inviato con successo!");
