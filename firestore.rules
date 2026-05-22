@@ -2,55 +2,51 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // 0. Default Deny Catch-all for non-signed-in users
-    match /{document=**} {
-      allow read, write: if false;
+    // --- GLOBAL HELPERS ---
+    function isSignedIn() {
+      return request.auth != null;
     }
-
-    // ===============================================================
-    // GLOBAL HELPERS
-    // ===============================================================
-
-    function isSignedIn() { return request.auth != null; }
     
-    function isAdmin() { 
+    function isAdmin() {
       return isSignedIn() && (
         request.auth.token.get('email', '').lower() == "fio.davide@gmail.com" ||
         request.auth.token.get('email', '').lower() == "admin@cercartigiano.it" ||
         exists(/databases/$(database)/documents/admins/$(request.auth.uid))
-      ); 
+      );
     }
-
-    // ===============================================================
-    // DOMAIN RULES
-    // ===============================================================
 
     // --- ADMINS ---
     match /admins/{userId} {
-      allow read: if isSignedIn();
+      allow read: if true;
       allow write: if isAdmin();
     }
 
     // --- USERS ---
     match /users/{userId} {
-      allow read, write: if isSignedIn();
+      allow read: if true;
+      allow write: if isSignedIn() && (request.auth.uid == userId || isAdmin());
     }
 
     // --- WORKER PROFILES ---
     match /workerProfiles/{userId} {
       allow read: if true;
-      allow write: if isSignedIn();
+      allow write: if isSignedIn() && (request.auth.uid == userId || isAdmin());
     }
 
     // --- JOBS ---
     match /jobs/{jobId} {
       allow read: if true;
-      allow write: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn(); // Permette ad altri utenti registrati (es. artigiani) di aggiornare proposalCount, hasNewProposals, unreadMessagesCount
+      allow delete: if isSignedIn() && (resource.data.clientId == request.auth.uid || isAdmin());
     }
 
     // --- PROPOSALS ---
     match /proposals/{proposalId} {
-      allow read, write: if isSignedIn();
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn(); // Permette sia all'artigiano che al cliente di modificare gli stati
+      allow delete: if isSignedIn() && (resource.data.workerId == request.auth.uid || isAdmin());
     }
 
     // --- CONVERSATIONS ---
@@ -72,39 +68,42 @@ service cloud.firestore {
     // --- CONFIG & SETTINGS ---
     match /config/{docId} {
       allow read: if true;
-      allow write: if isSignedIn();
+      allow write: if isAdmin();
     }
 
-    // Sensitive admin-only settings
     match /adminSettings/{docId} {
-      allow read, write: if isSignedIn();
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
-    // Invoices
+    // --- INVOICES ---
     match /invoices/{invoiceId} {
       allow read, write: if isSignedIn();
     }
 
-    // Logs
+    // --- LOGS ---
     match /logs/{logId} {
-      allow read, write: if isSignedIn();
+      allow read, write: if true;
     }
 
-    // Notifications
+    // --- NOTIFICATIONS ---
     match /notifications/{notifId} {
       allow read, write: if isSignedIn();
     }
 
-    // Verification and billing profiles
+    // --- VERIFICATIONS ---
     match /verifications/{userId} {
-      allow read, write: if isSignedIn();
+      allow read: if true;
+      allow write: if isSignedIn() && (request.auth.uid == userId || isAdmin());
     }
     
+    // --- BILLING PROFILES ---
     match /billingProfiles/{userId} {
-      allow read, write: if isSignedIn();
+      allow read: if true;
+      allow write: if isSignedIn() && (request.auth.uid == userId || isAdmin());
     }
 
-    // Pre-bid questions (Job Questions)
+    // --- JOB QUESTIONS ---
     match /jobQuestions/{questionId} {
       allow read: if true;
       allow write: if isSignedIn();

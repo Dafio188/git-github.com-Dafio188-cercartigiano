@@ -182,7 +182,6 @@ export function JobProposalModal({ isOpen, onClose, job, workerId, workerTokens:
       try {
         await notifyNewProposal(job.clientId, job.id, job.title);
       } catch (error: any) {
-        handleFirestoreError(error, OperationType.UPDATE, `jobs/${job.id}`);
         console.warn("Messa a fuoco notifiche fallita, ma la proposta è stata creata:", error);
       }
 
