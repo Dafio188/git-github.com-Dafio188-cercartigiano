@@ -69,7 +69,7 @@ export function ReviewModal({ isOpen, onClose, job, clientId }: ReviewModalProps
 
     setLoading(true);
     try {
-      const reviewData = {
+      const reviewPayload = {
         jobId: job.id,
         workerId: job.assignedWorkerId,
         clientId,
@@ -78,33 +78,27 @@ export function ReviewModal({ isOpen, onClose, job, clientId }: ReviewModalProps
         ratingCleanliness: ratings.cleanliness,
         ratingCourtesy: ratings.courtesy,
         averageRating,
-        comment,
-        isVerified: true, // Strategia ProntoPro (Transazione avvenuta in piattaforma)
-        createdAt: serverTimestamp()
+        comment
       };
 
-      const reviewRef = await addDoc(collection(db, 'reviews'), reviewData);
-      
-      await updateDoc(doc(db, 'jobs', job.id), {
-        reviewId: reviewRef.id,
-        status: 'completed'
+      const response = await fetch('/api/reviews/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(reviewPayload)
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Impossibile salvare la recensione sul server.");
+      }
 
       setSuccess(true);
       setTimeout(() => {
         setSuccess(false);
         onClose();
       }, 2000);
-
-      try {
-        const workerRef = doc(db, 'workerProfiles', job.assignedWorkerId);
-        await updateDoc(workerRef, {
-          reviewCount: increment(1),
-          score: averageRating
-        });
-      } catch (workerErr) {
-        console.warn("Could not update worker profile stats:", workerErr);
-      }
 
     } catch (error: any) {
       console.error("Error submitting review:", error);

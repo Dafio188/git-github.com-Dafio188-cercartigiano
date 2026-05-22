@@ -26,16 +26,16 @@ export class ErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <div style={{ padding: '40px', backgroundColor: '#fff', color: '#1D1D1F', fontFamily: 'sans-serif' }}>
-          <h2 style={{ color: '#FF3B30' }}>Oops, qualcosa è andato storto.</h2>
-          <p>Se vedi questo messaggio, c'è stato un problema di rendering nell'applicazione.</p>
-          <p style={{ fontWeight: 'bold' }}>{this.state.error?.message}</p>
-          <pre style={{ fontSize: '12px', whiteSpace: 'pre-wrap', backgroundColor: '#f0f0f0', padding: '20px', borderRadius: '10px' }}>
+        <div className="p-10 bg-white text-[#1D1D1F] font-sans">
+          <h2 className="text-[#FF3B30] text-xl font-bold mb-4">Oops, qualcosa è andato storto.</h2>
+          <p className="mb-2">Se vedi questo messaggio, c'è stato un problema di rendering nell'applicazione.</p>
+          <p className="font-bold mb-4">{this.state.error?.message}</p>
+          <pre className="text-xs whitespace-pre-wrap bg-[#f0f0f0] p-5 rounded-[10px] overflow-auto mb-4">
             {this.state.error?.stack}
           </pre>
           <button 
             onClick={() => window.location.reload()} 
-            style={{ marginTop: '20px', padding: '10px 20px', backgroundColor: '#0066cc', color: 'white', borderRadius: '8px', border: 'none', cursor: 'pointer' }}
+            className="mt-5 px-5 py-2.5 bg-[#0066cc] text-white rounded-[8px] border-none cursor-pointer hover:bg-opacity-90 transition-all font-bold"
           >
             Ricarica Applicazione
           </button>

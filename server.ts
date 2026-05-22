@@ -339,6 +339,161 @@ Restituisci SOLO un numero intero tra 1 e 10.`;
     }
   });
 
+  // --- SECURE WORKER REVIEW SUBMISSION ENDPOINT ---
+  app.post('/api/reviews/submit', async (req, res) => {
+    try {
+      const { jobId, workerId, clientId, ratingQuality, ratingSpeed, ratingCleanliness, ratingCourtesy, averageRating, comment } = req.body;
+      if (!jobId || !workerId || !clientId) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      const db = getDb();
+      if (!db) {
+        return res.status(500).json({ error: "Database not available" });
+      }
+
+      // 1. Write verified review document
+      const reviewRef = db.collection('reviews').doc();
+      const reviewId = reviewRef.id;
+      
+      await reviewRef.set({
+        id: reviewId,
+        jobId,
+        workerId,
+        clientId,
+        ratingQuality: Number(ratingQuality) || 5,
+        ratingSpeed: Number(ratingSpeed) || 5,
+        ratingCleanliness: Number(ratingCleanliness) || 5,
+        ratingCourtesy: Number(ratingCourtesy) || 5,
+        averageRating: Number(averageRating) || 5,
+        comment: comment || '',
+        isVerified: true,
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+
+      // 2. Update job
+      await db.collection('jobs').doc(jobId).update({
+        reviewId: reviewId,
+        status: 'completed',
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+
+      // 3. Update workerStats securely
+      const workerProfileRef = db.collection('workerProfiles').doc(workerId);
+      const profileSnap = await workerProfileRef.get();
+      
+      let currentCount = 0;
+      let currentScore = 0;
+      
+      if (profileSnap.exists) {
+        const data = profileSnap.data();
+        currentCount = data?.reviewCount || 0;
+        currentScore = data?.score || 0;
+      }
+      
+      const newReviewCount = currentCount + 1;
+      const newScore = ((currentScore * currentCount) + Number(averageRating)) / newReviewCount;
+
+      await workerProfileRef.set({
+        reviewCount: newReviewCount,
+        score: Number(newScore.toFixed(2)),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+
+      res.json({ success: true, reviewId });
+    } catch (error: any) {
+      console.error("Error submitting review via backend:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // --- SECURE PROPOSAL ACCEPTANCE & AUTOMATED TOKEN REFUNDS ---
+  app.post('/api/proposals/accept', async (req, res) => {
+    try {
+      const { proposalId, jobId, clientId, workerId } = req.body;
+      if (!proposalId || !jobId || !clientId || !workerId) {
+        return res.status(400).json({ error: "Missing required fields (proposalId, jobId, clientId, workerId)" });
+      }
+
+      const db = getDb();
+      if (!db) {
+        return res.status(500).json({ error: "Database not available" });
+      }
+
+      const batch = db.batch();
+
+      // 1. Accept the chosen proposal
+      const chosenProposalRef = db.collection('proposals').doc(proposalId);
+      batch.update(chosenProposalRef, {
+        status: 'accepted',
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+
+      // 2. Reject all other pending proposals for this job and trigger their token refunds atomically
+      const proposalsSnap = await db.collection('proposals')
+        .where('jobId', '==', jobId)
+        .where('status', '==', 'pending')
+        .get();
+
+      let refundedCount = 0;
+      const userRefundMap: Record<string, number> = {};
+
+      for (const pDoc of proposalsSnap.docs) {
+        if (pDoc.id !== proposalId) {
+          const data = pDoc.data();
+          const pWorkerId = data.workerId;
+          const tokenCostSpent = data.tokenCostSpent || 5;
+
+          batch.update(pDoc.ref, {
+            status: 'rejected',
+            refunded: true,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+          });
+
+          userRefundMap[pWorkerId] = (userRefundMap[pWorkerId] || 0) + tokenCostSpent;
+          refundedCount++;
+        }
+      }
+
+      // Add tokens back to rejected workers
+      for (const [pWorkerId, amount] of Object.entries(userRefundMap)) {
+        batch.update(db.collection('users').doc(pWorkerId), {
+          tokens: admin.firestore.FieldValue.increment(amount)
+        });
+      }
+
+      // 3. Update job status and assign worker
+      const proposalDoc = await chosenProposalRef.get();
+      const pData = proposalDoc.exists ? proposalDoc.data() : null;
+      const assignedPrice = pData ? (pData.price || ((pData.materialsCost || 0) + (pData.laborCost || 0))) : 0;
+
+      batch.update(db.collection('jobs').doc(jobId), {
+        status: 'in_progress',
+        assignedWorkerId: workerId,
+        assignedPrice: assignedPrice,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+
+      // 4. Setup conversation details
+      batch.set(db.collection('conversations').doc(jobId), {
+        id: jobId,
+        jobId: jobId,
+        jobTitle: pData?.jobTitle || 'Chat Lavoro',
+        participants: [clientId, workerId],
+        lastUpdate: admin.firestore.FieldValue.serverTimestamp(),
+        lastMessage: 'Hai accettato la proposta. Potete ora scambiarvi i dettagli dell\'intervento.',
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+
+      await batch.commit();
+
+      res.json({ success: true, refundedCount, refundedDetails: userRefundMap });
+    } catch (error: any) {
+      console.error("Error accepting proposal in backend:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const { createServer: createViteServer } = await import("vite");

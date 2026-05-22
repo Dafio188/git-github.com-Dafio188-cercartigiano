@@ -283,17 +283,15 @@ export function Auth({ isCompletingRequest = false }: AuthProps) {
         "hidden lg:flex w-1/2 flex-col items-center pt-24 px-12 transition-all duration-700",
         mode === 'register' ? "opacity-0 invisible scale-95" : "opacity-100 visible scale-100"
       )}>
-        <div className="w-full max-sm h-full" style={{ perspective: '2000px' }}>
+        <div className="w-full max-sm h-full perspective-2000">
           <motion.div 
-            className="relative w-full h-[600px]"
+            className="relative w-full h-[600px] transform-style-3d"
             animate={{ rotateY: mode === 'forgot-password' ? 180 : 0 }}
             transition={{ duration: 0.8, type: "spring", stiffness: 100, damping: 20 }}
-            style={{ transformStyle: 'preserve-3d' }}
           >
             {/* FRONT: Login Form */}
             <div 
-              className="absolute inset-0 w-full h-full flex flex-col space-y-6"
-              style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
+              className="absolute inset-0 w-full h-full flex flex-col space-y-6 backface-hidden"
             >
               <div className="flex flex-col items-center text-center">
               <div className="p-6 bg-white rounded-[2.5rem] shadow-xl border border-[#D2D2D7]/20 flex items-center justify-center">
@@ -354,8 +352,7 @@ export function Auth({ isCompletingRequest = false }: AuthProps) {
 
             {/* BACK: Forgot Password Form */}
             <div 
-              className="absolute inset-0 w-full h-full flex flex-col items-center space-y-6"
-              style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+              className="absolute inset-0 w-full h-full flex flex-col items-center space-y-6 backface-hidden rotate-y-180"
             >
               <div className="flex flex-col items-center text-center">
                 <div className="p-8 bg-blue-50 rounded-[2.5rem] mb-6 shadow-sm border border-blue-100/50">
@@ -416,17 +413,15 @@ export function Auth({ isCompletingRequest = false }: AuthProps) {
       </div>
 
       {/* 3. Mobile View Section (Visible only on mobile) */}
-      <div className="lg:hidden flex-1 relative flex flex-col items-center justify-center p-8 bg-white overflow-hidden" style={{ perspective: '2000px' }}>
+      <div className="lg:hidden flex-1 relative flex flex-col items-center justify-center p-8 bg-white overflow-hidden perspective-2000">
         <motion.div
-          className="w-full max-sm relative h-[600px] flex flex-col justify-center"
-          style={{ transformStyle: 'preserve-3d' }}
+          className="w-full max-sm relative h-[600px] flex flex-col justify-center transform-style-3d"
           animate={{ rotateY: mode === 'forgot-password' ? 180 : 0 }}
           transition={{ duration: 0.8, type: "spring", stiffness: 100, damping: 20 }}
         >
           {/* FRONT Faces (Login/Register) */}
           <div 
-            className="w-full h-auto"
-            style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
+            className="w-full h-auto backface-hidden"
           >
             <AnimatePresence mode="wait">
               <motion.div 
@@ -527,8 +522,7 @@ export function Auth({ isCompletingRequest = false }: AuthProps) {
 
           {/* BACK Face (Forgot Password Mobile) */}
           <div 
-            className="absolute inset-0 w-full h-full"
-            style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+            className="absolute inset-0 w-full h-full backface-hidden rotate-y-180"
           >
             <div className="w-full space-y-8 flex flex-col items-center">
               <div className="flex flex-col items-center text-center">
@@ -564,8 +558,7 @@ export function Auth({ isCompletingRequest = false }: AuthProps) {
         initial={false}
         animate={{ x: mode === 'register' ? '0%' : '-100%' }}
         transition={{ type: "spring", stiffness: 80, damping: 20 }}
-        style={{ left: "50%" }}
-        className="hidden lg:flex absolute top-0 w-1/2 h-full bg-[#1D1D1F] z-20 flex-col items-center pt-24 px-12 text-center text-white"
+        className="hidden lg:flex absolute top-0 left-1/2 w-1/2 h-full bg-[#1D1D1F] z-20 flex-col items-center pt-24 px-12 text-center text-white"
       >
         <div className="relative z-10 space-y-10 max-w-sm flex flex-col items-center">
           <div className="flex flex-col items-center gap-6 group cursor-default">

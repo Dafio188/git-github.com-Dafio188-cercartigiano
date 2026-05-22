@@ -69,51 +69,29 @@ export function ProposalsModal({ isOpen, onClose, job, user }: ProposalsModalPro
     if (!confirm("Accettando questa proposta ti impegni formalmente con l'artigiano secondo le condizioni, ma ricordati che e' un contratto privato con lui. Il pagamento NON avviene sulla piattaforma. Vuoi procedere?")) return;
     setActing(proposal.id);
     try {
-      const { writeBatch } = await import('firebase/firestore');
-      const batch = writeBatch(db);
-
-      // 1. Update proposal status
-      batch.update(doc(db, 'proposals', proposal.id), {
-        status: 'accepted',
-        updatedAt: serverTimestamp()
+      const response = await fetch('/api/proposals/accept', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          proposalId: proposal.id,
+          jobId: job.id,
+          clientId: job.clientId,
+          workerId: proposal.workerId
+        })
       });
 
-      // Reject all other pending proposals for this job
-      proposals.forEach(p => {
-        if (p.id !== proposal.id && p.status === 'pending') {
-          batch.update(doc(db, 'proposals', p.id), {
-            status: 'rejected',
-            updatedAt: serverTimestamp()
-          });
-        }
-      });
-
-      // 2. Update job status and assign worker
-      batch.update(doc(db, 'jobs', job.id), {
-        status: 'in_progress',
-        assignedWorkerId: proposal.workerId,
-        assignedPrice: proposal.price || (proposal.materialsCost + proposal.laborCost),
-        updatedAt: serverTimestamp()
-      });
-
-      // 3. Setup conversation doc
-      const conversationId = job.id;
-      batch.set(doc(db, 'conversations', conversationId), {
-        id: conversationId,
-        jobId: job.id,
-        jobTitle: job.title,
-        lastUpdate: serverTimestamp(),
-        lastMessage: 'Hai accettato la proposta. Potete ora scambiarvi i dettagli dell\'intervento.',
-        updatedAt: serverTimestamp()
-      }, { merge: true });
-
-      await batch.commit();
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Impossibile accettare la proposta sul server.");
+      }
 
       onClose();
       alert("Proposta accettata! Ora puoi messaggiare in modo esclusivo con l'artigiano.");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error accepting proposal:", error);
-      alert("Errore durante l'accettazione della proposta");
+      alert("Errore durante l'accettazione della proposta: " + error.message);
     } finally {
       setActing(null);
     }
