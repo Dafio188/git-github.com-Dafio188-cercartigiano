@@ -129,7 +129,7 @@ interface AdminDashboardProps {
 
 export function AdminDashboard({ user, summaryOnly = false, initialTab }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState<'panoramica' | 'utenti' | 'finanza' | 'moderazione' | 'impostazioni' | 'notifiche' | 'fatturazione'>(initialTab || 'panoramica');
-  const [moderationTab, setModerationTab] = useState<'jobs' | 'workers'>('jobs');
+  const [moderationTab, setModerationTab] = useState<'jobs' | 'workers' | 'categories'>('jobs');
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalWorkers: 0,
@@ -148,6 +148,7 @@ export function AdminDashboard({ user, summaryOnly = false, initialTab }: AdminD
   });
 
   const [usersList, setUsersList] = useState<any[]>([]);
+  const [categoryRequestsList, setCategoryRequestsList] = useState<any[]>([]);
   const [selectedVerification, setSelectedVerification] = useState<any | null>(null);
   const [verificationsList, setVerificationsList] = useState<any[]>([]);
   const [jobsList, setJobsList] = useState<Job[]>([]);
@@ -463,6 +464,12 @@ export function AdminDashboard({ user, summaryOnly = false, initialTab }: AdminD
       console.error("AdminDashboard logs onSnapshot error:", error);
     });
 
+    const unsubCategoryRequests = onSnapshot(collection(db, 'categoryRequests'), (snap) => {
+      setCategoryRequestsList(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    }, (error) => {
+      console.error("AdminDashboard categoryRequests onSnapshot error:", error);
+    });
+
     return () => {
       if (typeof unsubInvoices === 'function') unsubInvoices();
       if (typeof unsubAdminConfig === 'function') unsubAdminConfig();
@@ -470,6 +477,7 @@ export function AdminDashboard({ user, summaryOnly = false, initialTab }: AdminD
       if (typeof unsubUsers === 'function') unsubUsers();
       if (typeof unsubJobs === 'function') unsubJobs();
       if (typeof unsubLogs === 'function') unsubLogs();
+      if (typeof unsubCategoryRequests === 'function') unsubCategoryRequests();
     };
   }, [user?.id, user?.role]);
 
@@ -599,6 +607,67 @@ export function AdminDashboard({ user, summaryOnly = false, initialTab }: AdminD
       console.error(e); 
       alert("Errore durante l'eliminazione dell'utente.");
     } finally { setProcessing(null); }
+  };
+
+  const handleApproveCategoryRequest = async (request: any) => {
+    if (!window.confirm(`Approvare la richiesta per la categoria "${request.categoryLabel}" inviata da ${request.userName}?`)) return;
+    setProcessing(request.id);
+    try {
+      // 1. Update the request document status
+      await updateDoc(doc(db, 'categoryRequests', request.id), {
+        status: 'approved',
+        updatedAt: serverTimestamp()
+      });
+      
+      // 2. Add the approved category in the worker profile
+      const profileRef = doc(db, 'workerProfiles', request.userId);
+      const profileSnap = await getDoc(profileRef);
+      if (profileSnap.exists()) {
+        const categories = profileSnap.data().categories || [];
+        if (!categories.includes(request.categoryId)) {
+          await updateDoc(profileRef, {
+            categories: [...categories, request.categoryId]
+          });
+        }
+      } else {
+        await setDoc(profileRef, {
+          userId: request.userId,
+          nome: request.userName,
+          categories: [request.categoryId],
+          skills: [],
+          bio: '',
+          hourlyRate: 30,
+          radiusKm: 50,
+          credits: 10,
+          score: 5,
+          badges: []
+        }, { merge: true });
+      }
+      
+      alert(`Richiesta approvata! La macro-categoria "${request.categoryLabel}" è stata abilitata per ${request.userName}.`);
+    } catch (err: any) {
+      console.error(err);
+      alert("Errore nell'approvare la richiesta: " + err.message);
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const handleRejectCategoryRequest = async (request: any) => {
+    if (!window.confirm(`Rifiutare la richiesta per la categoria "${request.categoryLabel}" inviata da ${request.userName}?`)) return;
+    setProcessing(request.id);
+    try {
+      await updateDoc(doc(db, 'categoryRequests', request.id), {
+        status: 'rejected',
+        updatedAt: serverTimestamp()
+      });
+      alert(`Richiesta rifiutata per ${request.userName}.`);
+    } catch (err: any) {
+      console.error(err);
+      alert("Errore nel rifiutare la richiesta: " + err.message);
+    } finally {
+      setProcessing(null);
+    }
   };
 
   const handleMaintenanceToggle = async () => {
@@ -1303,6 +1372,15 @@ export function AdminDashboard({ user, summaryOnly = false, initialTab }: AdminD
               >
                 Profili Artigiani ({usersList.filter(u => u.role === 'worker' && (u.status === 'pending' || u.status === 'suspended')).length})
               </button>
+              <button
+                onClick={() => setModerationTab('categories')}
+                className={cn(
+                  "px-6 py-2 rounded-xl text-[10px] font-black uppercase transition-all",
+                  moderationTab === 'categories' ? "bg-white text-blue-600 shadow-sm shadow-blue-500/10" : "text-[#86868B]"
+                )}
+              >
+                Richieste Categorie ({categoryRequestsList.filter(r => r.status === 'pending').length})
+              </button>
             </div>
 
             <div className="bg-white p-6 rounded-[2.5rem] border border-[#D2D2D7]/30 shadow-sm">
@@ -1369,13 +1447,13 @@ export function AdminDashboard({ user, summaryOnly = false, initialTab }: AdminD
                   </div>
                 ))}
               </div>
-            ) : (
+            ) : moderationTab === 'workers' ? (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {usersList
                   .filter(u => u.role === 'worker' && (u.nome?.toLowerCase().includes(searchTerm.toLowerCase()) || u.email?.toLowerCase().includes(searchTerm.toLowerCase())))
                   .filter(u => u.status === 'pending' || u.status === 'suspended' || verificationsList.some(v => v.userId === u.id && v.status === 'submitted'))
                   .map(worker => (
-                    <div key={worker.id} className="bg-white p-6 rounded-[2.5rem] border border-[#D2D2D7]/30 flex items-center justify-between group hover:shadow-lg transition-all">
+                    <div key={worker.id} className="bg-white p-6 rounded-[2.5rem] border border-[#D2D2D7]/30 flex items-center justify-between group hover:shadow-lg transition-all animate-fade-in">
                       <div className="flex items-center gap-4">
                         <div className="w-14 h-14 bg-gradient-to-br from-[#1D1D1F] to-[#424245] rounded-2xl flex items-center justify-center text-white font-black text-xl">
                           {worker.nome?.charAt(0) || 'A'}
@@ -1424,6 +1502,82 @@ export function AdminDashboard({ user, summaryOnly = false, initialTab }: AdminD
                       </div>
                     </div>
                   )}
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <div className="bg-[#F5F5F7] p-6 rounded-[2.5rem] border border-[#D2D2D7]/20">
+                  <h3 className="text-sm font-black text-[#1D1D1F] uppercase tracking-wider mb-1">Moderazione Richieste Macro-Categorie</h3>
+                  <p className="text-xs text-[#86868B] font-semibold leading-relaxed">
+                    Qui trovi l'elenco delle richieste presentate dagli artigiani professionisti registrati per abilitarsi a nuove macro-categorie d'intervento. Una volta approvate dall'Amministratore, l'artigiano potrà configurare e offrire le relative specializzazioni ai clienti finali.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {categoryRequestsList
+                    .filter(r => r.status === 'pending')
+                    .filter(r => r.categoryLabel?.toLowerCase().includes(searchTerm.toLowerCase()) || r.userName?.toLowerCase().includes(searchTerm.toLowerCase()))
+                    .map(req => (
+                      <div key={req.id} className="bg-white p-6 rounded-[2.5rem] border border-[#D2D2D7]/30 flex flex-col justify-between hover:shadow-xl transition-all group animate-fade-in">
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-black uppercase text-blue-600 px-3 py-1 bg-blue-50/70 rounded-full">
+                              {req.categoryLabel}
+                            </span>
+                            <span className="text-[9px] font-black uppercase tracking-widest text-orange-600 bg-orange-50 px-2.5 py-1 rounded-full shrink-0">
+                              PENDING Approval
+                            </span>
+                          </div>
+
+                          <div>
+                            <span className="text-[10px] font-black text-[#86868B] uppercase tracking-wider block">Professionista Richiedente</span>
+                            <h4 className="font-extrabold text-base text-[#1D1D1F] uppercase mt-0.5">{req.userName}</h4>
+                            <span className="text-[10px] text-[#86868B] font-bold block mt-0.5">User ID: {req.userId}</span>
+                          </div>
+
+                          {req.note && (
+                            <div className="p-4 bg-[#F5F5F7] rounded-3xl border border-[#D2D2D7]/15">
+                              <span className="text-[9px] font-black uppercase text-[#86868B] tracking-widest block mb-1">Note del Professionista</span>
+                              <p className="text-xs font-bold text-[#1D1D1F] leading-relaxed whitespace-pre-wrap">{req.note}</p>
+                            </div>
+                          )}
+
+                          <div className="text-[10px] text-[#86868B] font-extrabold pt-2">
+                            Richiesta ricevuta: {req.createdAt?.toDate ? req.createdAt.toDate().toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Adesso'}
+                          </div>
+                        </div>
+
+                        <div className="mt-6 pt-5 border-t border-[#D2D2D7]/20 flex gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="rounded-full flex-1 border-red-100 text-red-600 font-extrabold text-xs hover:bg-red-50" 
+                            onClick={() => handleRejectCategoryRequest(req)} 
+                            disabled={processing === req.id}
+                          >
+                            RIFIUTA
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            className="rounded-full flex-1 bg-green-600 text-white font-extrabold text-xs hover:bg-green-700" 
+                            onClick={() => handleApproveCategoryRequest(req)} 
+                            disabled={processing === req.id}
+                          >
+                            APPROVA & ABILITA
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+
+                  {categoryRequestsList.filter(r => r.status === 'pending').length === 0 && (
+                    <div className="lg:col-span-2 py-20 text-center space-y-4 bg-[#F5F5F7] rounded-[3rem] border border-dashed border-[#D2D2D7]">
+                      <CheckCircle className="w-12 h-12 text-green-500 mx-auto" />
+                      <div>
+                        <h3 className="text-xl font-black text-[#1D1D1F]">Nessuna richiesta di categoria pendente!</h3>
+                        <p className="text-sm font-bold text-[#86868B]">Tutti i professionisti operano entro i limiti prestabiliti.</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </motion.div>

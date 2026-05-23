@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { auth, db } from '../firebase';
-import { doc, onSnapshot, updateDoc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc, getDoc, setDoc, serverTimestamp, collection, query, where, addDoc } from 'firebase/firestore';
 import { User, UserProfile, UserPrivacySettings } from '../types';
 
 enum OperationType {
@@ -61,7 +61,10 @@ import {
   TrendingUp,
   Wallet,
   Star,
-  Settings
+  Settings,
+  Trash2,
+  AlertTriangle,
+  FileText
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../lib/utils';
@@ -185,6 +188,70 @@ export function ProfileView({ user }: ProfileViewProps) {
       return () => unsub();
     }
   }, [user.id, user.role]);
+
+  const [categoryRequests, setCategoryRequests] = useState<any[]>([]);
+  const [showRequestForm, setShowRequestForm] = useState(false);
+  const [selectedRequestCat, setSelectedRequestCat] = useState('');
+  const [requestNote, setRequestNote] = useState('');
+  const [requestLoading, setRequestLoading] = useState(false);
+
+  useEffect(() => {
+    if (user.role === 'worker') {
+      const q = query(collection(db, 'categoryRequests'), where('userId', '==', user.id));
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const reqs: any[] = [];
+        snapshot.forEach((doc) => {
+          reqs.push({ id: doc.id, ...doc.data() });
+        });
+        setCategoryRequests(reqs);
+      });
+      return () => unsubscribe();
+    }
+  }, [user.id, user.role]);
+
+  const handleRequestCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedRequestCat) return;
+    setRequestLoading(true);
+    try {
+      await addDoc(collection(db, 'categoryRequests'), {
+        userId: user.id,
+        userName: editUser.nome || user.nome,
+        categoryId: selectedRequestCat,
+        categoryLabel: SERVICE_CATEGORIES.find(c => c.id === selectedRequestCat)?.label || selectedRequestCat,
+        note: requestNote,
+        status: 'pending',
+        createdAt: serverTimestamp()
+      });
+      alert("Richiesta inviata con successo all'Amministratore!");
+      setSelectedRequestCat('');
+      setRequestNote('');
+      setShowRequestForm(false);
+    } catch (err: any) {
+      console.error("Errore nell'invio della richiesta:", err);
+      alert("Errore nell'invio della richiesta: " + err.message);
+    } finally {
+      setRequestLoading(false);
+    }
+  };
+
+  const handleRemoveCategory = async (catId: string) => {
+    const catLabel = SERVICE_CATEGORIES.find(c => c.id === catId)?.label || catId;
+    if (!window.confirm(`Sei sicuro di voler rimuovere la macro-categoria "${catLabel}"? Verranno rimosse anche tutte le specializzazioni ad essa associate.`)) {
+      return;
+    }
+    
+    const updatedCategories = editProfile.categories.filter(c => c !== catId);
+    const skillsToKeep = (editProfile as any).skills?.filter((s: string) => !s.startsWith(`${catId}_`)) || [];
+    
+    setEditProfile({
+      ...editProfile,
+      categories: updatedCategories,
+      skills: skillsToKeep
+    } as any);
+    
+    alert(`Categoria "${catLabel}" rimossa localmente. Ricordati di cliccare "Salva Modifiche" in alto a destra per confermare.`);
+  };
 
   const handleSave = async () => {
     setLoading(true);
@@ -326,6 +393,124 @@ export function ProfileView({ user }: ProfileViewProps) {
                
                <div className="space-y-8">
                   <div className="space-y-4">
+                    {/* --- MACRO-CATEGORIES PANEL --- */}
+                    <div className="space-y-4 pb-6 border-b border-[#D2D2D7]/25 mb-6">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-[#86868B]">Macro-Categorie Abilitate</Label>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowRequestForm(!showRequestForm)}
+                          className="rounded-full text-blue-600 border-blue-200 bg-blue-50/50 hover:bg-blue-50 text-[10px] font-black uppercase tracking-wider px-4 shrink-0"
+                        >
+                          {showRequestForm ? "Annulla" : "Richiedi Nuova Macro-Categoria"}
+                        </Button>
+                      </div>
+
+                      {/* Request Form Inline */}
+                      {showRequestForm && (
+                        <motion.form 
+                          initial={{ opacity: 0, y: -10 }} 
+                          animate={{ opacity: 1, y: 0 }}
+                          onSubmit={handleRequestCategory} 
+                          className="p-6 bg-[#F5F5F7] rounded-3xl border border-[#D2D2D7]/20 space-y-4 font-sans"
+                        >
+                          <div className="text-xs font-bold text-[#1D1D1F] flex items-center gap-2">
+                            <AlertTriangle className="w-4 h-4 text-orange-500 shrink-0" />
+                            <span>Le nuove macro-categorie richiedono l'approvazione dell'Admin per garantire la sicurezza e la trasparenza di CercArtigiano.</span>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-[9px] font-black uppercase tracking-widest text-[#86868B]">Seleziona Categoria Professionale</Label>
+                            <select
+                              value={selectedRequestCat}
+                              onChange={e => setSelectedRequestCat(e.target.value)}
+                              required
+                              className="w-full h-12 rounded-xl bg-white border border-[#D2D2D7]/30 px-4 text-sm font-bold text-[#1D1D1F] focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            >
+                              <option value="">Seleziona...</option>
+                              {SERVICE_CATEGORIES.filter(cat => 
+                                !editProfile.categories?.includes(cat.id) && 
+                                !categoryRequests?.some(r => r.categoryId === cat.id && r.status === 'pending')
+                              ).map(cat => (
+                                <option key={cat.id} value={cat.id}>{cat.label}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-[9px] font-black uppercase tracking-widest text-[#86868B]">Note per l'Amministratore (Esperienze, Patentini, Certificati)</Label>
+                            <textarea
+                              value={requestNote}
+                              onChange={e => setRequestNote(e.target.value)}
+                              placeholder="Descrivi brevemente perché richiedi questa categoria e quali certificazioni o esperienze possiedi..."
+                              rows={3}
+                              className="w-full p-4 rounded-xl bg-white border border-[#D2D2D7]/30 font-semibold text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            />
+                          </div>
+                          <Button
+                            type="submit"
+                            disabled={requestLoading || !selectedRequestCat}
+                            className="w-full rounded-full bg-[#1D1D1F] hover:bg-black text-white font-black text-xs uppercase h-11"
+                          >
+                            {requestLoading ? "Invio in corso..." : "Invia Richiesta all'Admin"}
+                          </Button>
+                        </motion.form>
+                      )}
+
+                      {/* Active Macro-Categories List */}
+                      <div className="flex flex-wrap gap-2">
+                        {editProfile.categories && editProfile.categories.length > 0 ? (
+                          editProfile.categories.map(catId => {
+                            const catObj = SERVICE_CATEGORIES.find(c => c.id === catId);
+                            const IconComp = catObj?.icon || Briefcase;
+                            return (
+                              <div key={catId} className="flex items-center gap-2 px-4 py-2 bg-[#F5F5F7] rounded-full border border-[#D2D2D7]/30 shadow-sm animate-fade-in">
+                                <IconComp className="w-3.5 h-3.5 text-[#1D1D1F]" />
+                                <span className="text-xs font-bold text-[#1D1D1F]">{catObj?.label || catId}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveCategory(catId)}
+                                  className="p-1 hover:bg-[#E8E8ED] rounded-full text-[#86868B] hover:text-red-600 transition-colors ml-1 font-bold"
+                                  title={`Rimuovi categoria ${catObj?.label || catId}`}
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </button>
+                              </div>
+                            );
+                          })
+                        ) : (
+                          <div className="text-xs italic text-[#86868B]">Nessuna macro-categoria attiva. Richiedine una nuova.</div>
+                        )}
+                      </div>
+
+                      {/* Pending Requests List */}
+                      {categoryRequests && categoryRequests.length > 0 && (
+                        <div className="mt-4 space-y-2">
+                          <span className="text-[9px] font-black uppercase tracking-widest text-[#86868B] block font-semibold text-[#86868B]">Richieste di Abilitazione Recenti</span>
+                          <div className="space-y-1.5">
+                            {categoryRequests.map(req => (
+                              <div key={req.id} className="flex items-center justify-between p-3.5 bg-neutral-50 rounded-2xl border border-neutral-100 animate-fade-in">
+                                <div className="flex items-center gap-2">
+                                  <FileText className="w-4 h-4 text-[#86868B]" />
+                                  <div className="flex flex-col flex-1 min-w-0">
+                                    <span className="text-xs font-extrabold text-[#1D1D1F] truncate">{req.categoryLabel}</span>
+                                    {req.note && <span className="text-[10px] text-[#86868B] italic max-w-xs truncate">{req.note}</span>}
+                                  </div>
+                                </div>
+                                <span className={cn(
+                                  "text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full shrink-0",
+                                  req.status === 'approved' ? "bg-green-50 text-green-600" :
+                                  req.status === 'rejected' ? "bg-red-50 text-red-600" : "bg-orange-50 text-orange-600"
+                                )}>
+                                  {req.status === 'approved' ? "Approvata" : req.status === 'rejected' ? "Rifiutata" : "In attesa"}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
                     <Label className="text-[10px] font-black uppercase tracking-widest text-[#86868B]">Specializzazioni Selezionate</Label>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[400px] overflow-y-auto pr-2 pb-2 custom-scrollbar">
                       {editProfile.categories.map(catId => {

@@ -106,6 +106,13 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isSignedIn() && (request.auth.uid == userId || isAdmin());
     }
+
+    // --- CATEGORY REQUESTS ---
+    match /categoryRequests/{requestId} {
+      allow read: if true;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+    }
     
     // --- BILLING PROFILES ---
     match /billingProfiles/{userId} {
