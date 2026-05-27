@@ -42,14 +42,134 @@ const categoryIds = [
   'lawyer', 'architect', 'accountant', 'mechanic', 'physiotherapy'
 ];
 
-// Esempio di struttura ISTAT (da sostituire con importazione reale JSON)
+// Esempio di struttura ISTAT (copre tutte le 20 regioni d'Italia con province e comuni chiave)
 const dataIstat = {
-  "puglia": {
-    "bari": ["bari", "altamura", "monopoli", "corato"],
-    "lecce": ["lecce", "nardo", "galatina"]
+  "abruzzo": {
+    "pescara": ["pescara", "montesilvano", "spoltore"],
+    "chieti": ["chieti", "vasto", "lanciano"],
+    "la-aquila": ["la-aquila", "avezzano", "sulmona"],
+    "teramo": ["teramo", "giulianova"]
+  },
+  "basilicata": {
+    "potenza": ["potenza", "melfi"],
+    "matera": ["matera", "pisticci"]
+  },
+  "calabria": {
+    "reggio-calabria": ["reggio-di-calabria", "gioia-tauro", "palmi"],
+    "cosenza": ["cosenza", "corigliano-rossano", "rende"],
+    "catanzaro": ["catanzaro", "lamezia-terme"]
+  },
+  "campania": {
+    "napoli": ["napoli", "giugliano-in-campania", "torre-del-greco", "pozzuoli", "casoria"],
+    "salerno": ["salerno", "cava-de-tirreni", "battipaglia", "nocera-inferiore"],
+    "caserta": ["caserta", "aversa", "marcianise"],
+    "benevento": ["benevento"],
+    "avellino": ["avellino"]
+  },
+  "emilia-romagna": {
+    "bologna": ["bologna", "imola", "casalecchio-di-reno"],
+    "modena": ["modena", "carpi", "sassuolo"],
+    "parma": ["parma", "fidenza"],
+    "reggio-emilia": ["reggio-nell-emilia"],
+    "ravenna": ["ravenna", "faenza"],
+    "rimini": ["rimini", "riccione"],
+    "ferrara": ["ferrara"],
+    "piacenza": ["piacenza"]
+  },
+  "friuli-venezia-giulia": {
+    "trieste": ["trieste"],
+    "udine": ["udine", "codroipo"],
+    "pordenone": ["pordenone"],
+    "gorizia": ["gorizia"]
+  },
+  "lazio": {
+    "roma": ["roma", "guidonia-montecelio", "fiumicino", "pomezia", "tivoli", "civitavecchia"],
+    "latina": ["latina", "aprilia", "terracina"],
+    "viterbo": ["viterbo"],
+    "frosinone": ["frosinone", "cassino"],
+    "rieti": ["rieti"]
+  },
+  "liguria": {
+    "genova": ["genova", "rapallo", "chiavari"],
+    "la-spezia": ["la-spezia", "sarzana"],
+    "savona": ["savona"],
+    "imperia": ["imperia", "sanremo"]
   },
   "lombardia": {
-    "milano": ["milano", "sesto-san-giovanni", "cinisello-balsamo"]
+    "milano": ["milano", "sesto-san-giovanni", "cinisello-balsamo", "legnano", "rho"],
+    "brescia": ["brescia", "desenzano-del-garda"],
+    "bergamo": ["bergamo", "treviglio"],
+    "monza": ["monza", "lissone", "seregno"],
+    "varese": ["varese", "busto-arsizio", "gallarate"],
+    "como": ["como"]
+  },
+  "marche": {
+    "ancona": ["ancona", "senigallia", "jesi"],
+    "pesaro-urbino": ["pesaro", "fano"],
+    "macerata": ["macerata"],
+    "ascoli-piceno": ["ascoli-piceno", "san-benedetto-del-tronto"]
+  },
+  "molise": {
+    "campobasso": ["campobasso", "termoli"],
+    "isernia": ["isernia"]
+  },
+  "piemonte": {
+    "torino": ["torino", "moncalieri", "collegno", "rivoli", "settimo-torinese"],
+    "novara": ["novara"],
+    "alessandria": ["alessandria"],
+    "asti": ["asti"],
+    "cuneo": ["cuneo"],
+    "biella": ["biella"]
+  },
+  "puglia": {
+    "bari": ["bari", "altamura", "monopoli", "corato", "molfetta", "bitonto"],
+    "lecce": ["lecce", "nardo", "galatina", "copertino"],
+    "taranto": ["taranto", "martina-franca"],
+    "foggia": ["foggia", "cerignola", "manfredonia"],
+    "brindisi": ["brindisi"],
+    "bt": ["barletta", "andria", "trani"]
+  },
+  "sardegna": {
+    "cagliari": ["cagliari", "quartu-sant-elena"],
+    "sassari": ["sassari", "alghero"],
+    "nuoro": ["nuoro"],
+    "oristano": ["oristano"]
+  },
+  "sicilia": {
+    "palermo": ["palermo", "bagheria", "carini"],
+    "catania": ["catania", "acireale", "misterbianco"],
+    "messina": ["messina", "barcellona-pozzo-di-gotto"],
+    "siracusa": ["siracusa"],
+    "ragusa": ["ragusa", "vittoria"],
+    "trapani": ["trapani", "marsala"],
+    "agrigento": ["agrigento"],
+    "caltanissetta": ["caltanissetta"]
+  },
+  "toscana": {
+    "firenze": ["firenze", "scandicci", "sesto-fiorentino", "empoli"],
+    "prato": ["prato"],
+    "livorno": ["livorno"],
+    "arezzo": ["arezzo"],
+    "pisa": ["pisa", "cascina"],
+    "lucca": ["lucca", "viareggio"]
+  },
+  "trentino-alto-adige": {
+    "trento": ["trento", "rovereto"],
+    "bolzano": ["bolzano", "merano"]
+  },
+  "umbria": {
+    "perugia": ["perugia", "foligno", "citta-di-castello"],
+    "terni": ["terni", "orvieto"]
+  },
+  "valle-aosta": {
+    "aosta": ["aosta"]
+  },
+  "veneto": {
+    "venezia": ["venezia", "chioggia", "san-dona-di-piave"],
+    "verona": ["verona", "villafranca-di-verona"],
+    "padova": ["padova", "selvazzano-dentro"],
+    "vicenza": ["vicenza", "bassano-del-grappa"],
+    "treviso": ["treviso", "conegliano"]
   }
 };
 
