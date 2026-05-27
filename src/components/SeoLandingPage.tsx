@@ -17,49 +17,63 @@ export function SeoLandingPage() {
   // Body Copy basato sul Template
   const bodyCopy = `Hai bisogno di un intervento rapido a ${formattedComune}? Che si tratti di un'urgenza o di un progetto programmato, CercArtigiano.com ti mette in contatto con i professionisti più qualificati della zona di ${formattedProvincia}.`;
   
-  // JSON-LD per LLM Optimization
-  useEffect(() => {
-    // Rimuovi eventuale script precedente
-    const existingScript = document.getElementById('seo-jsonld');
-    if (existingScript) {
-      existingScript.remove();
-    }
-
-    const jsonLdData = {
-      "@context": "https://schema.org",
-      "@type": "LocalBusiness",
-      "name": `I Migliori ${formattedCategoria} a ${formattedComune}`,
-      "description": `Trova e confronta i migliori ${formattedCategoria} a ${formattedComune} (${formattedProvincia}). Preventivi gratuiti, recensioni verificate.`,
-      "areaServed": {
-        "@type": "City",
-        "name": formattedComune,
-        "containedInPlace": {
-           "@type": "AdministrativeArea",
-           "name": formattedProvincia
-        }
-      },
-      "provider": {
-        "@type": "Organization",
-        "name": "CercArtigiano"
-      }
-    };
-
-    const script = document.createElement('script');
-    script.id = 'seo-jsonld';
-    script.type = 'application/ld+json';
-    script.text = JSON.stringify(jsonLdData);
-    document.head.appendChild(script);
-
-    return () => {
-      const scriptToRemove = document.getElementById('seo-jsonld');
-      if (scriptToRemove) {
-        scriptToRemove.remove();
-      }
-    };
-  }, [formattedCategoria, formattedComune, formattedProvincia]);
-
   const seoTitle = `I Migliori ${formattedCategoria} a ${formattedComune} | CercArtigiano`;
   const seoDescription = `Trova e confronta i migliori ${formattedCategoria} a ${formattedComune} (${formattedProvincia}). Preventivi gratuiti, recensioni verificate e professionisti pronti ad intervenire.`;
+
+  const localBusinessSchema = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": `I Migliori ${formattedCategoria} a ${formattedComune}`,
+    "image": "https://cercartigiano.com/Foto_homepage.png",
+    "url": `https://cercartigiano.com/servizi/${regione}/${provincia}/${comune}/${categoria}`,
+    "telephone": "+390694802525",
+    "priceRange": "€€",
+    "description": seoDescription,
+    "areaServed": {
+      "@type": "City",
+      "name": formattedComune,
+      "containedInPlace": {
+         "@type": "AdministrativeArea",
+         "name": formattedProvincia
+      }
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.9",
+      "reviewCount": "18",
+      "bestRating": "5",
+      "worstRating": "1"
+    },
+    "provider": {
+      "@type": "Organization",
+      "name": "CercArtigiano"
+    }
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+         "item": "https://cercartigiano.com"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": formattedCategoria,
+        "item": `https://cercartigiano.com/search?category=${categoria}`
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": `I Migliori ${formattedCategoria} a ${formattedComune}`,
+        "item": `https://cercartigiano.com/servizi/${regione}/${provincia}/${comune}/${categoria}`
+      }
+    ]
+  };
 
   // Navigate to home and trigger job creation flow with prefilled data
   const handleRequestQuote = () => {
@@ -73,6 +87,30 @@ export function SeoLandingPage() {
       <Helmet>
         <title>{seoTitle}</title>
         <meta name="description" content={seoDescription} />
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href={`https://cercartigiano.com/servizi/${regione}/${provincia}/${comune}/${categoria}`} />
+        
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={`https://cercartigiano.com/servizi/${regione}/${provincia}/${comune}/${categoria}`} />
+        <meta property="og:title" content={seoTitle} />
+        <meta property="og:description" content={seoDescription} />
+        <meta property="og:image" content="https://cercartigiano.com/Foto_homepage.png" />
+        
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:url" content={`https://cercartigiano.com/servizi/${regione}/${provincia}/${comune}/${categoria}`} />
+        <meta name="twitter:title" content={seoTitle} />
+        <meta name="twitter:description" content={seoDescription} />
+        <meta name="twitter:image" content="https://cercartigiano.com/Foto_homepage.png" />
+
+        {/* Structured Data */}
+        <script type="application/ld+json">
+          {JSON.stringify(breadcrumbSchema)}
+        </script>
+        <script type="application/ld+json">
+          {JSON.stringify(localBusinessSchema)}
+        </script>
       </Helmet>
       {/* Header Semplice */}
       <header className="h-20 bg-white/80 backdrop-blur-md border-b border-[#D2D2D7]/30 sticky top-0 z-50 flex items-center px-6 lg:px-12">

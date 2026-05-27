@@ -47,6 +47,149 @@ import { Helmet } from 'react-helmet-async';
 import { Routes, Route, useSearchParams, useLocation, useNavigate } from 'react-router-dom';
 import { SeoLandingPage } from './components/SeoLandingPage';
 
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "CercArtigiano",
+  "url": "https://cercartigiano.com",
+  "logo": "https://cercartigiano.com/logo.png",
+  "description": "Piattaforma premium per trovare artigiani e professionisti qualificati in tutta Italia.",
+  "sameAs": [
+    "https://www.facebook.com/cercartigiano",
+    "https://www.instagram.com/cercartigiano",
+    "https://twitter.com/cercartigiano"
+  ]
+};
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Come funziona CercArtigiano?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "CercArtigiano ti permette di scattare una foto o descrivere a voce un guasto per connetterti in pochi secondi con i esperti qualificati della tua zona."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Il servizio di richiesta preventivo è gratuito?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Sì, il servizio è completamente gratuito e senza alcun tipo di vincolo per chiunque ricerchi un artigiano qualificato."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Come vengono verificati gli artigiani?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Verifichiamo costantemente la validità delle Partite IVA e la documentazione d'identità dei professionisti iscritti per promuovere una rete d'eccellenza affidabile al 100%."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Quali categorie di servizi sono disponibili?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "La piattaforma ospita oltre 25 categorie di esperti, tra cui idraulici, elettricisti, imbianchini, sarti, tecnici informatici, falegnami e professionisti della cura della persona."
+      }
+    }
+  ]
+};
+
+const getJsonLdSchema = (user: any, showCategories: boolean, activeTab: string) => {
+  if (!user && !showCategories && activeTab === 'home') {
+    return [organizationSchema, faqSchema];
+  }
+  if (activeTab === 'search' || showCategories) {
+    return {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "Categorie Artigiani - CercArtigiano",
+      "description": "Tutte le categorie di professionisti e artigiani disponibili sula piattaforma.",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Idraulico", "url": "https://cercartigiano.com/search?category=plumbing" },
+        { "@type": "ListItem", "position": 2, "name": "Elettricista", "url": "https://cercartigiano.com/search?category=electrical" },
+        { "@type": "ListItem", "position": 3, "name": "Tecnico Informatico", "url": "https://cercartigiano.com/search?category=it_support" },
+        { "@type": "ListItem", "position": 4, "name": "Imbianchino", "url": "https://cercartigiano.com/search?category=painter" }
+      ]
+    };
+  }
+  return organizationSchema;
+};
+
+interface AppSeoProps {
+  title: string;
+  description: string;
+  urlPath?: string;
+  robots?: 'index, follow' | 'noindex, nofollow';
+  schema?: any;
+}
+
+export function AppSeo({ title, description, urlPath = '', robots = 'index, follow', schema }: AppSeoProps) {
+  const fullUrl = `https://cercartigiano.com${urlPath}`;
+  const defaultImage = "https://cercartigiano.com/Foto_homepage.png";
+  
+  // Clean clean page title for breadcrumb
+  const pageTitleClean = title.split('|')[0].trim();
+
+  // Create breadcrumb list
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://cercartigiano.com"
+      },
+      ...(urlPath && urlPath !== '/' ? [{
+        "@type": "ListItem",
+        "position": 2,
+        "name": pageTitleClean,
+        "item": fullUrl
+      }] : [])
+    ]
+  };
+
+  return (
+    <Helmet>
+      <title>{title}</title>
+      <meta name="description" content={description} />
+      <meta name="robots" content={robots} />
+      <link rel="canonical" href={fullUrl} />
+      
+      {/* Open Graph / Facebook */}
+      <meta property="og:type" content="website" />
+      <meta property="og:url" content={fullUrl} />
+      <meta property="og:title" content={title} />
+      <meta property="og:description" content={description} />
+      <meta property="og:image" content={defaultImage} />
+      
+      {/* Twitter */}
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:url" content={fullUrl} />
+      <meta name="twitter:title" content={title} />
+      <meta name="twitter:description" content={description} />
+      <meta name="twitter:image" content={defaultImage} />
+
+      {/* Structured Data */}
+      <script type="application/ld+json">
+        {JSON.stringify(breadcrumbSchema)}
+      </script>
+      {schema && (
+        <script type="application/ld+json">
+          {Array.isArray(schema) ? JSON.stringify(schema) : JSON.stringify(schema)}
+        </script>
+      )}
+    </Helmet>
+  );
+}
+
 function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -379,7 +522,11 @@ function App() {
   if (showInfo) {
     return (
       <>
-        <Helmet><title>Come Funziona | CercArtigiano</title></Helmet>
+        <AppSeo 
+          title="Come Funziona | CercArtigiano" 
+          description="Scopri come funziona CercArtigiano. Scatta una foto al tuo guasto, descrivi il problema in pochi clic e connettiti in totale sicurezza con i migliori professionisti certificati della tua zona." 
+          urlPath="/come-funziona"
+        />
         <GeneralInfo onBack={() => setShowInfo(false)} />
       </>
     );
@@ -388,7 +535,11 @@ function App() {
   if (showCareers) {
     return (
       <>
-        <Helmet><title>Lavora con Noi | CercArtigiano</title></Helmet>
+        <AppSeo 
+          title="Lavora con Noi | CercArtigiano" 
+          description="Sei un elettricista, idraulico, falegname o professionista verificato? Entra a far parte della rete d'eccellenza di CercArtigiano e trova nuovi clienti vicino a te." 
+          urlPath="/lavora-con-noi"
+        />
         <CareersPage onBack={() => setShowCareers(false)} />
       </>
     );
@@ -397,7 +548,11 @@ function App() {
   if (showPrivacy) {
     return (
       <>
-        <Helmet><title>Privacy Policy | CercArtigiano</title></Helmet>
+        <AppSeo 
+          title="Privacy Policy | CercArtigiano" 
+          description="Informativa sul trattamento dei dati personali e tutela della privacy su CercArtigiano in piena conformità con il regolamento europeo GDPR." 
+          urlPath="/privacy"
+        />
         <PrivacyPolicy onBack={() => setShowPrivacy(false)} />
       </>
     );
@@ -406,7 +561,11 @@ function App() {
   if (showTerms) {
     return (
       <>
-        <Helmet><title>Termini di Servizio | CercArtigiano</title></Helmet>
+        <AppSeo 
+          title="Termini di Servizio | CercArtigiano" 
+          description="Leggi le condizioni d'uso, i termini di servizio e i regolamenti contrattuali della piattaforma CercArtigiano per clienti e professionisti." 
+          urlPath="/termini"
+        />
         <TermsOfService onBack={() => setShowTerms(false)} />
       </>
     );
@@ -415,7 +574,11 @@ function App() {
   if (showCookies) {
     return (
       <>
-        <Helmet><title>Cookie Policy | CercArtigiano</title></Helmet>
+        <AppSeo 
+          title="Cookie Policy | CercArtigiano" 
+          description="Consulta l'informativa sull'uso dei cookie tecnici, analitici e di profilazione all'interno del portale CercArtigiano." 
+          urlPath="/cookies"
+        />
         <CookiePolicy onBack={() => setShowCookies(false)} />
       </>
     );
@@ -427,9 +590,12 @@ function App() {
     
     return (
       <div className="relative h-full w-full">
-        <Helmet>
-          <title>{showCategories ? "Esplora Categorie | CercArtigiano" : "CercArtigiano - Tutto nel palmo della tua mano"}</title>
-        </Helmet>
+        <AppSeo 
+          title={showCategories ? "Esplora Categorie | CercArtigiano" : "CercArtigiano - Tutto nel palmo della tua mano"} 
+          description={showCategories ? "Sfoglia e trova tutti i tipi di artigiani e professionisti certificati in Italia su CercArtigiano. Risposte immediate alle tue esigenze di casa e ufficio." : "CercArtigiano è la prima piattaforma in Italia per connettersi in pochi clic con idraulici, elettricisti e sarti qualificati. Tutto nel palmo della tua mano."} 
+          urlPath={showCategories ? "/search" : "/"}
+          schema={getJsonLdSchema(user, showCategories, activeTab)}
+        />
         {showCategories ? (
           <div className="w-full bg-white pb-32 lg:pb-0">
             <CategoriesPage 
@@ -510,7 +676,12 @@ function App() {
 
     return (
       <div className="h-screen w-full flex items-center justify-center bg-[#FBFBFD] p-4 overflow-hidden relative">
-        <Helmet><title>Accedi o Registrati | CercArtigiano</title></Helmet>
+        <AppSeo 
+          title="Accedi o Registrati | CercArtigiano" 
+          description="Accedi al tuo account CercArtigiano per gestire le tue richieste di intervento o consultare i messaggi dei professionisti." 
+          urlPath="/accedi"
+          robots="noindex, nofollow"
+        />
         {/* Background blobs for Mac feel */}
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px]" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/5 rounded-full blur-[120px]" />
@@ -533,18 +704,40 @@ function App() {
   const effectiveRole = isAdminEmail ? 'admin' : userRole;
 
   let pageTitle = "CercArtigiano";
-  if (activeTab === 'home') pageTitle = "Dashboard | CercArtigiano";
-  else if (activeTab === 'jobs' || activeTab === 'projects') pageTitle = "I miei Lavori | CercArtigiano";
-  else if (activeTab === 'search') pageTitle = "Cerca Professionisti | CercArtigiano";
-  else if (activeTab.startsWith('admin')) pageTitle = "Amministrazione | CercArtigiano";
-  else if (activeTab === 'profile') pageTitle = "Il mio Profilo | CercArtigiano";
-  else if (activeTab === 'settings') pageTitle = "Impostazioni | CercArtigiano";
-  else if (activeTab === 'credits' || activeTab === 'subscriptions') pageTitle = "Abbonamenti e Crediti | CercArtigiano";
+  let pageDescription = "Trova i migliori artigiani e professionisti della tua zona su CercArtigiano. Servizi verificati per la casa, la persona e la tecnologia.";
+  
+  if (activeTab === 'home') {
+    pageTitle = "Dashboard | CercArtigiano";
+    pageDescription = "Accedi alla tua dashboard di CercArtigiano per gestire le tue richieste di lavoro, comunicare con i professionisti e visualizzare i preventivi.";
+  } else if (activeTab === 'jobs' || activeTab === 'projects') {
+    pageTitle = "I miei Lavori | CercArtigiano";
+    pageDescription = "Monitora lo stato dei tuoi progetti, visualizza le proposte ricevute e gestisci gli interventi attivi su CercArtigiano.";
+  } else if (activeTab === 'search') {
+    pageTitle = "Cerca Professionisti | CercArtigiano";
+    pageDescription = "Sfoglia l'elenco completo dei professionisti e artigiani verificati: idraulici, elettricisti, informatici e molti altri servizi.";
+  } else if (activeTab.startsWith('admin')) {
+    pageTitle = "Amministrazione | CercArtigiano";
+    pageDescription = "Pannello amministratore riservato alla gestione di utenti, transazioni, recensioni e moderatore della piattaforma.";
+  } else if (activeTab === 'profile') {
+    pageTitle = "Il mio Profilo | CercArtigiano";
+    pageDescription = "Gestisci i dati personali, visualizza il bilancio crediti, aggiorna le categorie di competenza e carica i tuoi documenti di verifica.";
+  } else if (activeTab === 'settings') {
+    pageTitle = "Impostazioni | CercArtigiano";
+    pageDescription = "Modifica le tue preferenze di notifica, lingua, gestione della privacy e consensi per un'esperienza personalizzata.";
+  } else if (activeTab === 'credits' || activeTab === 'subscriptions') {
+    pageTitle = "Abbonamenti e Crediti | CercArtigiano";
+    pageDescription = "Acquista pacchetti crediti o ricarica token per rispondere alle richieste di lavoro e sbloccare opportunità lavorative nella tua zona.";
+  }
 
   if (user && !user.onboardingComplete && !isAdminEmail) {
     return (
       <>
-        <Helmet><title>Completamento Profilo | CercArtigiano</title></Helmet>
+        <AppSeo 
+          title="Completamento Profilo | CercArtigiano" 
+          description="Completa la configurazione iniziale del tuo profilo utente o aziendale per iniziare su CercArtigiano." 
+          urlPath="/onboarding"
+          robots="noindex, nofollow"
+        />
         <Onboarding user={user} onComplete={() => setUser({ ...user, onboardingComplete: true })} />
       </>
     );
@@ -593,9 +786,13 @@ function App() {
 
   return (
     <div className="h-screen w-full flex flex-col lg:flex-row bg-background text-foreground overflow-hidden font-sans">
-      <Helmet>
-        <title>{pageTitle}</title>
-      </Helmet>
+      <AppSeo 
+        title={pageTitle}
+        description={pageDescription}
+        urlPath={`/${activeTab}`}
+        robots="noindex, nofollow"
+        schema={getJsonLdSchema(user, showCategories, activeTab)}
+      />
       {/* Sidebar - Hidden on mobile */}
       <div className="hidden lg:block">
         <Sidebar 

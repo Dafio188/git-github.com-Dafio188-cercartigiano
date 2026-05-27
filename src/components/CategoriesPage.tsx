@@ -26,10 +26,24 @@ export function CategoriesPage({ onBack, onSelectCategory }: CategoriesPageProps
   const filteredCategories = SERVICE_CATEGORIES.filter(cat => {
     const matchesSearch = cat.label.toLowerCase().includes(searchTerm.toLowerCase());
     if (activeTab === 'all') return matchesSearch;
-    // Basic mapping for categorization (can be refined in constants.ts later)
-    if (activeTab === 'casa') return matchesSearch && ['idraulico', 'elettricista', 'fabbro', 'imbianchino', 'traslochi'].includes(cat.id);
-    if (activeTab === 'tech') return matchesSearch && ['pc', 'smartphone', 'elettrodomestici'].includes(cat.id);
-    if (activeTab === 'persona') return matchesSearch && ['pulizie', 'giardiniere', 'estetica', 'lezioni'].includes(cat.id);
+    
+    if (activeTab === 'casa') {
+      return matchesSearch && [
+        'plumbing', 'electrical', 'painter', 'locksmith', 'moving', 
+        'cleaning', 'gardening', 'carpentry', 'construction', 'handyman', 'architect'
+      ].includes(cat.id);
+    }
+    if (activeTab === 'tech') {
+      return matchesSearch && [
+        'it_support', 'appliances', 'photography'
+      ].includes(cat.id);
+    }
+    if (activeTab === 'persona') {
+      return matchesSearch && [
+        'beauty', 'tutoring', 'elderly_care', 'pet_sitting', 'babysitting', 
+        'psychology', 'lawyer', 'accountant', 'physiotherapy', 'mechanic', 'tailor'
+      ].includes(cat.id);
+    }
     return matchesSearch;
   });
 
