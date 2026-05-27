@@ -152,6 +152,9 @@ export function WorkerDashboard({ user, activeTab }: WorkerDashboardProps) {
           batch.update(doc(db, 'users', user.id), {
             tokens: increment(totalRefund)
           });
+          batch.update(doc(db, 'workerProfiles', user.id), {
+            credits: increment(totalRefund)
+          });
           await batch.commit();
           console.log(`Refunded ${totalRefund} tokens from ${count} lost proposals.`);
         }

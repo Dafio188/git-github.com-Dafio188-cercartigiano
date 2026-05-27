@@ -130,12 +130,25 @@ async function startServer() {
       if (userId && tokens) {
         try {
           const db = getDb();
+          if (!db) {
+            console.error("Firebase Admin DB is not initialized.");
+            return;
+          }
+
           // 1. Update User Tokens
           const userRef = db.collection('users').doc(userId);
+          const userSnap = await userRef.get();
           await userRef.update({
             tokens: admin.firestore.FieldValue.increment(Number(tokens)),
             lastPurchaseAt: admin.firestore.FieldValue.serverTimestamp()
           });
+
+          // Also update worker profile credits if it's a worker
+          if (userSnap.exists && userSnap.data()?.role === 'worker') {
+            await db.collection('workerProfiles').doc(userId).update({
+              credits: admin.firestore.FieldValue.increment(Number(tokens))
+            }).catch(() => {});
+          }
 
           // 2. Fetch User Billing Profile
           const billingSnap = await db.collection('billingProfiles').doc(userId).get();

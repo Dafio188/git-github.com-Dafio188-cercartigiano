@@ -204,6 +204,8 @@ export function ProfileView({ user }: ProfileViewProps) {
           reqs.push({ id: doc.id, ...doc.data() });
         });
         setCategoryRequests(reqs);
+      }, (error) => {
+        console.error("ProfileView onSnapshot (categoryRequests) error:", error);
       });
       return () => unsubscribe();
     }

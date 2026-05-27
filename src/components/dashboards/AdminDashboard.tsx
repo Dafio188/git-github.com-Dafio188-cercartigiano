@@ -520,6 +520,13 @@ export function AdminDashboard({ user, summaryOnly = false, initialTab }: AdminD
         tokens: increment(numAmount),
         lastGiftAt: serverTimestamp()
       });
+      // Try updating workerProfiles credits just in case they are a worker
+      const userDoc = usersList.find(u => u.id === userId);
+      if (userDoc && userDoc.role === 'worker') {
+        await updateDoc(doc(db, 'workerProfiles', userId), {
+          credits: increment(numAmount)
+        }).catch(() => {});
+      }
       alert(`Accreditati ${numAmount} token con successo.`);
     } catch (e) { 
       console.error(e); 

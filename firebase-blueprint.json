@@ -222,9 +222,28 @@
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["userId", "status", "updatedAt"]
+    },
+    "CategoryRequest": {
+      "title": "CategoryRequest",
+      "description": "Requests made by workers for new categories or specialization approvals",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "categoryId": { "type": "string" },
+        "categoryLabel": { "type": "string" },
+        "note": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "userName", "categoryId", "categoryLabel", "status", "createdAt"]
     }
   },
   "firestore": {
+    "/categoryRequests/{requestId}": {
+      "schema": "CategoryRequest",
+      "description": "Requests for new categories"
+    },
     "/users/{userId}": {
       "schema": "User",
       "description": "User documents"

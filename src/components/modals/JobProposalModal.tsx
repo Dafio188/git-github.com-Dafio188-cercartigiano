@@ -142,6 +142,9 @@ export function JobProposalModal({ isOpen, onClose, job, workerId, workerTokens:
           transaction.update(userRef, {
             tokens: increment(-responseCost)
           });
+          transaction.update(profileRef, {
+            credits: increment(-responseCost)
+          });
 
           // 2. Create proposal
           const proposalRef = doc(collection(db, 'proposals'));

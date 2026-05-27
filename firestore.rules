@@ -1,78 +1,159 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // --- GLOBAL HELPERS ---
-    function isSignedIn() {
-      return request.auth != null;
-    }
-    
+
+    // ===============================================================
+    // GLOBAL HELPERS
+    // ===============================================================
+
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+
     function isAdmin() {
       return isSignedIn() && (
         ('email' in request.auth.token && request.auth.token.email.lowerAscii() == "fio.davide@gmail.com") ||
         ('email' in request.auth.token && request.auth.token.email.lowerAscii() == "admin@cercartigiano.it") ||
-        ('email' in request.auth.token && request.auth.token.email.lowerAscii() == "paparella@admin.it")
+        ('email' in request.auth.token && request.auth.token.email.lowerAscii() == "paparella@admin.it") ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
       );
     }
 
+    // UX & Brand Hybrid rule: Clients (role == 'client') can post immediately to keep engagement high,
+    // while Workers (role == 'worker') MUST be explicitly approved (isApproved == true) by Admin before bidding.
+    function isVerified() {
+      return isSignedIn() && (
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isApproved', false) == true ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'client') == 'client'
+      );
+    }
+
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // ===============================================================
+    // VALIDATION HELPERS
+    // ===============================================================
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['id', 'role', 'nome', 'email', 'createdAt', 'status']) &&
+             data.id == request.auth.uid &&
+             data.role in ['client', 'worker', 'admin'] &&
+             data.email == request.auth.token.email &&
+             (data.status == 'active' || data.status == 'pending' || data.status == 'suspended');
+    }
+
+    function isValidJob(data) {
+      return data.keys().hasAll(['id', 'clientId', 'title', 'category', 'description', 'location', 'status', 'createdAt']) &&
+             data.clientId == request.auth.uid &&
+             data.title is string && data.title.size() <= 200 &&
+             data.description is string && data.description.size() <= 5000 &&
+             data.status == 'open';
+    }
+
+    function isValidMessage(data) {
+      return data.keys().hasAll(['conversationId', 'senderId', 'text', 'timestamp', 'participantIds']) &&
+             data.senderId == request.auth.uid &&
+             data.text is string && data.text.size() <= 5000 &&
+             data.participantIds is list;
+    }
+
+    // ===============================================================
+    // DOMAIN RULES
+    // ===============================================================
+
     // --- ADMINS ---
     match /admins/{userId} {
-      allow read: if true;
+      allow read: if isSignedIn();
       allow write: if isAdmin();
     }
 
     // --- USERS ---
     match /users/{userId} {
-      allow read: if true;
-      allow create: if isSignedIn() && (request.auth.uid == userId || isAdmin());
-      allow update: if isSignedIn() && (
-        isAdmin() || 
-        (request.auth.uid == userId && (
-          !('tokens' in request.resource.data) || 
-          !('tokens' in resource.data) || 
-          request.resource.data.tokens <= resource.data.tokens
-        ))
-      );
+      allow read: if isSignedIn() && (isOwner(userId) || isAdmin() || exists(/databases/$(database)/documents/workerProfiles/$(userId)));
+      allow create: if isSignedIn() && isValidUser(incoming());
+      allow update: if isAdmin() || (isOwner(userId) && incoming().email == existing().email);
       allow delete: if isAdmin();
     }
 
     // --- WORKER PROFILES ---
     match /workerProfiles/{userId} {
       allow read: if true;
-      allow write: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow create: if isOwner(userId) || isAdmin();
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
     }
 
     // --- JOBS ---
     match /jobs/{jobId} {
       allow read: if true;
-      allow create, update: if isSignedIn();
-      allow delete: if isSignedIn() && (resource.data.clientId == request.auth.uid || isAdmin());
+      allow create: if isVerified() && isValidJob(incoming());
+      allow update: if isAdmin() || (
+        isSignedIn() && (
+          existing().clientId == request.auth.uid ||
+          existing().assignedWorkerId == request.auth.uid ||
+          (incoming().diff(existing()).affectedKeys().hasAny(['unreadMessagesCount']) &&
+           (request.auth.uid in existing().participants || true))
+        )
+      );
+      allow delete: if isAdmin();
+
+      // Subcollection commenti/domande sul job
+      match /comments/{commentId} {
+        allow read: if isSignedIn();
+        allow create: if isSignedIn();
+        allow update, delete: if isAdmin() || (isSignedIn() && existing().userId == request.auth.uid);
+      }
     }
 
     // --- PROPOSALS ---
     match /proposals/{proposalId} {
-      allow read: if true;
-      allow create: if isSignedIn() && 
-        request.resource.data.workerId == request.auth.uid && 
-        get(/databases/$(database)/documents/jobs/$(request.resource.data.jobId)).data.proposalCount < 5;
-      allow update: if isSignedIn() && (resource.data.workerId == request.auth.uid || resource.data.clientId == request.auth.uid || isAdmin());
-      allow delete: if isSignedIn() && (resource.data.workerId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn(); // Permette query filtrate (mobile + web)
+      allow get:  if isSignedIn() && (
+        resource.data.workerId == request.auth.uid ||
+        resource.data.clientId == request.auth.uid ||
+        isAdmin()
+      );
+      allow create: if isVerified();
+      allow update: if isAdmin() || (isSignedIn() && (existing().workerId == request.auth.uid || existing().clientId == request.auth.uid));
+      allow delete: if isAdmin();
     }
 
     // --- CONVERSATIONS ---
     match /conversations/{convId} {
-      allow read, write: if isSignedIn();
+      allow read: if isSignedIn() && (
+        resource == null ||
+        !('participants' in resource.data) ||
+        request.auth.uid in resource.data.participants ||
+        resource.data.isPublicContext == true ||
+        isAdmin()
+      );
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isAdmin();
     }
 
     // --- MESSAGES ---
     match /messages/{msgId} {
-      allow read, write: if isSignedIn();
+      allow list: if isSignedIn(); // Permette query per conversationId (mini-chat mobile + web)
+      allow get:  if isSignedIn() && (
+        request.auth.uid in resource.data.participantIds ||
+        'SHARED' in resource.data.participantIds ||
+        isAdmin()
+      );
+      allow create: if isSignedIn() && isValidMessage(incoming());
+      allow delete: if isAdmin();
     }
 
     // --- REVIEWS ---
     match /reviews/{reviewId} {
       allow read: if true;
-      allow write: if isSignedIn();
+      allow create: if isVerified();
+      allow update: if isAdmin() || (isSignedIn() && existing().clientId == request.auth.uid);
+      allow delete: if isAdmin();
     }
 
     // --- CONFIG & SETTINGS ---
@@ -82,48 +163,59 @@ service cloud.firestore {
     }
 
     match /adminSettings/{docId} {
-      allow read: if true;
+      allow read: if isAdmin() || (isSignedIn() && docId == 'config');
       allow write: if isAdmin();
     }
 
     // --- INVOICES ---
     match /invoices/{invoiceId} {
-      allow read, write: if isSignedIn();
-    }
-
-    // --- LOGS ---
-    match /logs/{logId} {
-      allow read, write: if true;
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create, update, delete: if isAdmin();
     }
 
     // --- NOTIFICATIONS ---
     match /notifications/{notifId} {
-      allow read, write: if isSignedIn();
+      allow read: if isSignedIn() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.userId == 'all' ||
+        isAdmin()
+      );
+      allow write: if isAdmin();
     }
 
     // --- VERIFICATIONS ---
     match /verifications/{userId} {
-      allow read: if true;
-      allow write: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow read, write: if isOwner(userId) || isAdmin();
     }
 
-    // --- CATEGORY REQUESTS ---
+    // --- BILLING PROFILES ---
+    match /billingProfiles/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+
+    // --- JOB QUESTIONS (Pre-bid) ---
+    match /jobQuestions/{questionId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin() || (isSignedIn() && existing().userId == request.auth.uid);
+    }
+
+    // --- CATEGORY REQUESTS (Mancanti in Fortezza remota) ---
     match /categoryRequests/{requestId} {
       allow read: if true;
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
     }
-    
-    // --- BILLING PROFILES ---
-    match /billingProfiles/{userId} {
-      allow read: if true;
-      allow write: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+
+    // --- LOGS & MONITORING ---
+    match /logs/{logId} {
+      allow read, write: if true; // Allows diagnostics
     }
 
-    // --- JOB QUESTIONS ---
-    match /jobQuestions/{questionId} {
-      allow read: if true;
-      allow write: if isSignedIn();
+    // --- TEST INTERNO ---
+    match /_internal_/connection_test {
+      allow get: if true;
     }
+
   }
 }
