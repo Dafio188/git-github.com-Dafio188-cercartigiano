@@ -23,7 +23,8 @@ service cloud.firestore {
     function isVerified() {
       return isSignedIn() && (
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isApproved', false) == true ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'client') == 'client'
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'client') == 'client' ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('status', 'pending') == 'active'
       );
     }
 
@@ -95,8 +96,10 @@ service cloud.firestore {
         isSignedIn() && (
           existing().clientId == request.auth.uid ||
           existing().assignedWorkerId == request.auth.uid ||
-          (incoming().diff(existing()).affectedKeys().hasAny(['unreadMessagesCount']) &&
-           (request.auth.uid in existing().participants || true))
+          // Consente l'aggiornamento dei contatori messaggi non letti per la chat
+          (incoming().diff(existing()).affectedKeys().hasOnly(['unreadMessagesCount', 'updatedAt'])) ||
+          // Consente l'aumento dei preventivi ricevuti quando un professionista verificato invia una proposta
+          (isVerified() && incoming().diff(existing()).affectedKeys().hasOnly(['proposalCount', 'hasNewProposals']))
         )
       );
       allow delete: if isAdmin();
