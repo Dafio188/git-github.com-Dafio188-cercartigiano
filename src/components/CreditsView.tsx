@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion } from 'motion/react';
-import { loadStripe } from '@stripe/stripe-js';
 import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 
@@ -150,6 +149,7 @@ export function CreditsView({ user }: { user: any }) {
       if (url) {
         window.location.assign(url);
       } else {
+        const { loadStripe } = await import('@stripe/stripe-js');
         const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || 'pk_test_placeholder');
         if (stripe && id) {
            (stripe as any).redirectToCheckout({ sessionId: id });

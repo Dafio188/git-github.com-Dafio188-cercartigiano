@@ -78,7 +78,7 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isSignedIn() && (isOwner(userId) || isAdmin() || exists(/databases/$(database)/documents/workerProfiles/$(userId)));
       allow create: if isSignedIn() && isValidUser(incoming());
-      allow update: if isAdmin() || (isOwner(userId) && incoming().email == existing().email);
+      allow update: if isAdmin() || (isOwner(userId) && (incoming().get('email', '') == existing().get('email', '') || incoming().diff(existing()).affectedKeys().hasOnly(['tokens', 'transactionHistory'])));
       allow delete: if isAdmin();
     }
 
@@ -101,7 +101,7 @@ service cloud.firestore {
           // Consente l'aggiornamento dei contatori messaggi non letti per la chat
           (incoming().diff(existing()).affectedKeys().hasOnly(['unreadMessagesCount', 'updatedAt'])) ||
           // Consente l'aumento dei preventivi ricevuti quando un professionista invia una proposta
-          (isSignedIn() && incoming().diff(existing()).affectedKeys().hasOnly(['proposalCount', 'hasNewProposals']) && incoming().proposalCount == existing().proposalCount + 1)
+          (isSignedIn() && incoming().diff(existing()).affectedKeys().hasOnly(['proposalCount', 'hasNewProposals']) && incoming().get('proposalCount', 1) == existing().get('proposalCount', 0) + 1)
         )
       );
       allow delete: if isAdmin();
