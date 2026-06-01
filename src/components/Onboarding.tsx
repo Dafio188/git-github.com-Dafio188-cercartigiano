@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { updateDoc, doc, setDoc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db, auth } from '../firebase';
 import { User, UserProfile } from '../types';
 import { Button } from './ui/button';
 import { motion, AnimatePresence } from 'motion/react';
-import { Briefcase, User as UserIcon, CheckCircle2, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Briefcase, User as UserIcon, CheckCircle2, ArrowRight, ArrowLeft, LogOut } from 'lucide-react';
 import { Input } from './ui/input';
 import { AddressInput } from './AddressInput';
 import { WorkerOnboardingFlow } from './WorkerOnboardingFlow';
@@ -89,9 +89,27 @@ export function Onboarding({ user, onComplete }: OnboardingProps) {
     );
   }
 
+  const handleSignOut = async () => {
+    try {
+      await auth.signOut();
+    } catch (error) {
+      console.error("Errore disconnessione:", error);
+    }
+  };
+
   return (
-    <div className="fixed inset-0 bg-[#F5F5F7] z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-[2.5rem] lg:rounded-[3.5rem] p-8 lg:p-12 w-full max-w-2xl shadow-xl border border-[#D2D2D7]/30 flex flex-col items-center">
+    <div className="fixed inset-0 bg-[#F5F5F7] z-50 flex items-center justify-center p-4" id="onboarding_wrapper">
+      <div className="bg-white rounded-[2.5rem] lg:rounded-[3.5rem] p-8 lg:p-12 w-full max-w-2xl shadow-xl border border-[#D2D2D7]/30 flex flex-col items-center relative" id="onboarding_card">
+        
+        <button 
+          onClick={handleSignOut}
+          className="absolute top-6 right-6 lg:top-8 lg:right-8 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black text-[#86868B] hover:text-[#1D1D1F] bg-[#F5F5F7] hover:bg-[#E8E8ED] transition-all border border-transparent hover:border-[#D2D2D7]/30"
+          title="Esci e torna alla Homepage"
+          id="btn_onboarding_logout"
+        >
+          <LogOut className="w-3.5 h-3.5" />
+          <span>TORNA ALLA HOME</span>
+        </button>
         
         <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-6">
           <img src="/logo.png" className="w-10 h-10 object-contain" alt="Logo" />

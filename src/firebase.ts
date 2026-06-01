@@ -17,17 +17,17 @@ const validateApiKey = (key: string | undefined): string => {
 // Configurazione standard di Firebase (le chiavi web sono pubbliche e sicure se le Security Rules sono attive)
 const firebaseConfig = {
   projectId: "cercartigiano-23140",
-  appId: "1:279648223777:web:6421c3a87509703ca0d960",
+  appId: "1:279648223777:web:9391a5520f525041a0d960",
   apiKey: validateApiKey(import.meta.env.VITE_FIREBASE_API_KEY),
   authDomain: "cercartigiano-23140.firebaseapp.com",
-  firestoreDatabaseId: "(default)",
+  firestoreDatabaseId: "ai-studio-62c63647-f43b-4207-874e-291c0c8ba92b",
   storageBucket: "cercartigiano-23140.firebasestorage.app",
   messagingSenderId: "279648223777",
-  measurementId: "G-9QXNNWTHNE"
+  measurementId: ""
 };
 
 const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
+export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 export const auth = getAuth(app);
 export const storage = getStorage(app);
 

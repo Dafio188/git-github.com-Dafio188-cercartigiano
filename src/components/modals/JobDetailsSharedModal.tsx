@@ -9,6 +9,7 @@ import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { Button } from '../ui/button';
 import { MapPin, Clock, ArrowRight, Shield, MessageSquare, Zap } from 'lucide-react';
 import { SERVICE_CATEGORIES } from '../../constants';
+import { getJobBudgetRange } from '../../lib/utils';
 
 interface JobDetailsSharedModalProps {
   isOpen: boolean;
@@ -22,11 +23,11 @@ interface JobDetailsSharedModalProps {
 export function JobDetailsSharedModal({ isOpen, onClose, job, user, onOpenProposal, onStartChat }: JobDetailsSharedModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl bg-[#FBFBFD] border-none rounded-t-[2.5rem] sm:rounded-[3rem] p-0 overflow-hidden shadow-2xl h-[90vh] sm:h-[85vh] sm:max-h-[800px] bottom-0 sm:bottom-auto translate-y-0 sm:-translate-y-1/2">
+      <DialogContent className="max-w-2xl bg-[#FBFBFD] border-none rounded-t-[2.5rem] sm:rounded-[3rem] p-0 overflow-hidden shadow-2xl h-[90vh] sm:h-[85vh] sm:max-h-[720px] bottom-0 sm:bottom-auto translate-y-0 sm:-translate-y-1/2 flex flex-col">
         <VisuallyHidden>
           <DialogTitle>Dettagli Lavoro</DialogTitle>
         </VisuallyHidden>
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full min-h-0">
           {/* Job Details */}
           <div className="flex-1 p-6 sm:p-8 lg:p-10 flex flex-col overflow-y-auto bg-white">
             <div className="space-y-6 w-full pb-6">
@@ -86,10 +87,49 @@ export function JobDetailsSharedModal({ isOpen, onClose, job, user, onOpenPropos
                  </div>
                )}
 
-               <div className="bg-[#F5F5F7] p-4 sm:p-6 rounded-2xl sm:rounded-3xl mt-4 sm:mt-6 border border-[#D2D2D7]/30">
-                 <h4 className="text-[9px] sm:text-xs font-black uppercase tracking-widest text-[#86868B] mb-1 sm:mb-2">Budget Indicativo Cliente</h4>
-                 <div className="text-2xl sm:text-3xl font-black text-[#1D1D1F]">€{job.budgetMin} - €{job.budgetMax}</div>
-               </div>
+               {(() => {
+                 let bMin = job.budgetMin;
+                 let bMax = job.budgetMax;
+                 if (bMin === undefined || bMin === null || isNaN(Number(bMin)) || Number(bMin) === 0) {
+                   const budgetRange = job.metadata?.budget_range;
+                   if (budgetRange === 'small') {
+                     bMin = 50;
+                     bMax = 150;
+                   } else if (budgetRange === 'medium') {
+                     bMin = 150;
+                     bMax = 500;
+                   } else if (budgetRange === 'large') {
+                     bMin = 500;
+                     bMax = 2000;
+                   } else if (budgetRange === 'pro') {
+                     bMin = 2000;
+                     bMax = 10000;
+                   } else {
+                     if (job.category === 'electrical') {
+                       bMin = 80;
+                       bMax = 400;
+                     } else if (job.category === 'plumbing') {
+                       bMin = 150;
+                       bMax = 600;
+                     } else if (job.category === 'construction') {
+                       bMin = 1000;
+                       bMax = 5000;
+                     } else if (job.category === 'cleaning') {
+                       bMin = 50;
+                       bMax = 250;
+                     } else {
+                       bMin = 100;
+                       bMax = 800;
+                     }
+                   }
+                 }
+                 return (
+                   <div className="bg-[#F5F5F7] p-4 sm:p-6 rounded-2xl sm:rounded-3xl mt-4 sm:mt-6 border border-[#D2D2D7]/30">
+                     <h4 className="text-[9px] sm:text-xs font-black uppercase tracking-widest text-[#86868B] mb-1 sm:mb-2">Budget Indicativo Cliente</h4>
+                     <div className="text-2xl sm:text-3xl font-black text-[#1D1D1F]">€{bMin} - €{bMax}</div>
+                   </div>
+                 );
+               })()}
             </div>
           </div>
             

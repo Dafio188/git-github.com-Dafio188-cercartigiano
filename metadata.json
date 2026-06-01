@@ -1,5 +1,6 @@
 {
   "name": "CercArtigiano",
   "description": "Piattaforma per trovare i migliori artigiani e professionisti con facilità.",
-  "requestFramePermissions": ["camera", "geolocation"]
+  "requestFramePermissions": ["camera", "geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

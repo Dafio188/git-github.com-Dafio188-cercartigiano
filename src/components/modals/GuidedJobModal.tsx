@@ -283,9 +283,54 @@ export function GuidedJobModal({
 
       const title = `${category?.label}: ${firstAnswer || 'Nuova Richiesta'}`;
 
-      const descriptionParts = flow.map(q => {
+      // Calcola il budget sulla base delle risposte e del flow
+      let budgetMin = 60;
+      let budgetMax = 500;
+
+      // 1. Controlla prima il budget_range selezionato se presente
+      const budgetAnswer = answers['budget_range'];
+      if (budgetAnswer) {
+        if (budgetAnswer === 'small') {
+          budgetMin = 50;
+          budgetMax = 150;
+        } else if (budgetAnswer === 'medium') {
+          budgetMin = 150;
+          budgetMax = 500;
+        } else if (budgetAnswer === 'large') {
+          budgetMin = 500;
+          budgetMax = 2000;
+        } else if (budgetAnswer === 'pro') {
+          budgetMin = 2000;
+          budgetMax = 10000;
+        }
+      } else {
+        // 2. Se non c'è budget_range (es. è stato saltato), cerca la risposta di tipo 'choice' che contiene un priceRange
+        for (let i = flow.length - 1; i >= 0; i--) {
+          const q = flow[i];
+          const answerId = answers[q.id];
+          if (q.type === 'choice' && answerId && q.options) {
+            const opt = q.options.find(o => o.id === answerId);
+            if (opt?.priceRange) {
+              budgetMin = opt.priceRange.min;
+              budgetMax = opt.priceRange.max;
+              break;
+            }
+          }
+          if (q.priceRange) {
+            budgetMin = q.priceRange.min;
+            budgetMax = q.priceRange.max;
+            break;
+          }
+        }
+      }
+
+      const visitedSteps = Array.from(new Set(stepHistory)).sort((a, b) => a - b);
+      const descriptionParts = visitedSteps.map(stepIndex => {
+        const q = flow[stepIndex];
+        if (!q) return null;
         const answer = answers[q.id];
         if (q.type === 'choice' && q.options) {
+          if (answer === undefined || answer === '') return null;
           const opt = q.options.find(o => o.id === answer);
           return `• ${q.question}: **${opt?.label || answer}**`;
         }
@@ -297,6 +342,8 @@ export function GuidedJobModal({
         title,
         description: descriptionParts.join('\n'),
         category: activeCategoryId,
+        budgetMin,
+        budgetMax,
         location: {
           address,
           ...location

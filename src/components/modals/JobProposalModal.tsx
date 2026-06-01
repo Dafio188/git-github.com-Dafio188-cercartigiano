@@ -127,9 +127,11 @@ export function JobProposalModal({ isOpen, onClose, job, workerId, workerTokens:
           let workerRating = 4.9;
           let workerBadges: string[] = [];
           
+          let profileExists = false;
           try {
             const profileDoc = await transaction.get(profileRef);
             if (profileDoc.exists()) {
+              profileExists = true;
               const pData = profileDoc.data();
               workerRating = pData.score || pData.rating || 4.9;
               workerBadges = pData.badges || [];
@@ -142,9 +144,18 @@ export function JobProposalModal({ isOpen, onClose, job, workerId, workerTokens:
           transaction.update(userRef, {
             tokens: increment(-responseCost)
           });
-          transaction.update(profileRef, {
-            credits: increment(-responseCost)
-          });
+          if (profileExists) {
+            transaction.update(profileRef, {
+              credits: increment(-responseCost)
+            });
+          } else {
+            transaction.set(profileRef, {
+              userId: workerId,
+              credits: -responseCost,
+              score: workerRating,
+              badges: workerBadges
+            }, { merge: true });
+          }
 
           // 2. Create proposal
           const proposalRef = doc(collection(db, 'proposals'));

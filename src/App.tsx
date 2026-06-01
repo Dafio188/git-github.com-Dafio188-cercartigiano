@@ -451,9 +451,16 @@ function App() {
           setLoading(false);
           setAuthReady(true);
         }, (error) => {
-          handleFirestoreError(error, OperationType.GET, `users/${firebaseUser.uid}`);
+          console.warn("Firestore user profile snapshot error, signing out to clear stale auth sessions:", error);
+          try {
+            auth.signOut();
+          } catch (signOutError) {
+            console.error("Failed to sign out stale auth session:", signOutError);
+          }
+          setUser(null);
           setLoading(false);
           setAuthReady(true);
+          handleFirestoreError(error, OperationType.GET, `users/${firebaseUser.uid}`);
         });
       } else {
         setUser(null);
@@ -585,7 +592,7 @@ function App() {
   }
 
   // Not logged in and not in auth view -> Landing Page
-  if (!user && !showAuth && !auth.currentUser) {
+  if (!user && !showAuth && (!auth.currentUser || !loading)) {
     const mobileActiveTab = showCategories ? 'explore' : 'landing-home';
     
     return (

@@ -123,6 +123,7 @@ export interface Job {
   assignedWorkerId?: string;
   assignedPrice?: number;
   reviewId?: string;
+  metadata?: any;
 }
 
 export interface JobReview {

@@ -11,9 +11,9 @@ service cloud.firestore {
 
     function isAdmin() {
       return isSignedIn() && (
-        ('email' in request.auth.token && request.auth.token.email.lowerAscii() == "fio.davide@gmail.com") ||
-        ('email' in request.auth.token && request.auth.token.email.lowerAscii() == "admin@cercartigiano.it") ||
-        ('email' in request.auth.token && request.auth.token.email.lowerAscii() == "paparella@admin.it") ||
+        ('email' in request.auth.token && request.auth.token.email.lower() == "fio.davide@gmail.com") ||
+        ('email' in request.auth.token && request.auth.token.email.lower() == "admin@cercartigiano.it") ||
+        ('email' in request.auth.token && request.auth.token.email.lower() == "paparella@admin.it") ||
         exists(/databases/$(database)/documents/admins/$(request.auth.uid))
       );
     }
@@ -78,7 +78,11 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isSignedIn() && (isOwner(userId) || isAdmin() || exists(/databases/$(database)/documents/workerProfiles/$(userId)));
       allow create: if isSignedIn() && isValidUser(incoming());
-      allow update: if isAdmin() || (isOwner(userId) && (incoming().email == existing().email || incoming().diff(existing()).affectedKeys().hasOnly(['tokens', 'transactionHistory'])));
+      allow update: if isAdmin() || (
+        isOwner(userId) && 
+        (!('email' in existing()) || !('email' in incoming()) || incoming().email == existing().email) &&
+        !incoming().diff(existing()).affectedKeys().hasAny(['role', 'status', 'isApproved'])
+      );
       allow delete: if isAdmin();
     }
 
@@ -98,13 +102,11 @@ service cloud.firestore {
         isSignedIn() && (
           existing().clientId == request.auth.uid ||
           existing().assignedWorkerId == request.auth.uid ||
-          // Consente l'aggiornamento dei contatori messaggi non letti per la chat
-          (incoming().diff(existing()).affectedKeys().hasOnly(['unreadMessagesCount', 'updatedAt'])) ||
-          // Consente l'aumento dei preventivi ricevuti quando un professionista invia una proposta
-          (incoming().diff(existing()).affectedKeys().hasOnly(['proposalCount', 'hasNewProposals']) && (
-            (!('proposalCount' in existing()) && incoming().proposalCount == 1) ||
-            ('proposalCount' in existing() && incoming().proposalCount == existing().proposalCount + 1)
-          ))
+          // Consente l'aggiornamento dei contatori, conteggio preventivi, messaggi non letti per la chat, o altri metadati di coordinamento,
+          // purché i campi chiave del lavoro non vengano mai alterati.
+          (
+            !incoming().diff(existing()).affectedKeys().hasAny(['clientId', 'title', 'category', 'description', 'location', 'status', 'createdAt', 'budgetMin', 'budgetMax', 'preferredTimeSlot', 'photos'])
+          )
         )
       );
       allow delete: if isAdmin();
@@ -188,7 +190,9 @@ service cloud.firestore {
         resource.data.userId == 'all' ||
         isAdmin()
       );
-      allow write: if isAdmin();
+      allow create: if isSignedIn();
+      allow update: if isAdmin() || (isSignedIn() && existing().userId == request.auth.uid);
+      allow delete: if isAdmin() || (isSignedIn() && existing().userId == request.auth.uid);
     }
 
     // --- VERIFICATIONS ---
