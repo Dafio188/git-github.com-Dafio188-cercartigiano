@@ -80,12 +80,6 @@ export async function notifyNewProposal(
   jobId: string,
   jobTitle: string
 ) {
-  // Mark job as having new proposals for the badge
-  const jobRef = doc(db, 'jobs', jobId);
-  await updateDoc(jobRef, {
-    hasNewProposals: true
-  });
-
   return sendNotification(
     clientId,
     'new_proposal',

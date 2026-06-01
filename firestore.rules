@@ -22,11 +22,11 @@ service cloud.firestore {
     // while Workers (role == 'worker') can bid immediately on dev/test of the platform.
     function isVerified() {
       return isSignedIn() && (
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isApproved', false) == true ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'client') == 'client' ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'client') == 'worker' ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('status', 'pending') == 'active' ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('status', 'pending') == 'pending'
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isApproved == true ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'client' ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'worker' ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status == 'active' ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status == 'pending'
       );
     }
 
@@ -78,7 +78,7 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isSignedIn() && (isOwner(userId) || isAdmin() || exists(/databases/$(database)/documents/workerProfiles/$(userId)));
       allow create: if isSignedIn() && isValidUser(incoming());
-      allow update: if isAdmin() || (isOwner(userId) && (incoming().get('email', '') == existing().get('email', '') || incoming().diff(existing()).affectedKeys().hasOnly(['tokens', 'transactionHistory'])));
+      allow update: if isAdmin() || (isOwner(userId) && (incoming().email == existing().email || incoming().diff(existing()).affectedKeys().hasOnly(['tokens', 'transactionHistory'])));
       allow delete: if isAdmin();
     }
 
@@ -101,7 +101,10 @@ service cloud.firestore {
           // Consente l'aggiornamento dei contatori messaggi non letti per la chat
           (incoming().diff(existing()).affectedKeys().hasOnly(['unreadMessagesCount', 'updatedAt'])) ||
           // Consente l'aumento dei preventivi ricevuti quando un professionista invia una proposta
-          (isSignedIn() && incoming().diff(existing()).affectedKeys().hasOnly(['proposalCount', 'hasNewProposals']) && incoming().get('proposalCount', 1) == existing().get('proposalCount', 0) + 1)
+          (incoming().diff(existing()).affectedKeys().hasOnly(['proposalCount', 'hasNewProposals']) && (
+            (!('proposalCount' in existing()) && incoming().proposalCount == 1) ||
+            ('proposalCount' in existing() && incoming().proposalCount == existing().proposalCount + 1)
+          ))
         )
       );
       allow delete: if isAdmin();
