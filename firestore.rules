@@ -81,7 +81,19 @@ service cloud.firestore {
       allow update: if isAdmin() || (
         isOwner(userId) && 
         (!('email' in existing()) || !('email' in incoming()) || incoming().email == existing().email) &&
-        !incoming().diff(existing()).affectedKeys().hasAny(['role', 'status', 'isApproved'])
+        (
+          !incoming().diff(existing()).affectedKeys().hasAny(['role', 'status', 'isApproved']) ||
+          (
+            existing().onboardingComplete == false &&
+            incoming().onboardingComplete == true &&
+            incoming().role == 'worker' &&
+            incoming().status == 'pending' &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'role', 'nome', 'email', 'phone', 'address', 'location', 
+              'citta', 'provincia', 'cap', 'status', 'onboardingComplete', 'tokens'
+            ])
+          )
+        )
       );
       allow delete: if isAdmin();
     }
