@@ -6,3 +6,7 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Cartelle interne AI agent (Antigravity IDE) - non includere nel repo
+.antigravity/
+.agents/
