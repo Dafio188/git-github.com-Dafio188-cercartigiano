@@ -4,9 +4,10 @@ import path from "path";
 import fs from "fs";
 import Stripe from 'stripe';
 import admin from 'firebase-admin';
+import { getFirestore } from 'firebase-admin/firestore';
 
 // Helper to get Firebase Admin Firestore instance lazily
-let _db: admin.firestore.Firestore | null = null;
+let _db: any = null;
 function getDb() {
   if (_db) return _db;
   
@@ -22,7 +23,7 @@ function getDb() {
       projectId: firebaseConfig.projectId,
     });
   }
-  _db = admin.firestore(firebaseConfig.firestoreDatabaseId);
+  _db = getFirestore(firebaseConfig.firestoreDatabaseId === '(default)' ? undefined : firebaseConfig.firestoreDatabaseId);
   return _db;
 }
 
