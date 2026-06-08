@@ -269,9 +269,10 @@ export default function App() {
   const userRole = user?.role || (isAdminEmail ? 'admin' : 'client');
   const effectiveRole = isAdminEmail ? 'admin' : userRole;
 
-  if (user && !user.onboardingComplete && !isAdminEmail) {
+  if (user && !user.onboardingComplete && !isAdminEmail && authReady && !loading) {
     return <Onboarding user={user} onComplete={() => setUser({ ...user, onboardingComplete: true })} />;
   }
+
 
   const renderDashboard = () => {
     if (activeTab === 'home') {
