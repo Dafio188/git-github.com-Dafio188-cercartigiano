@@ -64,12 +64,18 @@ export function Onboarding({ user, onComplete }: OnboardingProps) {
     setLoading(true);
 
     try {
+      const { setDoc } = await import('firebase/firestore');
       const userRef = doc(db, 'users', user.id);
       
       const updates: any = {
+        id: user.id,
+        nome: user.nome || 'Utente',
+        email: user.email || '',
         role: role,
+        status: user.status || 'active',
         onboardingComplete: true,
-        tokens: role === 'worker' ? 10 : 5,
+        tokens: user.tokens || (role === 'worker' ? 10 : 5),
+        createdAt: user.createdAt || new Date().toISOString()
       };
 
       if (phone) updates.phone = phone;
@@ -78,7 +84,7 @@ export function Onboarding({ user, onComplete }: OnboardingProps) {
       if (cap) updates.cap = cap;
       if (provincia) updates.provincia = provincia;
 
-      await updateDoc(userRef, updates);
+      await setDoc(userRef, updates, { merge: true });
 
       // Save Billing Profile
       const billingRef = doc(db, 'billingProfiles', user.id);
@@ -123,8 +129,9 @@ export function Onboarding({ user, onComplete }: OnboardingProps) {
       }
 
       onComplete();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving onboarding details:", error);
+      alert("Errore durante il salvataggio dei dati. Dettagli: " + (error?.message || String(error)));
     } finally {
       setLoading(false);
     }
