@@ -1,0 +1,77 @@
+src/components/dashboards/WorkerVerificationPhase.tsx:26:        const docRef = doc(db, 'verifications', user.id);
+src/components/dashboards/WorkerVerificationPhase.tsx:69:      await setDoc(doc(db, 'verifications', user.id), {
+src/components/dashboards/ClientDashboard.tsx:63:    const profileRef = doc(db, 'users', user.id);
+src/components/dashboards/ClientDashboard.tsx:131:        const userRef = doc(db, 'users', user.id);
+src/components/dashboards/ClientDashboard.tsx:132:        const jobRef = doc(db, 'jobs', job.id);
+src/components/dashboards/ClientDashboard.tsx:161:      await updateDoc(doc(db, 'jobs', job.id), {
+src/components/dashboards/ClientDashboard.tsx:321:                           await updateDoc(doc(db, 'jobs', job.id), {
+src/components/dashboards/WorkerDashboard.tsx:64:    const profileRef = doc(db, 'workerProfiles', user.id);
+src/components/dashboards/WorkerDashboard.tsx:130:          batch.update(doc(db, 'users', user.id), {
+src/components/dashboards/WorkerDashboard.tsx:196:      const convRef = doc(db, 'conversations', conversationId);
+src/components/dashboards/WorkerDashboard.tsx:238:      const profileRef = doc(db, 'workerProfiles', user.id);
+src/components/dashboards/WorkerDashboard.tsx:257:      const profileRef = doc(db, 'workerProfiles', user.id);
+src/components/dashboards/WorkerDashboard.tsx:519:                                  await updateDoc(doc(db, 'jobs', job.id), { status: 'completed', updatedAt: serverTimestamp() });
+src/components/dashboards/WorkerDashboard.tsx:648:                          await updateDoc(doc(db, 'jobs', job.id), {
+src/components/dashboards/AdminDashboard.tsx:190:      await setDoc(doc(db, 'adminSettings', 'config'), { ...billingConfigForm });
+src/components/dashboards/AdminDashboard.tsx:192:      await setDoc(doc(db, 'config', 'billing'), { stripeLinks: billingConfigForm.stripeLinks }, { merge: true });
+src/components/dashboards/AdminDashboard.tsx:206:      await updateDoc(doc(db, 'invoices', invoiceId), { 
+src/components/dashboards/AdminDashboard.tsx:226:        await updateDoc(doc(db, 'users', userId), { status: 'active' });
+src/components/dashboards/AdminDashboard.tsx:227:        await updateDoc(doc(db, 'verifications', userId), { status: 'approved' });
+src/components/dashboards/AdminDashboard.tsx:230:        await updateDoc(doc(db, 'verifications', userId), { status: 'rejected' });
+src/components/dashboards/AdminDashboard.tsx:299:            const ref = doc(db, colName, id);
+src/components/dashboards/AdminDashboard.tsx:358:    const unsubAdminConfig = onSnapshot(doc(db, 'adminSettings', 'config'), (snap) => {
+src/components/dashboards/AdminDashboard.tsx:371:      getDoc(doc(db, 'config', 'billing')).then(snap => {
+src/components/dashboards/AdminDashboard.tsx:476:      await deleteDoc(doc(db, 'jobs', id));
+src/components/dashboards/AdminDashboard.tsx:483:      await updateDoc(doc(db, 'users', userId), { role: newRole });
+src/components/dashboards/AdminDashboard.tsx:501:      await updateDoc(doc(db, 'users', userId), { 
+src/components/dashboards/AdminDashboard.tsx:571:      await updateDoc(doc(db, 'users', userId), { 
+src/components/dashboards/AdminDashboard.tsx:586:      await deleteDoc(doc(db, 'users', userId));
+src/components/dashboards/AdminDashboard.tsx:595:    const maintenanceRef = doc(db, 'config', 'system');
+src/components/dashboards/AdminDashboard.tsx:1235:                                        await updateDoc(doc(db, 'users', u.id), { status: 'active' });
+src/components/dashboards/AdminDashboard.tsx:1237:                                          await updateDoc(doc(db, 'verifications', u.id), { status: 'approved' });
+src/components/NotificationSettings.tsx:38:        const docRef = doc(db, 'users', auth.currentUser.uid);
+src/components/NotificationSettings.tsx:67:      await updateDoc(doc(db, 'users', auth.currentUser.uid), {
+src/components/modals/GuidedWorkerModal.tsx:114:        await setDoc(doc(db, 'users', finalUid), {
+src/components/modals/ReviewModal.tsx:42:      getDoc(doc(db, 'users', job.assignedWorkerId)).then(snap => {
+src/components/modals/ReviewModal.tsx:88:      await updateDoc(doc(db, 'jobs', job.id), {
+src/components/modals/ReviewModal.tsx:100:        const workerRef = doc(db, 'workerProfiles', job.assignedWorkerId);
+src/components/modals/GuidedJobModal.tsx:213:      const userRef = doc(db, 'users', userCredential.user.uid);
+src/components/modals/GuidedJobModal.tsx:288:          await setDoc(doc(db, 'users', currentUserId), {
+src/components/modals/GuidedJobModal.tsx:315:          await setDoc(doc(db, 'users', currentUserId), {
+src/components/modals/JobProposalModal.tsx:48:      const u = await getDoc(doc(db, 'users', workerId));
+src/components/modals/JobProposalModal.tsx:108:        const userRef = doc(db, 'users', workerId);
+src/components/modals/JobProposalModal.tsx:139:        const jobRef = doc(db, 'jobs', job.id);
+src/components/modals/PublicProfileModal.tsx:24:        const docRef = doc(db, 'workerProfiles', workerId);
+src/components/modals/ProposalsModal.tsx:76:      batch.update(doc(db, 'proposals', proposal.id), {
+src/components/modals/ProposalsModal.tsx:84:          batch.update(doc(db, 'proposals', p.id), {
+src/components/modals/ProposalsModal.tsx:92:      batch.update(doc(db, 'jobs', job.id), {
+src/components/modals/ProposalsModal.tsx:101:      batch.set(doc(db, 'conversations', conversationId), {
+src/components/modals/ChatModal.tsx:60:        await updateDoc(doc(db, 'jobs', job.id), {
+src/components/modals/ChatModal.tsx:118:      const convRef = doc(db, 'conversations', conversationId);
+src/components/modals/ChatModal.tsx:189:      await updateDoc(doc(db, 'jobs', job.id), updateData);
+src/components/modals/BuyCreditsModal.tsx:54:      const userRef = doc(db, 'users', userId);
+src/components/modals/BuyCreditsModal.tsx:55:      const workerRef = doc(db, 'workerProfiles', userId);
+src/components/NotificationsView.tsx:73:      await updateDoc(doc(db, 'notifications', id), { read: true });
+src/components/NotificationsView.tsx:81:      await deleteDoc(doc(db, 'notifications', id));
+src/components/Onboarding.tsx:57:      const userRef = doc(db, 'users', user.id);
+src/components/BillingSettings.tsx:24:        const docRef = doc(db, 'billingProfiles', auth.currentUser.uid);
+src/components/BillingSettings.tsx:43:      const docRef = doc(db, 'billingProfiles', auth.currentUser.uid);
+src/components/ProfileSettings.tsx:42:        const docRef = doc(db, 'users', auth.currentUser.uid);
+src/components/ProfileSettings.tsx:76:      await updateDoc(doc(db, 'users', auth.currentUser.uid), {
+src/components/ProfileSettings.tsx:98:      await updateDoc(doc(db, 'users', auth.currentUser.uid), {
+src/components/CreditsView.tsx:78:        const snap = await getDoc(doc(db, 'config', 'billing'));
+src/components/CreditsView.tsx:83:          const legacySnap = await getDoc(doc(db, 'adminSettings', 'config'));
+src/components/CreditsView.tsx:163:        const userRef = doc(db, 'users', user.id || user.uid);
+src/components/CreditsView.tsx:176:           const workerRef = doc(db, 'workerProfiles', user.id || user.uid);
+src/components/DataPrivacySettings.tsx:29:      const docRef = doc(db, 'users', auth.currentUser.uid);
+src/components/WorkerOnboardingFlow.tsx:121:      const userRef = doc(db, 'users', user.id);
+src/components/WorkerOnboardingFlow.tsx:140:      const billingRef = doc(db, 'billingProfiles', user.id);
+src/components/WorkerOnboardingFlow.tsx:158:      const profileRef = doc(db, 'workerProfiles', user.id);
+src/components/ProfileView.tsx:140:      const profileRef = doc(db, 'workerProfiles', user.id);
+src/components/ProfileView.tsx:193:      await updateDoc(doc(db, 'users', user.id), {
+src/components/ProfileView.tsx:198:        const workerRef = doc(db, 'workerProfiles', user.id);
+src/App.tsx:235:        const userRef = doc(db, 'users', firebaseUser.uid);
+src/App.tsx:252:                await setDoc(doc(db, 'admins', firebaseUser.uid), { 
+src/lib/notifications.ts:38:    const userRef = doc(db, 'users', userId);
+src/lib/notifications.ts:61:  const jobRef = doc(db, 'jobs', jobId);
+src/lib/notifications.ts:84:  const jobRef = doc(db, 'jobs', jobId);
