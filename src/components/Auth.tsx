@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { auth } from '../firebase';
+import { auth, db } from '../firebase';
 import { 
   GoogleAuthProvider, 
   signInWithPopup, 
@@ -9,6 +9,7 @@ import {
   sendPasswordResetEmail,
   updateProfile
 } from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { 
@@ -48,7 +49,23 @@ export function Auth() {
     setLoading(true);
     setError(null);
     try {
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      const userRef = doc(db, 'users', result.user.uid);
+      const docSnap = await getDoc(userRef);
+      if (!docSnap.exists()) {
+        const isDefaultAdmin = result.user.email?.toLowerCase() === 'fio.davide@gmail.com' || result.user.email?.toLowerCase() === 'admin@cercartigiano.it';
+        const newUser = {
+          id: result.user.uid,
+          nome: result.user.displayName || 'Utente',
+          email: result.user.email || '',
+          role: isDefaultAdmin ? 'admin' : 'client',
+          status: 'active',
+          createdAt: new Date().toISOString(),
+          tokens: 0,
+          onboardingComplete: isDefaultAdmin ? true : false
+        };
+        await setDoc(userRef, newUser);
+      }
     } catch (error: any) {
       console.error("Auth error:", error);
       if (error.code === 'auth/unauthorized-domain') {
@@ -75,10 +92,40 @@ export function Auth() {
         throw { code: 'auth/invalid-email' };
       }
       if (mode === 'login') {
-        await signInWithEmailAndPassword(auth, email, password);
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const userRef = doc(db, 'users', userCredential.user.uid);
+        const docSnap = await getDoc(userRef);
+        if (!docSnap.exists()) {
+          const isDefaultAdmin = email.toLowerCase() === 'fio.davide@gmail.com' || email.toLowerCase() === 'admin@cercartigiano.it';
+          const newUser = {
+            id: userCredential.user.uid,
+            nome: userCredential.user.displayName || displayName || 'Utente',
+            email: email,
+            role: isDefaultAdmin ? 'admin' : 'client',
+            status: 'active',
+            createdAt: new Date().toISOString(),
+            tokens: 0,
+            onboardingComplete: isDefaultAdmin ? true : false
+          };
+          await setDoc(userRef, newUser);
+        }
       } else if (mode === 'register') {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(userCredential.user, { displayName });
+        
+        const userRef = doc(db, 'users', userCredential.user.uid);
+        const isDefaultAdmin = email.toLowerCase() === 'fio.davide@gmail.com' || email.toLowerCase() === 'admin@cercartigiano.it';
+        const newUser = {
+          id: userCredential.user.uid,
+          nome: displayName || 'Utente',
+          email: email,
+          role: isDefaultAdmin ? 'admin' : 'client',
+          status: 'active',
+          createdAt: new Date().toISOString(),
+          tokens: 0,
+          onboardingComplete: isDefaultAdmin ? true : false
+        };
+        await setDoc(userRef, newUser);
       } else if (mode === 'forgot-password') {
         await sendPasswordResetEmail(auth, email);
         setEmailSent(true);

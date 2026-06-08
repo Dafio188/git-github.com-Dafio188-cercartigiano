@@ -147,7 +147,7 @@ export default function App() {
             setShowAuth(false);
           } else {
             console.log("[DIAGNOSTIC - App.tsx] Documento utente inesistente su Firestore per uid:", firebaseUser.uid);
-            // Handle first-time Google login: Create a profile if it doesn't exist
+            // Handle first-time Google login or registration: Create local object and let them onboarding
             const newUser: User = {
               id: firebaseUser.uid,
               nome: firebaseUser.displayName || 'Utente',
@@ -158,17 +158,7 @@ export default function App() {
               tokens: 0,
               onboardingComplete: isDefaultAdmin ? true : false
             };
-            
-            try {
-              const { setDoc } = await import('firebase/firestore');
-              await setDoc(userRef, newUser);
-              setUser(newUser);
-              setShowAuth(false);
-            } catch (err) {
-              console.error("Error creating profile:", err);
-              // Fallback to local state if creation fails initially
-              setUser(newUser);
-            }
+            setUser(newUser);
           }
           setLoading(false);
           setAuthReady(true);
