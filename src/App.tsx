@@ -125,9 +125,9 @@ export default function App() {
         // Listen to user document
         const userRef = doc(db, 'users', firebaseUser.uid);
         unsubUser = onSnapshot(userRef, async (docSnap) => {
-          const isDefaultAdmin = firebaseUser.email === 'fio.davide@gmail.com' || firebaseUser.email === 'admin@cercartigiano.it';
+          const isDefaultAdmin = firebaseUser.email?.toLowerCase() === 'fio.davide@gmail.com' || firebaseUser.email?.toLowerCase() === 'admin@cercartigiano.it';
           if (docSnap.exists()) {
-            const data = docSnap.data() as User;
+            const data = { id: docSnap.id, ...docSnap.data() } as User;
             if (isDefaultAdmin && data.role !== 'admin') {
               try {
                 await updateDoc(userRef, { role: 'admin' });
@@ -265,7 +265,7 @@ export default function App() {
   }
 
   const currentUserEmail = user?.email || auth.currentUser?.email;
-  const isAdminEmail = currentUserEmail === 'fio.davide@gmail.com' || currentUserEmail === 'admin@cercartigiano.it';
+  const isAdminEmail = currentUserEmail?.toLowerCase() === 'fio.davide@gmail.com' || currentUserEmail?.toLowerCase() === 'admin@cercartigiano.it';
   const userRole = user?.role || (isAdminEmail ? 'admin' : 'client');
   const effectiveRole = isAdminEmail ? 'admin' : userRole;
 
