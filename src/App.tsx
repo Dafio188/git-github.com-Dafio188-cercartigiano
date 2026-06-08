@@ -128,6 +128,13 @@ export default function App() {
           const isDefaultAdmin = firebaseUser.email?.toLowerCase() === 'fio.davide@gmail.com' || firebaseUser.email?.toLowerCase() === 'admin@cercartigiano.it';
           if (docSnap.exists()) {
             const data = { id: docSnap.id, ...docSnap.data() } as User;
+            console.log("[DIAGNOSTIC - App.tsx] Snapshot utente ricevuto da Firestore:", {
+              id: docSnap.id,
+              email: data.email,
+              onboardingComplete: data.onboardingComplete,
+              role: data.role,
+              exists: true
+            });
             if (isDefaultAdmin && data.role !== 'admin') {
               try {
                 await updateDoc(userRef, { role: 'admin' });
@@ -139,6 +146,7 @@ export default function App() {
             setUser(data);
             setShowAuth(false);
           } else {
+            console.log("[DIAGNOSTIC - App.tsx] Documento utente inesistente su Firestore per uid:", firebaseUser.uid);
             // Handle first-time Google login: Create a profile if it doesn't exist
             const newUser: User = {
               id: firebaseUser.uid,
@@ -270,6 +278,12 @@ export default function App() {
   const effectiveRole = isAdminEmail ? 'admin' : userRole;
 
   if (user && !user.onboardingComplete && !isAdminEmail && authReady && !loading) {
+    console.log("[DIAGNOSTIC - App.tsx] Reindirizzamento all'Onboarding attivo per:", {
+      id: user.id,
+      email: user.email,
+      onboardingComplete: user.onboardingComplete,
+      isAdminEmail
+    });
     return <Onboarding user={user} onComplete={() => setUser({ ...user, onboardingComplete: true })} />;
   }
 

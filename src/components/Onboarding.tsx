@@ -84,11 +84,13 @@ export function Onboarding({ user, onComplete }: OnboardingProps) {
       if (cap) updates.cap = cap;
       if (provincia) updates.provincia = provincia;
 
+      console.log("[DIAGNOSTIC - Onboarding.tsx] Avvio scrittura updates per users:", updates);
       await setDoc(userRef, updates, { merge: true });
+      console.log("[DIAGNOSTIC - Onboarding.tsx] Scrittura su users completata.");
 
       // Save Billing Profile
       const billingRef = doc(db, 'billingProfiles', user.id);
-      await setDoc(billingRef, {
+      const billingData = {
         userId: user.id,
         fiscalType,
         ragioneSociale: ragioneSociale || undefined,
@@ -102,7 +104,10 @@ export function Onboarding({ user, onComplete }: OnboardingProps) {
         provincia: provincia,
         regimeFiscale: regimeFiscale || undefined,
         updatedAt: new Date().toISOString()
-      });
+      };
+      console.log("[DIAGNOSTIC - Onboarding.tsx] Scrittura billingProfiles:", billingData);
+      await setDoc(billingRef, billingData);
+      console.log("[DIAGNOSTIC - Onboarding.tsx] Scrittura billingProfiles completata.");
 
       // If worker, optionally initialize their public profile
       if (role === 'worker') {
@@ -125,9 +130,12 @@ export function Onboarding({ user, onComplete }: OnboardingProps) {
           isAvailable: true,
           isOnline: true
         };
+        console.log("[DIAGNOSTIC - Onboarding.tsx] Scrittura workerProfiles:", profileData);
         await setDoc(profileRef, profileData);
+        console.log("[DIAGNOSTIC - Onboarding.tsx] Scrittura workerProfiles completata.");
       }
 
+      console.log("[DIAGNOSTIC - Onboarding.tsx] Invocazione onComplete()");
       onComplete();
     } catch (error: any) {
       console.error("Error saving onboarding details:", error);
