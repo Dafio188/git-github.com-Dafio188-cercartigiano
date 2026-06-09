@@ -79,20 +79,6 @@ export function JobDetailsSharedModal({ isOpen, onClose, job, user, onOpenPropos
               </Button>
 
               <Button 
-                variant="outline"
-                onClick={() => {
-                   onClose();
-                   onStartChat(job);
-                }}
-                className="w-full h-14 rounded-2xl border-2 border-[#1D1D1F] text-[#1D1D1F] font-black group hover:bg-[#1D1D1F] hover:text-white transition-all shadow-lg shadow-black/5"
-              >
-                <div className="flex items-center justify-center gap-2">
-                  <MessageSquare className="w-5 h-5" />
-                  Chiedi Chiarimenti in Privato
-                </div>
-              </Button>
-
-              <Button 
                 variant="ghost"
                 onClick={onClose}
                 className="w-full h-12 rounded-2xl text-[#86868B] font-bold hover:bg-[#F5F5F7] transition-all"

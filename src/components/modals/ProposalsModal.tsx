@@ -46,11 +46,13 @@ export function ProposalsModal({ isOpen, onClose, job, user }: ProposalsModalPro
   useEffect(() => {
     if (!isOpen || !job?.id) return;
 
+    const targetStatus = (job.status === 'in_progress' || job.status === 'completed') ? 'accepted' : 'pending';
+
     const q = query(
       collection(db, 'proposals'),
       where('jobId', '==', job.id),
       where('clientId', '==', job.clientId),
-      where('status', '==', 'pending')
+      where('status', '==', targetStatus)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -60,7 +62,7 @@ export function ProposalsModal({ isOpen, onClose, job, user }: ProposalsModalPro
     });
 
     return () => unsubscribe();
-  }, [isOpen, job?.id]);
+  }, [isOpen, job?.id, job?.status]);
 
   const handleAcceptProposal = async (proposal: JobProposal) => {
     if (!confirm("Accettando questa proposta ti impegni formalmente con l'artigiano secondo le condizioni, ma ricordati che e' un contratto privato con lui. Il pagamento NON avviene sulla piattaforma. Vuoi procedere?")) return;
@@ -317,42 +319,46 @@ export function ProposalsModal({ isOpen, onClose, job, user }: ProposalsModalPro
                           <div className="flex flex-col sm:flex-row items-center gap-4 justify-between pt-2">
                              <div className="text-2xl font-black text-green-600 sm:hidden">€{prop.price || (prop.materialsCost + prop.laborCost)}</div>
                              <div className="flex items-center gap-3 w-full sm:w-auto">
-                               <Button 
-                                 onClick={async () => {
-                                   const participants = [job.clientId, prop.workerId].sort();
-                                   const conversationId = `job_${job.id}_${participants.join('_')}`;
-                                   const convRef = doc(db, 'conversations', conversationId);
-                                   const convSnap = await getDoc(convRef);
-                                   
-                                   if (!convSnap.exists()) {
-                                     await setDoc(convRef, {
-                                       id: conversationId,
-                                       participants,
-                                       jobId: job.id,
-                                       jobTitle: job.title,
-                                       lastUpdate: serverTimestamp(),
-                                       lastMessage: 'Richiesta di informazioni dai preventivi.',
-                                       createdAt: serverTimestamp(),
-                                       isPublicContext: true
-                                     });
-                                   }
+                               {prop.status === 'accepted' && (
+                                 <Button 
+                                   onClick={async () => {
+                                     const participants = [job.clientId, prop.workerId].sort();
+                                     const conversationId = `job_${job.id}_${participants.join('_')}`;
+                                     const convRef = doc(db, 'conversations', conversationId);
+                                     const convSnap = await getDoc(convRef);
+                                     
+                                     if (!convSnap.exists()) {
+                                       await setDoc(convRef, {
+                                         id: conversationId,
+                                         participants,
+                                         jobId: job.id,
+                                         jobTitle: job.title,
+                                         lastUpdate: serverTimestamp(),
+                                         lastMessage: 'Richiesta di informazioni dai preventivi.',
+                                         createdAt: serverTimestamp(),
+                                         isPublicContext: false
+                                       });
+                                     }
 
-                                   setActiveChatConvId(conversationId);
-                                 }}
-                                 variant="outline"
-                                 className="flex-1 sm:flex-none h-14 px-6 rounded-2xl border-[#D2D2D7]/30 text-[#1D1D1F] font-black group shadow-sm hover:bg-[#F5F5F7]"
-                               >
-                                  <MessageSquare className="w-5 h-5 mr-2 group-hover:text-blue-600 transition-colors" />
-                                  Chat Privata
-                               </Button>
-                               <Button 
-                                 onClick={() => handleAcceptProposal(prop)}
-                                 disabled={!!acting}
-                                 className="flex-1 sm:flex-none h-14 px-10 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-sm group/btn shadow-xl shadow-blue-600/20"
-                                >
-                                   {acting === prop.id ? 'Accettazione...' : 'Accetta Preventivo'}
-                                   <ArrowRight className="ml-2 w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
-                                </Button>
+                                     setActiveChatConvId(conversationId);
+                                   }}
+                                   variant="outline"
+                                   className="flex-1 sm:flex-none h-14 px-6 rounded-2xl border-[#D2D2D7]/30 text-[#1D1D1F] font-black group shadow-sm hover:bg-[#F5F5F7]"
+                                 >
+                                    <MessageSquare className="w-5 h-5 mr-2 group-hover:text-blue-600 transition-colors" />
+                                    Apri Chat Privata
+                                 </Button>
+                               )}
+                               {prop.status === 'pending' && (
+                                 <Button 
+                                   onClick={() => handleAcceptProposal(prop)}
+                                   disabled={!!acting}
+                                   className="flex-1 sm:flex-none h-14 px-10 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-sm group/btn shadow-xl shadow-blue-600/20"
+                                  >
+                                     {acting === prop.id ? 'Accettazione...' : 'Accetta Preventivo'}
+                                     <ArrowRight className="ml-2 w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
+                                  </Button>
+                               )}
                              </div>
                           </div>
                         </div>
