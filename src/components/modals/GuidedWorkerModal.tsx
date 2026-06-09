@@ -134,6 +134,42 @@ export function GuidedWorkerModal({ isOpen, onClose, onComplete }: GuidedWorkerM
           }
         }, { merge: true });
 
+        // Crea il record collegato in workerProfiles
+        await setDoc(doc(db, 'workerProfiles', finalUid), {
+          userId: finalUid,
+          nome: `${formData.firstName} ${formData.lastName}`,
+          bio: formData.bio,
+          categories: [formData.category],
+          hourlyRate: 0,
+          radiusKm: 20,
+          citta: formData.city,
+          provincia: formData.province,
+          photoURL: formData.profilePhoto || undefined,
+          verifiedFlags: {
+            id: false,
+            phone: false,
+            insurance: false
+          },
+          badges: [],
+          score: 5.0,
+          credits: 100,
+          isAvailable: true,
+          isOnline: true,
+          portfolioImages: formData.portfolioPhotos
+        });
+
+        // Inizializza un record predefinito in billingProfiles per evitare errori futuri in fatturazione
+        await setDoc(doc(db, 'billingProfiles', finalUid), {
+          userId: finalUid,
+          fiscalType: 'individual',
+          codiceFiscale: '',
+          address: '',
+          cap: '',
+          citta: formData.city,
+          provincia: formData.province,
+          updatedAt: new Date().toISOString()
+        });
+
         setCurrentStep('success');
       }
     } catch (error) {

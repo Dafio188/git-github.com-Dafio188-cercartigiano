@@ -366,7 +366,7 @@ export default function App() {
               )}
             </Button>
             <div className="w-[1px] h-6 bg-[#D2D2D7]/40 mx-1 hidden sm:block" />
-            <Auth />
+            <Auth userDoc={user} />
           </div>
         </header>
 

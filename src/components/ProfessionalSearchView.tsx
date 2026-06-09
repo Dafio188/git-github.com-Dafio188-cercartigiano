@@ -52,7 +52,8 @@ export function ProfessionalSearchView({ currentUser }: any) {
   }, []);
 
   const filteredProfessionals = professionals.filter(p => {
-    const matchesSearch = p.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    const profName = p.nome || p.displayName || '';
+    const matchesSearch = profName.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          p.bio?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = !selectedCategory || p.category === selectedCategory;
     return matchesSearch && matchesCategory;
@@ -127,7 +128,7 @@ export function ProfessionalSearchView({ currentUser }: any) {
                     {prof.photoURL && (
                       <img 
                         src={prof.photoURL} 
-                        alt={prof.displayName} 
+                        alt={prof.nome || prof.displayName || 'Professionista'} 
                         className="w-full h-full object-cover mix-blend-overlay opacity-60 group-hover:scale-105 transition-transform duration-500" 
                       />
                     )}
@@ -144,7 +145,7 @@ export function ProfessionalSearchView({ currentUser }: any) {
                   <div className="p-6 space-y-4">
                     <div className="flex items-start justify-between">
                       <div>
-                        <h4 className="text-xl font-black text-[#1D1D1F] tracking-tight">{prof.displayName}</h4>
+                        <h4 className="text-xl font-black text-[#1D1D1F] tracking-tight">{prof.nome || prof.displayName || 'Professionista'}</h4>
                         <p className="text-sm font-bold text-blue-600 uppercase tracking-wider mt-1">
                           {SERVICE_CATEGORIES.find(c => c.id === prof.category)?.label || 'Artigiano'}
                         </p>

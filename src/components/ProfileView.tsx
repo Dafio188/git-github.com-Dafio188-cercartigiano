@@ -163,9 +163,11 @@ export function ProfileView({ user }: ProfileViewProps) {
     try {
       // 1. Update basic user data
       const isClientComplete = editUser.nome && editUser.phone && editUser.address;
-      const isWorkerComplete = editProfile.bio && editProfile.categories.length > 0 && editProfile.address;
+      // Usiamo editUser.address poiché l'indirizzo viene aggiornato in editUser
+      const isWorkerComplete = editProfile.bio && editProfile.categories.length > 0 && editUser.address;
       
-      const onboardingComplete = user.role === 'worker' ? !!isWorkerComplete : !!isClientComplete;
+      // Se l'onboarding era già completato, teniamo true per evitare redirect loop indesiderati alla schermata onboarding
+      const onboardingComplete = user.onboardingComplete || (user.role === 'worker' ? !!isWorkerComplete : !!isClientComplete);
 
       const { email: _email, ...updateUserData } = editUser;
       

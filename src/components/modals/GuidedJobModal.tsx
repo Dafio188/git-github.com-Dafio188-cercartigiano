@@ -265,6 +265,18 @@ export function GuidedJobModal({
         phone: answers.userPhone || null
       }, { merge: true });
 
+      // Inizializza un record predefinito in billingProfiles per evitare errori futuri in fatturazione
+      await setDoc(doc(db, 'billingProfiles', userCredential.user.uid), {
+        userId: userCredential.user.uid,
+        fiscalType: 'individual',
+        codiceFiscale: '',
+        address: address || '',
+        cap: '',
+        citta: '',
+        provincia: '',
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+
       // Finalizza immediatamente la richiesta
       setTimeout(() => handleFinish(), 500);
 
@@ -385,6 +397,18 @@ export function GuidedJobModal({
             address: address || null,
             location: location || null,
             phone: answers.userPhone || null
+          });
+
+          // Inizializza un record predefinito in billingProfiles per evitare errori futuri in fatturazione
+          await setDoc(doc(db, 'billingProfiles', currentUserId), {
+            userId: currentUserId,
+            fiscalType: 'individual',
+            codiceFiscale: '',
+            address: address || '',
+            cap: '',
+            citta: '',
+            provincia: '',
+            updatedAt: new Date().toISOString()
           });
         } catch (authError: any) {
           console.error("Auth error during guided flow:", authError);

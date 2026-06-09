@@ -30,7 +30,11 @@ import { cn } from '../lib/utils';
 
 type AuthMode = 'login' | 'register' | 'forgot-password';
 
-export function Auth() {
+interface AuthProps {
+  userDoc?: any;
+}
+
+export function Auth({ userDoc }: AuthProps = {}) {
   const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -155,10 +159,11 @@ export function Auth() {
   const user = auth.currentUser;
 
   if (user) {
+    const displayedName = userDoc?.nome || userDoc?.displayName || user.displayName || 'Utente';
     return (
       <div className="flex items-center gap-3">
         <div className="flex flex-col items-end hidden sm:flex">
-          <span className="text-xs font-black text-[#1D1D1F]">{user.displayName || 'Utente'}</span>
+          <span className="text-xs font-black text-[#1D1D1F]">{displayedName}</span>
           <span className="text-[10px] text-[#86868B] font-bold">{user.email}</span>
         </div>
         <div className="relative group">
