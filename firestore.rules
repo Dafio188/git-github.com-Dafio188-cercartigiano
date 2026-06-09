@@ -36,7 +36,10 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isSignedIn(); // We need to list users in AdminDashboard and search, so this allows all signed in users.
       allow create: if isOwner(userId) || isAdmin();
-      allow update: if isOwner(userId) || isAdmin();
+      allow update: if isOwner(userId) || isAdmin() || (
+        isSignedIn() && 
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['unreadNotificationsCount'])
+      );
       allow delete: if isAdmin();
     }
 
