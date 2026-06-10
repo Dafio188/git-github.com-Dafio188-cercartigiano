@@ -161,16 +161,18 @@ export function ProposalsModal({ isOpen, onClose, job, user }: ProposalsModalPro
                     >
                       Preventivi Ricevuti ({proposals.length})
                     </Button>
-                    <Button 
-                      onClick={() => setActiveTab('chats')}
-                      variant="ghost" 
-                      className={cn(
-                        "w-full justify-start h-12 rounded-xl font-black transition-all",
-                        activeTab === 'chats' ? "bg-white text-[#1D1D1F]" : "text-white/60 hover:text-white hover:bg-white/10"
-                      )}
-                    >
-                      Chat di Trattativa ({conversations.length})
-                    </Button>
+                    {conversations.length > 0 && (
+                      <Button 
+                        onClick={() => setActiveTab('chats')}
+                        variant="ghost" 
+                        className={cn(
+                          "w-full justify-start h-12 rounded-xl font-black transition-all",
+                          activeTab === 'chats' ? "bg-white text-[#1D1D1F]" : "text-white/60 hover:text-white hover:bg-white/10"
+                        )}
+                      >
+                        Chat Privata
+                      </Button>
+                    )}
                     <Button 
                       onClick={() => setActiveTab('qna')}
                       variant="ghost" 
@@ -207,13 +209,15 @@ export function ProposalsModal({ isOpen, onClose, job, user }: ProposalsModalPro
                 >
                   Preventivi ({proposals.length})
                 </Button>
-                <Button 
-                  size="sm"
-                  onClick={() => setActiveTab('chats')}
-                  className={cn("rounded-full font-black text-[10px] uppercase", activeTab === 'chats' ? 'bg-white text-[#1D1D1F]' : 'bg-white/10 text-white')}
-                >
-                  Chat ({conversations.length})
-                </Button>
+                 {conversations.length > 0 && (
+                   <Button 
+                     size="sm"
+                     onClick={() => setActiveTab('chats')}
+                     className={cn("rounded-full font-black text-[10px] uppercase", activeTab === 'chats' ? 'bg-white text-[#1D1D1F]' : 'bg-white/10 text-white')}
+                   >
+                     Chat Privata
+                   </Button>
+                 )}
                 <Button 
                   size="sm"
                   onClick={() => setActiveTab('qna')}
@@ -517,34 +521,6 @@ export function ProposalsModal({ isOpen, onClose, job, user }: ProposalsModalPro
                                )}
                                {prop.status === 'pending' && (
                                  <div className="flex items-center gap-3 w-full sm:w-auto">
-                                   <Button 
-                                     onClick={async () => {
-                                       const participants = [job.clientId, prop.workerId].sort();
-                                       const conversationId = `job_${job.id}_${participants.join('_')}`;
-                                       const convRef = doc(db, 'conversations', conversationId);
-                                       const convSnap = await getDoc(convRef);
-                                       
-                                       if (!convSnap.exists()) {
-                                         await setDoc(convRef, {
-                                           id: conversationId,
-                                           participants,
-                                           jobId: job.id,
-                                           jobTitle: job.title,
-                                           lastUpdate: serverTimestamp(),
-                                           lastMessage: 'Trattativa preliminare avviata.',
-                                           createdAt: serverTimestamp(),
-                                           isPublicContext: true
-                                         });
-                                       }
-                                       setSelectedConvId(conversationId);
-                                       setActiveTab('chats');
-                                     }}
-                                     variant="outline"
-                                     className="flex-1 sm:flex-none h-14 px-6 rounded-2xl border-[#D2D2D7]/30 text-[#1D1D1F] font-black group shadow-sm hover:bg-[#F5F5F7]"
-                                   >
-                                      <MessageSquare className="w-5 h-5 mr-2 group-hover:text-blue-600 transition-colors" />
-                                      Trattativa
-                                   </Button>
                                    <Button 
                                      onClick={() => handleAcceptProposal(prop)}
                                      disabled={!!acting}

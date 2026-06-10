@@ -143,7 +143,7 @@ export function JobDetailsSharedModal({ isOpen, onClose, job, user, onOpenPropos
                   </div>
                   {proposal.status !== 'accepted' && (
                     <p className="text-[9px] font-bold text-[#86868B] leading-tight pt-1">
-                      Il preventivo è vincolante ed è all'esame del cliente. Puoi usare la chat a destra per chiarire i dettagli.
+                      Il preventivo è vincolante ed è all'esame del cliente. Puoi usare le Domande Pubbliche a destra per eventuali chiarimenti.
                     </p>
                   )}
                 </div>
@@ -169,14 +169,14 @@ export function JobDetailsSharedModal({ isOpen, onClose, job, user, onOpenPropos
               </Button>
 
               <p className="text-[10px] text-center font-bold text-[#86868B] px-4 pt-2 leading-tight">
-                 Le chat preliminari sono sorvegliate. Lo scambio di contatti prima dell'accettazione del preventivo comporta la sospensione del profilo.
+                 La chat privata sarà sbloccata solo dopo che il cliente avrà accettato il tuo preventivo.
               </p>
             </div>
           </div>
 
           {/* Right: Q&A / Chat */}
            <div className="w-full md:w-1/2 bg-[#FBFBFD] p-6 md:p-10 border-l border-[#D2D2D7]/30 flex flex-col h-[85vh]">
-             {proposal ? (
+             {proposal && proposal.status === 'accepted' ? (
                <div className="flex flex-col h-full overflow-hidden">
                  {/* Right Panel Tabs */}
                  <div className="flex items-center gap-3 bg-[#F5F5F7] p-1.5 rounded-2xl mb-6 self-start shrink-0">
@@ -198,7 +198,7 @@ export function JobDetailsSharedModal({ isOpen, onClose, job, user, onOpenPropos
                         activeRightTab === 'chat' ? "bg-white text-[#1D1D1F]" : "text-[#86868B] hover:text-[#1D1D1F] bg-transparent hover:bg-transparent"
                       )}
                     >
-                      Chat di Trattativa
+                      Chat Privata
                     </Button>
                  </div>
                  
