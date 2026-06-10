@@ -47,11 +47,12 @@ export function ProposalsModal({ isOpen, onClose, job, user }: ProposalsModalPro
   const [selectedConvId, setSelectedConvId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isOpen || !job?.id) return;
+    if (!isOpen || !job?.id || !user?.id) return;
 
     const q = query(
       collection(db, 'conversations'),
-      where('jobId', '==', job.id)
+      where('jobId', '==', job.id),
+      where('participants', 'array-contains', user.id)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -63,7 +64,7 @@ export function ProposalsModal({ isOpen, onClose, job, user }: ProposalsModalPro
     });
 
     return () => unsubscribe();
-  }, [isOpen, job?.id, selectedConvId]);
+  }, [isOpen, job?.id, selectedConvId, user?.id]);
 
   useEffect(() => {
     if (!isOpen || !job?.id) return;
