@@ -4,8 +4,10 @@ import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp 
 import { JobQuestion } from '../../types';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { MessageSquare, Send } from 'lucide-react';
+import { MessageSquare, Send, ShieldAlert } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { validateMessage } from '../../lib/contentFilter';
+import { AnimatePresence } from 'motion/react';
 import { format } from 'date-fns';
 
 interface JobQnAProps {
@@ -38,9 +40,20 @@ export function JobQnA({ jobId, userId, userName, role }: JobQnAProps) {
     return () => unsubscribe();
   }, [jobId]);
 
+  const [validationError, setValidationError] = useState<string | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newQuestion.trim()) return;
+
+    const validation = validateMessage(newQuestion.trim(), false);
+    if (!validation.isValid) {
+      setValidationError(validation.errorMessage || "Domanda non valida.");
+      setTimeout(() => setValidationError(null), 6000);
+      return;
+    }
+
+    setValidationError(null);
 
     try {
       await addDoc(collection(db, 'jobQuestions'), {
@@ -54,7 +67,7 @@ export function JobQnA({ jobId, userId, userName, role }: JobQnAProps) {
       setNewQuestion('');
     } catch (error) {
       console.error("Error adding question:", error);
-      alert("Errore nell'invio del messaggio. Assicurati che non contenga dati personali.");
+      alert("Errore nell'invio del messaggio.");
     }
   };
 
@@ -73,6 +86,24 @@ export function JobQnA({ jobId, userId, userName, role }: JobQnAProps) {
           </div>
         </div>
       </div>
+
+      {/* Rules Banner */}
+      <div className="p-4 bg-amber-50 border-b border-[#D2D2D7]/20 text-amber-800 text-xs font-semibold leading-relaxed flex items-start gap-2.5 shrink-0">
+        <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+        <p>
+          <strong>Regole di Utilizzo:</strong> Questa sezione è pubblica e visibile a tutti gli artigiani. È <strong>severamente vietato</strong> scambiare numeri di telefono, indirizzi email o link esterni. Chi viola questa regola rischia la sospensione immediata del profilo. Usa questa sezione per chiarimenti generali.
+        </p>
+      </div>
+
+      {/* Validation error banner */}
+      <AnimatePresence>
+        {validationError && (
+          <div className="p-3 bg-red-50 border-b border-red-100 text-red-800 text-xs font-bold leading-normal flex items-start gap-2 shrink-0">
+            <ShieldAlert className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+            <span>{validationError}</span>
+          </div>
+        )}
+      </AnimatePresence>
 
       <div className="flex-1 overflow-y-auto p-6 space-y-4">
         {loading ? (
@@ -121,7 +152,10 @@ export function JobQnA({ jobId, userId, userName, role }: JobQnAProps) {
       <form onSubmit={handleSubmit} className="p-4 bg-[#F5F5F7] border-t border-[#D2D2D7]/30 flex gap-2">
         <Input 
           value={newQuestion}
-          onChange={(e) => setNewQuestion(e.target.value)}
+          onChange={(e) => {
+            setNewQuestion(e.target.value);
+            if (validationError) setValidationError(null);
+          }}
           placeholder="Scrivi una domanda o risposta..."
           className="h-12 rounded-xl bg-white border-none font-bold shadow-sm flex-1"
         />

@@ -24,6 +24,7 @@ import {
 import { cn } from '../../lib/utils';
 import { doc, runTransaction, serverTimestamp, collection, addDoc, increment } from 'firebase/firestore';
 import { Job } from '../../types';
+import { validateMessage } from '../../lib/contentFilter';
 
 import { notifyNewProposal } from '../../lib/notifications';
 
@@ -72,6 +73,13 @@ export function JobProposalModal({ isOpen, onClose, job, workerId, workerTokens 
     if (!canSubmit) return;
     if (!formData.message) {
       alert("Inserisci un messaggio per il cliente");
+      return;
+    }
+
+    // Check message safety rules (never allow contacts in initial proposal notes)
+    const validation = validateMessage(formData.message, false);
+    if (!validation.isValid) {
+      alert(validation.errorMessage || "Messaggio del preventivo non valido.");
       return;
     }
 

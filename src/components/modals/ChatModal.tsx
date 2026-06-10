@@ -14,11 +14,12 @@ import {
 } from 'firebase/firestore';
 import { User, Conversation, DirectMessage } from '../../types';
 import { motion, AnimatePresence } from 'motion/react';
-import { Send, User as UserIcon, X, ChevronLeft, ShieldCheck } from 'lucide-react';
+import { Send, User as UserIcon, X, ChevronLeft, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { cn } from '../../lib/utils';
 import { notifyNewMessage } from '../../lib/notifications';
+import { validateMessage } from '../../lib/contentFilter';
 
 interface ChatModalProps {
   user: User;
@@ -31,6 +32,7 @@ export function ChatModal({ user, conversationId, onClose }: ChatModalProps) {
   const [messages, setMessages] = useState<DirectMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
+  const [validationError, setValidationError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom
@@ -71,7 +73,17 @@ export function ChatModal({ user, conversationId, onClose }: ChatModalProps) {
     if (!newMessage.trim() || !conversation) return;
 
     const messageText = newMessage.trim();
+
+    // Check message safety rules
+    const validation = validateMessage(messageText, !conversation.isPublicContext);
+    if (!validation.isValid) {
+      setValidationError(validation.errorMessage || "Messaggio non valido.");
+      setTimeout(() => setValidationError(null), 6000);
+      return;
+    }
+
     setNewMessage('');
+    setValidationError(null);
 
     try {
        await addDoc(collection(db, 'messages'), {
@@ -80,6 +92,7 @@ export function ChatModal({ user, conversationId, onClose }: ChatModalProps) {
         participantIds: conversation.participants,
         text: messageText,
         timestamp: serverTimestamp(),
+        isRead: false
       });
 
       await updateDoc(doc(db, 'conversations', conversation.id), {
@@ -135,6 +148,32 @@ export function ChatModal({ user, conversationId, onClose }: ChatModalProps) {
           </div>
         </div>
 
+        {/* Context Alert Banner */}
+        {conversation && (
+          <div className={cn(
+            "p-3.5 px-6 flex items-start gap-2.5 text-xs font-bold leading-relaxed border-b shrink-0",
+            conversation.isPublicContext 
+              ? "bg-amber-50 text-amber-800 border-amber-100" 
+              : "bg-green-50 text-green-800 border-green-100"
+          )}>
+            {conversation.isPublicContext ? (
+              <>
+                <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <p>
+                  <strong>Chat di Trattativa:</strong> Non è consentito scambiare email, siti o numeri di telefono prima che il preventivo sia accettato. I messaggi sono verificati.
+                </p>
+              </>
+            ) : (
+              <>
+                <ShieldCheck className="w-4 h-4 text-green-600 shrink-0 mt-0.5" />
+                <p>
+                  <strong>Contatto Attivo:</strong> Il preventivo è stato accettato! Potete ora scambiarvi i recapiti personali per definire i dettagli dell'intervento.
+                </p>
+              </>
+            )}
+          </div>
+        )}
+
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-4 bg-white">
           {messages.length === 0 ? (
@@ -178,10 +217,26 @@ export function ChatModal({ user, conversationId, onClose }: ChatModalProps) {
 
         {/* Input area */}
         <div className="p-4 bg-white border-t border-[#D2D2D7]/30">
+          <AnimatePresence>
+            {validationError && (
+              <motion.div 
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 5 }}
+                className="p-3 bg-red-50 border border-red-100 rounded-xl text-red-800 text-xs font-bold leading-normal flex items-start gap-2 mb-3"
+              >
+                <ShieldAlert className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                <span>{validationError}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
           <form onSubmit={handleSendMessage} className="flex gap-2">
             <Input 
               value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
+              onChange={(e) => {
+                setNewMessage(e.target.value);
+                if (validationError) setValidationError(null);
+              }}
               placeholder="Scrivi un messaggio..."
               className="flex-1 rounded-2xl h-12 bg-[#F5F5F7] border-transparent focus:bg-white focus:border-[#D2D2D7]/50"
             />

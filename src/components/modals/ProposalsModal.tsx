@@ -23,11 +23,12 @@ import {
   Wrench
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { JobProposal, Job, User } from '../../types';
+import { JobProposal, Job, User, Conversation } from '../../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { JobQnA } from '../shared/JobQnA';
 import { BadgeList } from '../shared/BadgeList';
 import { ChatModal } from './ChatModal';
+import { ChatPanel } from '../shared/ChatPanel';
 
 interface ProposalsModalProps {
   isOpen: boolean;
@@ -40,8 +41,29 @@ export function ProposalsModal({ isOpen, onClose, job, user }: ProposalsModalPro
   const [proposals, setProposals] = useState<JobProposal[]>([]);
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'proposals' | 'qna'>('proposals');
+  const [activeTab, setActiveTab] = useState<'proposals' | 'chats' | 'qna'>('proposals');
   const [activeChatConvId, setActiveChatConvId] = useState<string | null>(null);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [selectedConvId, setSelectedConvId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isOpen || !job?.id) return;
+
+    const q = query(
+      collection(db, 'conversations'),
+      where('jobId', '==', job.id)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Conversation));
+      setConversations(data);
+      if (data.length > 0 && !selectedConvId) {
+        setSelectedConvId(data[0].id);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [isOpen, job?.id, selectedConvId]);
 
   useEffect(() => {
     if (!isOpen || !job?.id) return;
@@ -127,28 +149,38 @@ export function ProposalsModal({ isOpen, onClose, job, user }: ProposalsModalPro
                    </div>
                 </div>
                 
-                <div className="space-y-2">
-                   <Button 
-                     onClick={() => setActiveTab('proposals')}
-                     variant="ghost" 
-                     className={cn(
-                       "w-full justify-start h-12 rounded-xl font-black transition-all",
-                       activeTab === 'proposals' ? "bg-white text-[#1D1D1F]" : "text-white/60 hover:text-white hover:bg-white/10"
-                     )}
-                   >
-                     Preventivi Ricevuti ({proposals.length})
-                   </Button>
-                   <Button 
-                     onClick={() => setActiveTab('qna')}
-                     variant="ghost" 
-                     className={cn(
-                       "w-full justify-start h-12 rounded-xl font-black transition-all",
-                       activeTab === 'qna' ? "bg-white text-[#1D1D1F]" : "text-white/60 hover:text-white hover:bg-white/10"
-                     )}
-                   >
-                     Domande Pubbliche
-                   </Button>
-                </div>
+                 <div className="space-y-2">
+                    <Button 
+                      onClick={() => setActiveTab('proposals')}
+                      variant="ghost" 
+                      className={cn(
+                        "w-full justify-start h-12 rounded-xl font-black transition-all",
+                        activeTab === 'proposals' ? "bg-white text-[#1D1D1F]" : "text-white/60 hover:text-white hover:bg-white/10"
+                      )}
+                    >
+                      Preventivi Ricevuti ({proposals.length})
+                    </Button>
+                    <Button 
+                      onClick={() => setActiveTab('chats')}
+                      variant="ghost" 
+                      className={cn(
+                        "w-full justify-start h-12 rounded-xl font-black transition-all",
+                        activeTab === 'chats' ? "bg-white text-[#1D1D1F]" : "text-white/60 hover:text-white hover:bg-white/10"
+                      )}
+                    >
+                      Chat di Trattativa ({conversations.length})
+                    </Button>
+                    <Button 
+                      onClick={() => setActiveTab('qna')}
+                      variant="ghost" 
+                      className={cn(
+                        "w-full justify-start h-12 rounded-xl font-black transition-all",
+                        activeTab === 'qna' ? "bg-white text-[#1D1D1F]" : "text-white/60 hover:text-white hover:bg-white/10"
+                      )}
+                    >
+                      Domande Pubbliche
+                    </Button>
+                 </div>
                 
                 <Button 
                    onClick={onClose}
@@ -164,15 +196,22 @@ export function ProposalsModal({ isOpen, onClose, job, user }: ProposalsModalPro
           </div>
 
           {/* Mobile Header */}
-          <div className="md:hidden bg-[#1D1D1F] p-6 text-white">
+          <div className="md:hidden bg-[#1D1D1F] p-6 text-white shrink-0">
              <h2 className="text-xl font-black tracking-tight">{job.title}</h2>
-             <div className="flex items-center gap-2 mt-4">
+             <div className="flex flex-wrap items-center gap-2 mt-4">
                 <Button 
                   size="sm"
                   onClick={() => setActiveTab('proposals')}
                   className={cn("rounded-full font-black text-[10px] uppercase", activeTab === 'proposals' ? 'bg-white text-[#1D1D1F]' : 'bg-white/10 text-white')}
                 >
                   Preventivi ({proposals.length})
+                </Button>
+                <Button 
+                  size="sm"
+                  onClick={() => setActiveTab('chats')}
+                  className={cn("rounded-full font-black text-[10px] uppercase", activeTab === 'chats' ? 'bg-white text-[#1D1D1F]' : 'bg-white/10 text-white')}
+                >
+                  Chat ({conversations.length})
                 </Button>
                 <Button 
                   size="sm"
@@ -186,7 +225,133 @@ export function ProposalsModal({ isOpen, onClose, job, user }: ProposalsModalPro
 
           {/* Right Panel: Content */}
           <div className="flex-1 p-6 md:p-10 overflow-y-auto">
-            {activeTab === 'proposals' ? (
+            {activeTab === 'chats' ? (
+              <div className="space-y-6 h-full flex flex-col">
+                <div className="flex items-center justify-between mb-2 text-[#1D1D1F]">
+                  <h3 className="text-2xl font-black tracking-tight">Chat di Trattativa</h3>
+                  <Button variant="ghost" onClick={onClose} className="md:hidden">Chiudi</Button>
+                </div>
+                
+                {conversations.length === 0 ? (
+                  <div className="py-20 border-2 border-dashed border-[#D2D2D7]/30 rounded-3xl flex flex-col items-center justify-center text-center space-y-4 opacity-50 bg-white">
+                    <div className="w-16 h-16 bg-[#F5F5F7] rounded-2xl flex items-center justify-center">
+                      <MessageSquare className="w-8 h-8 text-[#86868B]" />
+                    </div>
+                    <div className="space-y-1">
+                      <h4 className="font-black text-[#1D1D1F]">Nessuna chat attiva</h4>
+                      <p className="text-xs font-bold text-[#86868B]">Clicca su "Trattativa" sotto a uno dei preventivi ricevuti per avviare il dialogo.</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col lg:flex-row gap-6 h-[65vh] overflow-hidden">
+                    {/* List of Chats */}
+                    <div className="w-full lg:w-1/3 bg-white border border-[#D2D2D7]/30 rounded-3xl overflow-y-auto p-4 space-y-2 shrink-0">
+                      <div className="text-[10px] font-black uppercase tracking-widest text-[#86868B] mb-2 px-1">Seleziona Candidato</div>
+                      {conversations.map((conv) => {
+                        const otherParticipantId = conv.participants.find(id => id !== user.id) || '';
+                        const associatedProposal = proposals.find(p => p.workerId === otherParticipantId);
+                        const isSelected = selectedConvId === conv.id;
+                        
+                        return (
+                          <button
+                            key={conv.id}
+                            onClick={() => setSelectedConvId(conv.id)}
+                            className={cn(
+                              "w-full text-left p-3.5 rounded-2xl transition-all flex flex-col gap-1 border",
+                              isSelected 
+                                ? "bg-[#1D1D1F] text-white border-transparent shadow-md" 
+                                : "bg-[#F5F5F7]/50 hover:bg-[#F5F5F7] text-[#1D1D1F] border-[#D2D2D7]/10"
+                            )}
+                          >
+                            <div className="flex items-center justify-between w-full">
+                              <span className="font-black text-sm truncate">
+                                {associatedProposal?.workerName || 'Professionista'}
+                              </span>
+                              {associatedProposal && (
+                                <span className={cn(
+                                  "text-[10px] font-black px-1.5 py-0.5 rounded",
+                                  isSelected ? "bg-white/20 text-white" : "bg-blue-50 text-blue-600"
+                                )}>
+                                  €{associatedProposal.price}
+                                </span>
+                              )}
+                            </div>
+                            <span className={cn(
+                              "text-xs truncate font-medium",
+                              isSelected ? "text-white/60" : "text-[#86868B]"
+                            )}>
+                              {conv.lastMessage || 'Apri chat per scambiare informazioni.'}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    
+                    {/* Selected Chat Panel & Proposal Card */}
+                    <div className="flex-1 flex flex-col h-full overflow-hidden gap-4">
+                      {selectedConvId ? (
+                        <>
+                          {(() => {
+                            const conv = conversations.find(c => c.id === selectedConvId);
+                            const otherParticipantId = conv?.participants.find(p => p !== user.id) || '';
+                            const associatedProposal = proposals.find(p => p.workerId === otherParticipantId);
+                            if (!associatedProposal) return null;
+                            
+                            return (
+                              <div className="bg-white border border-[#D2D2D7]/30 p-4 rounded-3xl flex items-center justify-between shadow-sm shrink-0">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 bg-[#1D1D1F] text-white rounded-full flex items-center justify-center font-black">
+                                    {associatedProposal.workerName?.charAt(0)}
+                                  </div>
+                                  <div>
+                                    <div className="font-black text-sm text-[#1D1D1F] flex items-center gap-1.5">
+                                      {associatedProposal.workerName}
+                                      <div className="flex items-center gap-0.5 bg-yellow-50 px-1 py-0.5 rounded border border-yellow-200">
+                                        <Star className="w-2.5 h-2.5 text-yellow-500 fill-yellow-500" />
+                                        <span className="text-[9px] font-black text-yellow-700">{associatedProposal.workerRating}</span>
+                                      </div>
+                                    </div>
+                                    <p className="text-[10px] font-bold text-[#86868B]">
+                                      Durata: {associatedProposal.estimatedDays} GG • Validità: {associatedProposal.validityDays} GG
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <div className="text-right">
+                                    <div className="text-[9px] font-black uppercase text-[#86868B]">Totale</div>
+                                    <div className="font-black text-lg text-green-600">€{associatedProposal.price}</div>
+                                  </div>
+                                  {associatedProposal.status === 'pending' && (
+                                    <Button
+                                      onClick={() => handleAcceptProposal(associatedProposal)}
+                                      disabled={!!acting}
+                                      size="sm"
+                                      className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs h-10 px-4 shrink-0 shadow-md shadow-blue-500/10"
+                                    >
+                                      {acting === associatedProposal.id ? '...' : 'Accetta'}
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })()}
+                          <ChatPanel 
+                            user={user} 
+                            conversationId={selectedConvId} 
+                            className="flex-1 h-auto"
+                          />
+                        </>
+                      ) : (
+                        <div className="flex-1 border border-[#D2D2D7]/20 rounded-[2rem] bg-[#F5F5F7]/30 flex flex-col items-center justify-center text-center p-6 opacity-60">
+                          <MessageSquare className="w-8 h-8 text-[#86868B] mb-2" />
+                          <p className="text-xs font-bold text-[#86868B]">Seleziona una chat dalla lista a sinistra per visualizzare la conversazione.</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : activeTab === 'proposals' ? (
               <div className="space-y-6">
                 <div className="flex items-center justify-between mb-2 text-[#1D1D1F]">
                   <h3 className="text-2xl font-black tracking-tight">Preventivi Ricevuti</h3>
@@ -350,14 +515,44 @@ export function ProposalsModal({ isOpen, onClose, job, user }: ProposalsModalPro
                                  </Button>
                                )}
                                {prop.status === 'pending' && (
-                                 <Button 
-                                   onClick={() => handleAcceptProposal(prop)}
-                                   disabled={!!acting}
-                                   className="flex-1 sm:flex-none h-14 px-10 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-sm group/btn shadow-xl shadow-blue-600/20"
-                                  >
-                                     {acting === prop.id ? 'Accettazione...' : 'Accetta Preventivo'}
-                                     <ArrowRight className="ml-2 w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
-                                  </Button>
+                                 <div className="flex items-center gap-3 w-full sm:w-auto">
+                                   <Button 
+                                     onClick={async () => {
+                                       const participants = [job.clientId, prop.workerId].sort();
+                                       const conversationId = `job_${job.id}_${participants.join('_')}`;
+                                       const convRef = doc(db, 'conversations', conversationId);
+                                       const convSnap = await getDoc(convRef);
+                                       
+                                       if (!convSnap.exists()) {
+                                         await setDoc(convRef, {
+                                           id: conversationId,
+                                           participants,
+                                           jobId: job.id,
+                                           jobTitle: job.title,
+                                           lastUpdate: serverTimestamp(),
+                                           lastMessage: 'Trattativa preliminare avviata.',
+                                           createdAt: serverTimestamp(),
+                                           isPublicContext: true
+                                         });
+                                       }
+                                       setSelectedConvId(conversationId);
+                                       setActiveTab('chats');
+                                     }}
+                                     variant="outline"
+                                     className="flex-1 sm:flex-none h-14 px-6 rounded-2xl border-[#D2D2D7]/30 text-[#1D1D1F] font-black group shadow-sm hover:bg-[#F5F5F7]"
+                                   >
+                                      <MessageSquare className="w-5 h-5 mr-2 group-hover:text-blue-600 transition-colors" />
+                                      Trattativa
+                                   </Button>
+                                   <Button 
+                                     onClick={() => handleAcceptProposal(prop)}
+                                     disabled={!!acting}
+                                     className="flex-1 sm:flex-none h-14 px-10 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-sm group/btn shadow-xl shadow-blue-600/20"
+                                    >
+                                       {acting === prop.id ? 'Accettazione...' : 'Accetta Preventivo'}
+                                       <ArrowRight className="ml-2 w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
+                                    </Button>
+                                 </div>
                                )}
                              </div>
                           </div>
