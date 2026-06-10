@@ -26,7 +26,6 @@ interface JobDetailsSharedModalProps {
 export function JobDetailsSharedModal({ isOpen, onClose, job, user, onOpenProposal, onStartChat }: JobDetailsSharedModalProps) {
   const [proposal, setProposal] = useState<any | null>(null);
   const [loadingProposal, setLoadingProposal] = useState(true);
-  const [activeRightTab, setActiveRightTab] = useState<'qna' | 'chat'>('qna');
   const [proposalConversationId, setProposalConversationId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -178,65 +177,17 @@ export function JobDetailsSharedModal({ isOpen, onClose, job, user, onOpenPropos
            <div className="w-full md:w-1/2 bg-[#FBFBFD] p-6 md:p-10 border-l border-[#D2D2D7]/30 flex flex-col h-[85vh]">
              {proposal && proposal.status === 'accepted' ? (
                <div className="flex flex-col h-full overflow-hidden">
-                 {/* Right Panel Tabs */}
-                 <div className="flex items-center gap-3 bg-[#F5F5F7] p-1.5 rounded-2xl mb-6 self-start shrink-0">
-                    <Button 
-                      size="sm"
-                      onClick={() => setActiveRightTab('qna')}
-                      className={cn(
-                        "rounded-xl font-black text-xs h-9 px-4 shadow-none transition-all",
-                        activeRightTab === 'qna' ? "bg-white text-[#1D1D1F]" : "text-[#86868B] hover:text-[#1D1D1F] bg-transparent hover:bg-transparent"
-                      )}
-                    >
-                      Domande Pubbliche
-                    </Button>
-                    <Button 
-                      size="sm"
-                      onClick={() => setActiveRightTab('chat')}
-                      className={cn(
-                        "rounded-xl font-black text-xs h-9 px-9 px-4 shadow-none transition-all",
-                        activeRightTab === 'chat' ? "bg-white text-[#1D1D1F]" : "text-[#86868B] hover:text-[#1D1D1F] bg-transparent hover:bg-transparent"
-                      )}
-                    >
-                      Chat Privata
-                    </Button>
+                 <div className="mb-4 shrink-0">
+                   <h3 className="text-xl font-black text-[#1D1D1F] tracking-tight">Chat Privata</h3>
+                   <p className="text-xs font-bold text-[#86868B]">Parla direttamente con il cliente per accordarti sul lavoro.</p>
                  </div>
-                 
-                 <div className="flex-1 overflow-hidden">
-                   {activeRightTab === 'qna' ? (
-                     <div className="h-full flex flex-col">
-                       <div className="mb-4 shrink-0">
-                         <h3 className="text-xl font-black text-[#1D1D1F] tracking-tight">Domande Pubbliche</h3>
-                         <p className="text-xs font-bold text-[#86868B]">Chiedi dettagli generali. Tutti possono leggere queste risposte.</p>
-                       </div>
-                       <div className="flex-1 overflow-hidden">
-                          <JobQnA jobId={job.id} userId={user.id} userName={user.nome} role="worker" />
-                       </div>
-                     </div>
-                   ) : (
-                     <div className="h-full flex flex-col">
-                       <div className="mb-4 shrink-0">
-                         <h3 className="text-xl font-black text-[#1D1D1F] tracking-tight flex items-center justify-between">
-                           Trattativa con Cliente
-                           <span className={cn(
-                             "text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded",
-                             proposal.status === 'accepted' ? "bg-green-100 text-green-800" : "bg-blue-100 text-blue-800"
-                           )}>
-                             {proposal.status === 'accepted' ? 'Accettato' : 'In attesa'}
-                           </span>
-                         </h3>
-                         <p className="text-xs font-bold text-[#86868B]">Parla direttamente con il cliente per accordarti sul lavoro.</p>
-                       </div>
-                       {proposalConversationId && (
-                         <ChatPanel 
-                           user={user} 
-                           conversationId={proposalConversationId} 
-                           className="flex-1 h-auto"
-                         />
-                       )}
-                     </div>
-                   )}
-                 </div>
+                 {proposalConversationId && (
+                   <ChatPanel 
+                     user={user} 
+                     conversationId={proposalConversationId} 
+                     className="flex-1 h-auto"
+                   />
+                 )}
                </div>
              ) : (
                <div className="h-full flex flex-col overflow-hidden">

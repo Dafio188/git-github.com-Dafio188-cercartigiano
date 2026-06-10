@@ -27,7 +27,6 @@ import { JobProposal, Job, User, Conversation } from '../../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { JobQnA } from '../shared/JobQnA';
 import { BadgeList } from '../shared/BadgeList';
-import { ChatModal } from './ChatModal';
 import { ChatPanel } from '../shared/ChatPanel';
 
 interface ProposalsModalProps {
@@ -42,7 +41,6 @@ export function ProposalsModal({ isOpen, onClose, job, user }: ProposalsModalPro
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'proposals' | 'chats' | 'qna'>('proposals');
-  const [activeChatConvId, setActiveChatConvId] = useState<string | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConvId, setSelectedConvId] = useState<string | null>(null);
 
@@ -173,16 +171,18 @@ export function ProposalsModal({ isOpen, onClose, job, user }: ProposalsModalPro
                         Chat Privata
                       </Button>
                     )}
-                    <Button 
-                      onClick={() => setActiveTab('qna')}
-                      variant="ghost" 
-                      className={cn(
-                        "w-full justify-start h-12 rounded-xl font-black transition-all",
-                        activeTab === 'qna' ? "bg-white text-[#1D1D1F]" : "text-white/60 hover:text-white hover:bg-white/10"
-                      )}
-                    >
-                      Domande Pubbliche
-                    </Button>
+                    {conversations.length === 0 && (
+                      <Button 
+                        onClick={() => setActiveTab('qna')}
+                        variant="ghost" 
+                        className={cn(
+                          "w-full justify-start h-12 rounded-xl font-black transition-all",
+                          activeTab === 'qna' ? "bg-white text-[#1D1D1F]" : "text-white/60 hover:text-white hover:bg-white/10"
+                        )}
+                      >
+                        Domande Pubbliche
+                      </Button>
+                    )}
                  </div>
                 
                 <Button 
@@ -218,13 +218,15 @@ export function ProposalsModal({ isOpen, onClose, job, user }: ProposalsModalPro
                      Chat Privata
                    </Button>
                  )}
-                <Button 
-                  size="sm"
-                  onClick={() => setActiveTab('qna')}
-                  className={cn("rounded-full font-black text-[10px] uppercase", activeTab === 'qna' ? 'bg-white text-[#1D1D1F]' : 'bg-white/10 text-white')}
-                >
-                  Domande Pubbliche
-                </Button>
+                {conversations.length === 0 && (
+                   <Button 
+                     size="sm"
+                     onClick={() => setActiveTab('qna')}
+                     className={cn("rounded-full font-black text-[10px] uppercase", activeTab === 'qna' ? 'bg-white text-[#1D1D1F]' : 'bg-white/10 text-white')}
+                   >
+                     Domande Pubbliche
+                   </Button>
+                )}
              </div>
           </div>
 
@@ -510,7 +512,8 @@ export function ProposalsModal({ isOpen, onClose, job, user }: ProposalsModalPro
                                        });
                                      }
 
-                                     setActiveChatConvId(conversationId);
+                                     setSelectedConvId(conversationId);
+                                     setActiveTab('chats');
                                    }}
                                    variant="outline"
                                    className="flex-1 sm:flex-none h-14 px-6 rounded-2xl border-[#D2D2D7]/30 text-[#1D1D1F] font-black group shadow-sm hover:bg-[#F5F5F7]"
@@ -557,13 +560,7 @@ export function ProposalsModal({ isOpen, onClose, job, user }: ProposalsModalPro
           </div>
         </div>
       </DialogContent>
-      {activeChatConvId && (
-        <ChatModal 
-          user={user} 
-          conversationId={activeChatConvId} 
-          onClose={() => setActiveChatConvId(null)} 
-        />
-      )}
+      {/* Chat modal removed - chat is loaded inline */}
     </Dialog>
   );
 }
